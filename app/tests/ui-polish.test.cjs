@@ -11,38 +11,69 @@ const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
 const shell=fs.readFileSync(path.join(base,'shell.js'),'utf8');
 const gradle=fs.readFileSync(path.join(__dirname,'../build.gradle'),'utf8');
 
-function pureFunction(name,next){
+function pureFunction(name,extra={}){
     const start=ui.indexOf('    function '+name+'(');
     assert.ok(start!==-1,'Missing '+name);
-    const stop=ui.indexOf(next,start);
-    assert.ok(stop>start,'Missing end of '+name);
-    return vm.runInNewContext(ui.slice(start,stop)+'\n'+name,{});
+    const brace=ui.indexOf('{',start);
+    let depth=0,end=brace;
+    for(;end<ui.length;end++){
+        if(ui[end]==='{')depth++;
+        if(ui[end]==='}' && --depth===0)break;
+    }
+    assert.ok(end<ui.length,'Function '+name+' closes');
+    return vm.runInNewContext('('+ui.slice(start,end+1)+')',extra);
 }
-const eligibleSwipe=pureFunction('eligibleSwipe','    appMain.addEventListener(');
-const blockedSwipeTarget=pureFunction('blockedSwipeTarget','    function eligibleSwipe(');
-const selectedText=pureFunction('selectedText','    function syncTrigger(');
+const eligibleSwipe=pureFunction('eligibleSwipe');
+const blockedSwipeTarget=pureFunction('blockedSwipeTarget');
+const selectedText=pureFunction('selectedText');
+const atEdge=pureFunction('atEdge');
+const resistedOffset=pureFunction('resistedOffset',{viewportWidth:360,atEdge});
 
-test('Horizontal swipes must be deliberate and have limited vertical drift',()=>{
+test('Instagram-like swipes register with a short fast flick or a reasonable drag',()=>{
     assert.equal(eligibleSwipe(-118,14,280),true);
     assert.equal(eligibleSwipe(118,-22,320),true);
     assert.equal(eligibleSwipe(80,0,300),true);
-    assert.equal(eligibleSwipe(60,0,300),false);
+    assert.equal(eligibleSwipe(60,0,300),true);
+    assert.equal(eligibleSwipe(42,0,300),false);
+    assert.equal(eligibleSwipe(-30,0,80),true); // fast flick
+    assert.equal(eligibleSwipe(28,0,240),false); // slow, tiny gesture
     assert.equal(eligibleSwipe(150,150,250),false);
     assert.equal(eligibleSwipe(100,85,250),false);
-    assert.equal(eligibleSwipe(-200,20,850),false);
+    assert.equal(eligibleSwipe(-200,20,850),true); // slow but deliberate
     assert.equal(eligibleSwipe(-200,20,400),true);
 });
-test('Swipe exclusion covers all input/edit areas and bottom buttons remain available',()=>{
+test('First and last tab resist overscroll without moving the entire app',()=>{
+    assert.equal(atEdge(0,30),true);
+    assert.equal(atEdge(2,-30),true);
+    assert.equal(atEdge(1,30),false);
+    assert.equal(resistedOffset(0,200),22);
+    assert.equal(resistedOffset(2,-200),-22);
+    assert.equal(resistedOffset(1,-85),-85);
+    assert.equal(resistedOffset(1,85),85);
+    assert.equal(resistedOffset(1,500),360);
+});
+test('Page navigation uses independent scroll panels and one synchronized tab source',()=>{
     assert.equal(blockedSwipeTarget({closest:()=>false}),false);
     assert.equal(blockedSwipeTarget({closest:()=>true}),true);
     assert.equal(blockedSwipeTarget(null),true);
     assert.match(ui,/const pages=\['tracker','items','summary'\]/);
-    assert.match(ui,/window\.goToPage\(pages\[next\]\)/);
-    assert.match(ui,/!document\.getElementById\('modalShade'\)\.hidden/);
-    assert.match(ui,/!document\.getElementById\('drawerShade'\)\.hidden/);
-    assert.match(ui,/document\.getElementById\('introOverlay'\)\.classList\.contains\('is-visible'\)/);
-    assert.match(ui,/t\.clientX<24/);
+    assert.match(ui,/window\.goToPage\(pages\[target\]\)/);
+    assert.match(ui,/window\.syncSwipePages=page=>/);
+    assert.match(shell,/if\(typeof window\.syncSwipePages==='function'\)window\.syncSwipePages\(page\)/);
+    assert.match(ui,/appMain\.addEventListener\('touchmove'/);
     assert.match(ui,/appMain\.addEventListener\('touchcancel'/);
+    assert.match(ui,/event\.cancelable\)event\.preventDefault\(\)/);
+    assert.match(ui,/touch\.clientX<16/);
+    assert.match(ui,/introOverlay\.classList\.contains\('is-visible'\)/);
+    assert.match(ui,/new ResizeObserver/);
+    assert.match(ui,/window\.requestAnimationFrame\(renderDrag\)/);
+    assert.match(ui,/const SNAP_MS=175/);
+    assert.match(html,/body\.app-carousel-mode\{height:100vh;height:100dvh;overflow:hidden/);
+    assert.match(html,/body\.app-carousel-mode \.app-content>\.page\{/);
+    assert.match(html,/overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain/);
+    assert.match(html,/width:100%;height:100%;padding:18px 16px/);
+    assert.doesNotMatch(html,/\.page\.is-swipe-neighbor/);
+    assert.doesNotMatch(ui,/stageNeighbor\(/);
     assert.match(shell,/document\.querySelectorAll\('\.bottom-tabs button\[data-page\]'\)/);
 });
 test('Native select remains app form source while options use a custom dark picker',()=>{
@@ -79,10 +110,10 @@ test('Click feedback removes Android blue tap rectangle and respects reduced mot
     assert.match(ui,/document\.addEventListener\('pointercancel'/);
     assert.match(ui,/app-tap-pop/);
     assert.match(html,/@keyframes app-tap-pop/);
-    assert.match(html,/@keyframes app-page-from-right/);
-    assert.match(html,/@keyframes app-page-from-left/);
+    assert.match(html,/body\.app-carousel-mode/);
+    assert.match(ui,/setPositions\(index,0,true\)/);
     assert.match(html,/@media\(prefers-reduced-motion:reduce\)/);
-    assert.match(ui,/window\.goToPage\(pages\[next\]\)/);
+    assert.match(ui,/window\.goToPage\(pages\[target\]\)/);
 });
 test('New controls initialize after existing app/shell/onboarding; no signing or production identity changes',()=>{
     const scripts=['app.js','feedback-store.js','shell.js','onboarding.js','ui-polish.js'];
@@ -92,5 +123,14 @@ test('New controls initialize after existing app/shell/onboarding; no signing or
     assert.match(gradle,/versionCode 7/);
     assert.match(gradle,/versionName '1\.4\.2'/);
     assert.match(gradle,/applicationIdSuffix '\.community'/);
-    assert.match(gradle,/applicationIdSuffix '\.preview142ui'/);
+    assert.match(gradle,/applicationIdSuffix '\.preview142swipe'/);
+});
+
+test('Blue is the primary accent for picker, buttons, selection, progress and onboarding',()=>{
+    assert.match(html,/\.app-select-trigger\[aria-expanded="true"\]\{border-color:#60a5fa/);
+    assert.match(html,/\.app-picker-check\{color:#93c5fd/);
+    assert.match(html,/\.intro-cta\{[^}]*background:#60a5fa/);
+    assert.match(html,/progress\{[^}]*accent-color:#3b82f6/);
+    assert.match(html,/\.item input\[type=checkbox\]\{[^}]*accent-color:#3b82f6/);
+    assert.doesNotMatch(html,/#79f4aa|#6ee7b7|#34d399|#7ff1b3/);
 });
