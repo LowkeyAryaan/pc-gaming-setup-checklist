@@ -20,8 +20,8 @@ android {
         applicationId 'com.aryaan.pcsetup'
         minSdk 23
         targetSdk 35
-        versionCode 6
-        versionName '1.4.1'
+        versionCode 7
+        versionName '1.4.2'
         manifestPlaceholders = [appLabel: 'PC & Gaming Checklist']
     }
 
@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview141fix'
-                manifestPlaceholders = [appLabel: 'PC Checklist Fix Preview']
+                applicationIdSuffix '.preview142'
+                manifestPlaceholders = [appLabel: 'PC Checklist 1.4.2 Preview']
             }
         }
         release {
