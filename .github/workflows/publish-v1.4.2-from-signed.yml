@@ -1,0 +1,92 @@
+name: Publish signed v1.4.2 APK
+
+# One-time, release-only job: use the already verified protected signing run.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v1.4.2-from-signed.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify signed build completed successfully
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/39069290604" > /tmp/signed-run.json
+          test "$(jq -r '.conclusion' /tmp/signed-run.json)" = "success"
+          test "$(jq -r '.head_sha' /tmp/signed-run.json)" = "2b2c9f42b3083559d0bd167a02f53895e15c1efb"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/12114154174" > /tmp/signed-artifact.json
+          test "$(jq -r '.name' /tmp/signed-artifact.json)" = "PC-Gaming-Setup-Checklist-v1.4.2-SIGNED"
+          test "$(jq -r '.expired' /tmp/signed-artifact.json)" = "false"
+
+      - name: Download the signed APK, not the debug artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-asset"
+          gh run download 39069290604 \
+            --name PC-Gaming-Setup-Checklist-v1.4.2-SIGNED \
+            --dir "$RUNNER_TEMP/release-asset" --repo "$GITHUB_REPOSITORY"
+          test -s "$RUNNER_TEMP/release-asset/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk"
+          sha256sum "$RUNNER_TEMP/release-asset/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk"
+
+      - name: Install Android tools for independent APK verification
+        uses: android-actions/setup-android@v4
+
+      - name: Independently verify same signing certificate and newer package version
+        run: |
+          set -euo pipefail
+          sdkmanager "build-tools;35.0.0"
+          APK="$RUNNER_TEMP/release-asset/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/certificate.txt
+          grep -F 'Signer #1 certificate SHA-256 digest: 0d616f72d001f550f0bd09c1df378dc7bedd35aa8b3ebf3bb96dd8ce1600b66c' /tmp/certificate.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.aryaan.pcsetup.community' versionCode='7' versionName='1.4.2'"
+
+      - name: Publish v1.4.2 Release with direct APK asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v1.4.2 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Release v1.4.2 already exists; refusing to overwrite.' >&2
+            exit 1
+          fi
+          cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
+          ## PC Gaming Setup Checklist v1.4.2
+
+          Download **PC-Gaming-Setup-Checklist-v1.4.2-signed.apk** under Assets. This is a direct Android installer, not an Actions ZIP. Requires Android 6.0 or newer.
+
+          ### What's new
+          - Purchased item checkmarks remove prices from remaining category budgets and savings targets, but keep item details and purchase history.
+          - All Items, To Buy, and Purchased views with counts and purchased value.
+          - Dark custom category and settings pickers replace Android's native white dropdowns.
+          - Fast finger-following horizontal swipes between Tracker, Items, and Summary.
+          - Blue navigation, checkbox and selection accents; restored green money amounts and a prominent green welcome button.
+          - Smooth press animations without the default blue Android tap flash.
+
+          ### Install and update
+          This signed APK keeps the same app ID and signing certificate as the official v1.4.1 APK, allowing an update without uninstalling v1.4.1.
+
+          **Export your JSON backup before updating or clearing app data.** Presets, photos, and saved amounts live on your phone; there is no automatic cloud sync. Checkmarks do not deduct cash from the Saved or PC Contribution input fields; adjust those manually after spending.
+
+          Older preview builds install separately because they have different package IDs.
+
+          Created by Aryaan. Instagram: https://www.instagram.com/aryaan_creates/
+          Source code is MIT-licensed; artwork has separate terms.
+          NOTES
+          gh release create v1.4.2 "$RUNNER_TEMP/release-asset/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "PC Gaming Setup Checklist v1.4.2" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --latest
+          gh release view v1.4.2 --repo "$GITHUB_REPOSITORY" --json isDraft,tagName,assets
