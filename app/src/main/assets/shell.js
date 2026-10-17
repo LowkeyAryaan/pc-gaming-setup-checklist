@@ -23,6 +23,7 @@
     function goToPage(page,opts={}){
         if(!pages.includes(page))return;
         pages.forEach(p=>el('page-'+p).classList.toggle('is-current',p===page));
+        if(typeof window.syncSwipePages==='function')window.syncSwipePages(page);
         document.querySelectorAll('.bottom-tabs button[data-page]').forEach(b=>{
             const active=b.dataset.page===page;
             b.classList.toggle('is-active',active);
