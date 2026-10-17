@@ -247,7 +247,7 @@
         const travel=Math.min(72,Math.max(44,width*.13));
         // A quick, short flick or a deliberate drag both count. Movement
         // dominated by vertical scrolling never changes pages.
-        return Math.abs(dx)>Math.abs(dy)*1.12 &&
+        return Math.abs(dx)>Math.abs(dy)*1.25 &&
             (distance>=travel || (distance>=24 && distance/Math.max(1,elapsed)>.30));
     }
     function atEdge(index,dx){
@@ -347,7 +347,7 @@
                 cancelGesture();
                 return;
             }
-            if(Math.abs(dx)>=Math.abs(dy)*1.12)g.lock='horizontal';
+            if(Math.abs(dx)>=Math.abs(dy)*1.25)g.lock='horizontal';
         }
         if(g.lock!=='horizontal')return;
         // The carousel owns horizontal movement; the browser still owns
