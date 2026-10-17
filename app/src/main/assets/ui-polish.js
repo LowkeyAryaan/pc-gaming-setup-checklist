@@ -210,49 +210,224 @@
 
     const pages=['tracker','items','summary'];
     const appMain=document.querySelector('main.app-content');
-    let start=null;
-    const isOverlayOpen=()=>
-        !sheetShade.hidden ||
-        !document.getElementById('modalShade').hidden ||
-        !document.getElementById('drawerShade').hidden ||
-        document.getElementById('introOverlay').classList.contains('is-visible');
+    const reducedMotion=window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const navShade=document.getElementById('drawerShade');
+    const modalShade=document.getElementById('modalShade');
+    const introOverlay=document.getElementById('introOverlay');
+    let gesture=null;
+    let settling=false;
+    let settleTimer=null;
+
+    const isOverlayOpen=()=>!sheetShade.hidden ||
+        !modalShade.hidden || !navShade.hidden ||
+        introOverlay.classList.contains('is-visible');
 
     function currentPageIndex(){
         const active=appMain.querySelector('.page.is-current');
         return active ? pages.indexOf(active.id.replace(/^page-/,'')) : -1;
     }
+
     function blockedSwipeTarget(target){
+        // Only controls that need the finger gesture themselves are excluded.
+        // Do not block entire forms/cards: those cover most of the screen.
         return !target || !target.closest || !!target.closest(
-            'button,a,input,textarea,select,label,form,[contenteditable],'+
+            'button,a,input,textarea,select,label,[contenteditable],'+
             '.filters,.purchase-tabs,.currency-list,.itemtools,.app-picker-shade,'+
-            '[role="button"],[role="slider"]'
+            '[role="button"],[role="slider"],[data-no-swipe]'
         );
     }
-    function eligibleSwipe(dx,dy,elapsed){
-        return elapsed<850 && Math.abs(dx)>=75 &&
-            Math.abs(dx)>Math.abs(dy)*1.5 && Math.abs(dy)<100;
+
+    // A ~30px fast flick should work; deliberate longer drags work even
+    // if slow. Vertical scrolling is decided by direction lock, not time.
+    function eligibleSwipe(dx,dy,elapsed,width=360){
+        const dist=Math.abs(dx);
+        const duration=Math.max(1,elapsed);
+        const commitDist=Math.min(76,Math.max(58,width*.17));
+        return Math.abs(dx)>Math.abs(dy)*1.15 &&
+            (dist>=commitDist || (dist>=26 && dist/duration>=.27));
     }
+
+    function validPage(index){return index>=0 && index<pages.length;}
+
+    function clearGestureStyles(g){
+        if(!g)return;
+        const active=g.active;
+        if(active){
+            active.style.transform='';
+            active.style.transition='';
+            active.style.willChange='';
+        }
+        if(g.neighbor){
+            g.neighbor.classList.remove('is-swipe-neighbor');
+            g.neighbor.style.top='';
+            g.neighbor.style.transition='';
+            g.neighbor.style.transform='';
+            g.neighbor.style.willChange='';
+            g.neighbor.style.pointerEvents='';
+            g.neighbor.removeAttribute('aria-hidden');
+        }
+        appMain.classList.remove('is-swipe-gesture');
+    }
+
+    function cancelGesture(){
+        if(settleTimer!==null){
+            clearTimeout(settleTimer);
+            settleTimer=null;
+        }
+        clearGestureStyles(gesture);
+        gesture=null;
+        settling=false;
+    }
+
+    function neighborFor(g,dx){
+        if(!dx)return null;
+        const next=g.page+(dx<0?1:-1);
+        return validPage(next)?document.getElementById('page-'+pages[next]):null;
+    }
+
+    function stageNeighbor(g,next){
+        if(g.neighbor===next)return;
+        if(g.neighbor){
+            g.neighbor.classList.remove('is-swipe-neighbor');
+            g.neighbor.style.top='';
+            g.neighbor.style.transition='';
+            g.neighbor.style.transform='';
+            g.neighbor.style.willChange='';
+            g.neighbor.style.pointerEvents='';
+            g.neighbor.removeAttribute('aria-hidden');
+        }
+        g.neighbor=next;
+        if(!next)return;
+        next.classList.add('is-swipe-neighbor');
+        // When a tall page is scrolled, preview the NEXT page from its top
+        // at the current screen position, rather than a blank off-screen area.
+        next.style.top=Math.max(0,-appMain.getBoundingClientRect().top)+'px';
+        next.style.transition='none';
+        next.style.willChange='transform';
+        next.style.pointerEvents='none';
+        next.setAttribute('aria-hidden','true');
+    }
+
+    function paintGesture(g,dx){
+        if(!g || g.page!==currentPageIndex())return;
+        if(reducedMotion)return;
+        const next=neighborFor(g,dx);
+        stageNeighbor(g,next);
+        const width=g.width;
+        const clamped=Math.max(-width,Math.min(width,dx));
+        const travel=next?clamped:Math.max(-34,Math.min(34,clamped*.18));
+        appMain.classList.add('is-swipe-gesture');
+        g.active.style.willChange='transform';
+        g.active.style.transition='none';
+        g.active.style.transform='translate3d('+travel+'px,0,0)';
+        if(next){
+            const start=clamped<0?width:-width;
+            next.style.transform='translate3d('+(start+travel)+'px,0,0)';
+        }
+    }
+
+    function finishGesture(g,commit,dx){
+        const nextIndex=g.page+(dx<0?1:-1);
+        if(!commit || !validPage(nextIndex)){
+            if(g.lock==='horizontal' && !reducedMotion){
+                g.active.style.transition='transform 125ms cubic-bezier(.2,.8,.2,1)';
+                g.active.style.transform='translate3d(0,0,0)';
+                if(g.neighbor){
+                    g.neighbor.style.transition='transform 125ms cubic-bezier(.2,.8,.2,1)';
+                    g.neighbor.style.transform=
+                        'translate3d('+(dx<0?g.width:-g.width)+'px,0,0)';
+                }
+                settling=true;
+                settleTimer=window.setTimeout(cancelGesture,130);
+            }else cancelGesture();
+            return;
+        }
+        if(reducedMotion){
+            if(typeof window.goToPage==='function')window.goToPage(pages[nextIndex]);
+            cancelGesture();
+            return;
+        }
+        // Short 155ms snap instead of a slow auto-scroll/page fade.
+        const direction=dx<0?-1:1;
+        if(!g.neighbor)stageNeighbor(g,neighborFor(g,dx));
+        settling=true;
+        appMain.classList.add('is-swipe-gesture');
+        g.active.style.transition='transform 155ms cubic-bezier(.17,.83,.24,1)';
+        g.active.style.transform='translate3d('+(direction*g.width)+'px,0,0)';
+        if(g.neighbor){
+            g.neighbor.style.transition='transform 155ms cubic-bezier(.17,.83,.24,1)';
+            g.neighbor.style.transform='translate3d(0,0,0)';
+        }
+        settleTimer=window.setTimeout(()=>{
+            // Don't override a bottom-tab or system-back navigation mid-swipe.
+            if(currentPageIndex()===g.page && typeof window.goToPage==='function')
+                window.goToPage(pages[nextIndex]);
+            cancelGesture();
+        },160);
+    }
+
     appMain.addEventListener('touchstart',event=>{
-        start=null;
-        if(event.touches.length!==1 || isOverlayOpen() || blockedSwipeTarget(event.target))return;
+        if(settling || event.touches.length!==1 ||
+            isOverlayOpen() || blockedSwipeTarget(event.target))return;
         const t=event.touches[0];
-        // Leave OS back gestures at the physical screen edges untouched.
-        if(t.clientX<24 || t.clientX>window.innerWidth-24)return;
-        start={id:t.identifier,x:t.clientX,y:t.clientY,time:Date.now(),page:currentPageIndex()};
+        // Android owns gestures beginning at the left/right bezel.
+        if(t.clientX<18 || t.clientX>window.innerWidth-18)return;
+        const page=currentPageIndex();
+        if(!validPage(page))return;
+        const active=document.getElementById('page-'+pages[page]);
+        gesture={
+            id:t.identifier,
+            x:t.clientX,
+            y:t.clientY,
+            lastX:t.clientX,
+            lastY:t.clientY,
+            time:Date.now(),
+            page,active,
+            width:Math.max(1,active.getBoundingClientRect().width),
+            lock:null,
+            neighbor:null
+        };
     },{passive:true});
+
+    appMain.addEventListener('touchmove',event=>{
+        const g=gesture;
+        if(!g || settling || isOverlayOpen())return;
+        if(event.touches.length!==1){cancelGesture();return;}
+        const t=event.touches[0];
+        if(t.identifier!==g.id)return;
+        const dx=t.clientX-g.x,dy=t.clientY-g.y;
+        g.lastX=t.clientX;
+        g.lastY=t.clientY;
+        if(g.lock===null && (Math.abs(dx)>8 || Math.abs(dy)>8)){
+            if(Math.abs(dy)>Math.abs(dx)*1.1){
+                // Give the entire gesture to Android's native vertical scroll.
+                cancelGesture();
+                return;
+            }
+            if(Math.abs(dx)>Math.abs(dy)*1.15)g.lock='horizontal';
+        }
+        if(g.lock!=='horizontal')return;
+        // Once horizontally locked, this is a page drag, not a vertical scroll.
+        if(event.cancelable)event.preventDefault();
+        paintGesture(g,dx);
+    },{passive:false});
+
     appMain.addEventListener('touchend',event=>{
-        if(!start || event.changedTouches.length!==1 || isOverlayOpen()){start=null;return;}
-        const candidate=start;
-        start=null;
-        const t=event.changedTouches[0];
-        if(t.identifier!==candidate.id || currentPageIndex()!==candidate.page)return;
-        const dx=t.clientX-candidate.x,dy=t.clientY-candidate.y;
-        if(!eligibleSwipe(dx,dy,Date.now()-candidate.time))return;
-        const next=candidate.page+(dx<0?1:-1);
-        if(next<0 || next>=pages.length || typeof window.goToPage!=='function')return;
-        appMain.setAttribute('data-swipe-direction',dx<0?'left':'right');
-        window.goToPage(pages[next]);
-        window.setTimeout(()=>appMain.removeAttribute('data-swipe-direction'),260);
+        const g=gesture;
+        if(!g || settling || isOverlayOpen())return;
+        const t=Array.from(event.changedTouches).find(touch=>touch.identifier===g.id);
+        if(!t)return;
+        const dx=t.clientX-g.x,dy=t.clientY-g.y;
+        // touchend can arrive without a move event for very fast flicks.
+        const commit=eligibleSwipe(dx,dy,Date.now()-g.time,g.width);
+        finishGesture(g,commit,dx);
     },{passive:true});
-    appMain.addEventListener('touchcancel',()=>{start=null;},{passive:true});
+
+    appMain.addEventListener('touchcancel',cancelGesture,{passive:true});
+    // A tab click can interrupt a visual swipe; don't reroute afterward.
+    document.querySelectorAll('.bottom-tabs button[data-page]').forEach(button=>
+        button.addEventListener('click',cancelGesture,true)
+    );
+    window.addEventListener('popstate',cancelGesture,true);
 })();
