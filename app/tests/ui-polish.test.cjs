@@ -59,6 +59,10 @@ test('Page navigation uses independent scroll panels and one synchronized tab so
     assert.match(ui,/const pages=\['tracker','items','summary'\]/);
     assert.match(ui,/window\.goToPage\(pages\[target\]\)/);
     assert.match(ui,/window\.syncSwipePages=page=>/);
+    assert.match(ui,/updatePageAccessibility\(index\)/);
+    assert.match(ui,/page\.inert=!visible/);
+    assert.match(ui,/page\.setAttribute\('aria-hidden','true'\)/);
+    assert.match(ui,/page\.removeAttribute\('aria-hidden'\)/);
     assert.match(shell,/if\(typeof window\.syncSwipePages==='function'\)window\.syncSwipePages\(page\)/);
     assert.match(ui,/appMain\.addEventListener\('touchmove'/);
     assert.match(ui,/appMain\.addEventListener\('touchcancel'/);
