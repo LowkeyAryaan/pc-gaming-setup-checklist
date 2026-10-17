@@ -261,6 +261,8 @@
         if(g.neighbor){
             g.neighbor.classList.remove('is-swipe-neighbor');
             g.neighbor.style.top='';
+            g.neighbor.style.left='';
+            g.neighbor.style.width='';
             g.neighbor.style.transition='';
             g.neighbor.style.transform='';
             g.neighbor.style.willChange='';
@@ -291,6 +293,8 @@
         if(g.neighbor){
             g.neighbor.classList.remove('is-swipe-neighbor');
             g.neighbor.style.top='';
+            g.neighbor.style.left='';
+            g.neighbor.style.width='';
             g.neighbor.style.transition='';
             g.neighbor.style.transform='';
             g.neighbor.style.willChange='';
@@ -303,6 +307,8 @@
         // When a tall page is scrolled, preview the NEXT page from its top
         // at the current screen position, rather than a blank off-screen area.
         next.style.top=Math.max(0,-appMain.getBoundingClientRect().top)+'px';
+        next.style.left=g.active.offsetLeft+'px';
+        next.style.width=g.width+'px';
         next.style.transition='none';
         next.style.willChange='transform';
         next.style.pointerEvents='none';
@@ -350,7 +356,16 @@
         }
         // Short 155ms snap instead of a slow auto-scroll/page fade.
         const direction=dx<0?-1:1;
-        if(!g.neighbor)stageNeighbor(g,neighborFor(g,dx));
+        if(!g.neighbor){
+            stageNeighbor(g,neighborFor(g,dx));
+            // A fast flick sometimes ends before touchmove: paint the first
+            // position before animating so the next page does not pop in.
+            if(g.neighbor){
+                g.neighbor.style.transform='translate3d('+
+                    (direction<0?g.width:-g.width)+'px,0,0)';
+                void g.neighbor.offsetWidth;
+            }
+        }
         settling=true;
         appMain.classList.add('is-swipe-gesture');
         g.active.style.transition='transform 155ms cubic-bezier(.17,.83,.24,1)';
