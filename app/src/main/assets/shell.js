@@ -297,8 +297,8 @@
 
     el('termsButton').onclick=()=>openModal('Terms & Conditions',el('introTermsCopy').innerHTML,[{label:'Close',primary:true,onClick:closeModal}]);
     el('aboutButton').onclick=()=>openModal('About',
-        '<p><strong>My PC & Gaming Setup Checklist · v1.4.1</strong></p>'+
-        '<p>Create separate setup presets, organize PC products, save photos, track contributions and watch your savings goal update automatically.</p>'+
+        '<p><strong>My PC & Gaming Setup Checklist · v1.4.2</strong></p>'+
+        '<p>Create separate setup presets, organize PC products, save photos, track unpurchased items, and watch your remaining savings goal decrease when items are marked purchased.</p>'+
         '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p><p>Welcome background photo sourced from Unsplash.</p>',
         [{label:'Close',primary:true,onClick:closeModal}]);
     function openCurrencyPicker(){
