@@ -1,0 +1,17 @@
+name: Start protected v1.4.2 signing workflow
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/start-v1.4.2-signing.yml'
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Launch existing protected signing workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-signed-release.yml --ref main
