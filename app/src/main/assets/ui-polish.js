@@ -235,6 +235,14 @@
         const active=appMain.querySelector('.page.is-current');
         return active ? pages.indexOf(active.id.slice(5)) : -1;
     }
+    function updatePageAccessibility(index){
+        pageNodes.forEach((page,i)=>{
+            const visible=i===index;
+            page.inert=!visible;
+            if(visible)page.removeAttribute('aria-hidden');
+            else page.setAttribute('aria-hidden','true');
+        });
+    }
     function blockedSwipeTarget(target){
         return !target || !target.closest || !!target.closest(
             'button,a,input,textarea,select,label,[contenteditable],'+
@@ -301,10 +309,12 @@
         cancelGesture();
         const index=pages.indexOf(page);
         if(index<0)return;
+        updatePageAccessibility(index);
         setPositions(index,0,true);
     };
     document.body.classList.add('app-carousel-mode');
     updateViewport();
+    updatePageAccessibility(currentPageIndex());
     window.addEventListener('resize',updateViewport,{passive:true});
     if(window.visualViewport)
         window.visualViewport.addEventListener('resize',updateViewport,{passive:true});
