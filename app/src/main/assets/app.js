@@ -17,6 +17,7 @@ const fmt = n => {
 // previously persisted per-item overrides, not from bundled personal data.
 const originalItems = [];
 const SORT_ORDERS=['default','name','price-asc','price-desc'];
+const PURCHASE_VIEWS=['all','to-buy','purchased'];
 const STORAGE_KEY = 'pc-gaming-setup-app-v2';
 const PRESET_INDEX_KEY = 'pc-gaming-presets-v3';
 function getPresetIndex() {
@@ -62,6 +63,7 @@ function setPresetCurrency(code) {
 }
 let blankPreset = !!savedState.blankPreset;
 let sortOrder=SORT_ORDERS.includes(savedState.sortOrder)?savedState.sortOrder:'default';
+let purchaseView=PURCHASE_VIEWS.includes(savedState.purchaseView)?savedState.purchaseView:'all';
 let showProductImages=savedState.showProductImages!==false;
 const checked = (savedState.checked && typeof savedState.checked==='object') ? savedState.checked : {};
 const notes = (savedState.notes && typeof savedState.notes==='object') ? savedState.notes : {};
@@ -252,7 +254,7 @@ function shrinkImage(file) {
 function persist() {
     const state={
         checked,notes,blankPreset,currency:currentCurrency,deletedIds:[...deletedIds],
-        sortOrder,showProductImages,
+        sortOrder,purchaseView,showProductImages,
         overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url}])),
         customItems:items.filter(i=>!originalIds.has(i.id)),
         categories:customCategories,
@@ -358,19 +360,50 @@ async function removeItem(id) {
     deletedIds.add(id);
     delete checked[id];delete notes[id];
 }
+function renderPurchaseViews(){
+    const root=$('purchaseStatusFilters');
+    if(!root)return;
+    root.replaceChildren();
+    const choices=[
+        ['all','All items'],
+        ['to-buy','To buy'],
+        ['purchased','Purchased']
+    ];
+    choices.forEach(([value,label])=>{
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent=label;
+        button.className='purchase-filter'+(purchaseView===value?' active':'');
+        button.setAttribute('aria-pressed',purchaseView===value?'true':'false');
+        button.onclick=()=>{
+            if(purchaseView===value)return;
+            purchaseView=value;
+            render();
+            persist();
+        };
+        root.append(button);
+    });
+}
 function render() {
     itemsEl.innerHTML='';
+    renderPurchaseViews();
     const visibleItems=[...items];
     if(sortOrder==='name')visibleItems.sort((a,b)=>a.name.localeCompare(b.name));
     else if(sortOrder==='price-asc')visibleItems.sort((a,b)=>a.price-b.price);
     else if(sortOrder==='price-desc')visibleItems.sort((a,b)=>b.price-a.price);
     visibleItems.forEach(item=>{
+        const purchased=!!checked[item.id];
         if(filter!=='All' && item.cat!==filter)return;
-        if(categoryGroup(item.cat)==='future' && !future.checked)return;
-        const card=document.createElement('section');card.className='item';
+        // Purchased future items remain visible in purchase history even when
+        // the optional future-purchases list is hidden for regular browsing.
+        if(categoryGroup(item.cat)==='future' && !future.checked && purchaseView!=='purchased')return;
+        if(purchaseView==='purchased'&&!purchased)return;
+        if(purchaseView==='to-buy'&&purchased)return;
+        const card=document.createElement('section');
+        card.className='item'+(purchased?' is-purchased':'');
         const head=document.createElement('div');head.className='itemhead';
         const checkbox=document.createElement('input');
-        checkbox.type='checkbox';checkbox.checked=!!checked[item.id];
+        checkbox.type='checkbox';checkbox.checked=purchased;
         checkbox.setAttribute('aria-label','Mark '+item.name+' as purchased');
         const content=document.createElement('div');content.style.flex='1';
         const title=document.createElement('div');
@@ -378,10 +411,16 @@ function render() {
         const tag=document.createElement('div');tag.className='tag';
         tag.textContent=categoryGroup(item.cat)==='future'?'Future purchase · '+item.cat:item.cat;
         const price=document.createElement('div');price.className='price';price.textContent=fmt(item.price);
-        content.append(title,tag,price);head.append(checkbox,content);card.append(head);
+        const state=document.createElement('span');
+        state.className='purchase-status'+(purchased?' purchased':' to-buy');
+        state.textContent=purchased?'Purchased':'To buy';
+        content.append(title,tag,price,state);head.append(checkbox,content);card.append(head);
         checkbox.onchange=()=>{
             checked[item.id]=checkbox.checked;
-            title.classList.toggle('strike',checkbox.checked);renderStats();persist();
+            // Recompute all budget totals and move the product between the
+            // To buy / Purchased views without deleting its price or history.
+            render();
+            persist();
         };
         const actions=document.createElement('div');actions.className='itemtools';
         const edit=document.createElement('button');edit.type='button';
@@ -412,8 +451,14 @@ function pcRemaining(pcTotal,contribution){
     return Math.max(0,safePrice(pcTotal)-safePrice(contribution));
 }
 function totals() {
-    const sum=fn=>items.filter(fn).reduce((a,i)=>a+safePrice(i.price),0);
+    // A checkmark means the purchase is complete: its price is retained
+    // in product history, but not included in the remaining spend or savings.
+    const unpurchased=items.filter(i=>!checked[i.id]);
+    const purchased=items.filter(i=>!!checked[i.id]);
+    const sum=fn=>unpurchased.filter(fn).reduce((a,i)=>a+safePrice(i.price),0);
     const pc=sum(i=>categoryGroup(i.cat)==='pc');
+    // The PC contribution is the amount still available for future PC
+    // purchases; users must adjust it if they spend that money.
     const share=pcRemaining(pc,contributed);
     const main=sum(i=>i.cat==='Monitor');
     const desk=sum(i=>i.cat==='Desk'||i.cat==='Accessory');
@@ -422,20 +467,29 @@ function totals() {
     const futureTotal=sum(i=>categoryGroup(i.cat)==='future');
     const currentGoal=share+main+desk+chair+other;
     const full=pc+main+desk+chair+other+futureTotal;
-    return {pc,contributed,share,main,desk,chair,other,futureTotal,currentGoal,full};
+    const purchasedTotal=purchased.reduce((a,i)=>a+safePrice(i.price),0);
+    const currentItems=items.filter(i=>categoryGroup(i.cat)!=='future');
+    const purchasedCurrent=currentItems.filter(i=>!!checked[i.id]).length;
+    const remainingCurrent=currentItems.length-purchasedCurrent;
+    return {pc,contributed,share,main,desk,chair,other,futureTotal,
+        currentGoal,full,purchasedTotal,purchasedCount:purchased.length,
+        remainingCount:unpurchased.length,purchasedCurrent,remainingCurrent};
 }
 function renderStats() {
     if($('newPriceCurrency'))$('newPriceCurrency').textContent=currentCurrency;
     if($('contributedCurrency'))$('contributedCurrency').textContent=currentCurrency;
     const t=totals();
     $('pcTotal').textContent=fmt(t.pc);$('dadContribution').textContent=fmt(t.contributed);
+    $('purchasedTotal').textContent=fmt(t.purchasedTotal);
+    $('purchasedCount').textContent=t.purchasedCount+' item'+(t.purchasedCount===1?'':'s');
+    $('toBuyCount').textContent=t.remainingCount+' item'+(t.remainingCount===1?'':'s');
     const note=$('contributionMessage');
     if(note){
         note.textContent=t.pc===0
-            ? 'Add items in the PC category to calculate the remaining PC cost. Your entered contribution is saved.'
+            ? 'No PC parts left to buy. Contribution remains unchanged; adjust it if any funds were spent.'
             : t.contributed>t.pc
-                ? 'Contribution is higher than your PC parts cost. PC amount left is zero; the extra is not counted toward other setup items.'
-                : 'PC amount left updates automatically. Only products in the PC category count toward this calculation.';
+                ? 'Available contribution exceeds your remaining PC cost. The extra is not counted toward other setup products.'
+                : 'Only unchecked PC parts count toward your remaining PC cost. Keep this amount equal to your unspent PC funds.';
     }
     $('pcShare').textContent=fmt(t.share);$('pcLeft').textContent=fmt(t.share);
     $('mainTotal').textContent=fmt(t.main);$('deskTotal').textContent=fmt(t.desk);
@@ -449,8 +503,7 @@ function renderStats() {
     $('progress').value=Math.min(amount,t.currentGoal);
     $('percent').textContent=pct.toFixed(1)+'% saved';
     $('remaining').textContent=fmt(remaining)+' left';
-    const currentItems=items.filter(i=>categoryGroup(i.cat)!=='future');
-    $('count').textContent=currentItems.filter(i=>checked[i.id]).length+' / '+currentItems.length+' current-goal items checked off';
+    $('count').textContent=t.purchasedCurrent+' purchased · '+t.remainingCurrent+' left to buy (current setup)';
 }
 restoreControls();
 renderFilters();
@@ -508,8 +561,9 @@ $('contributed').addEventListener('change',()=>{
     syncPCContribution();
 });
 function copyText() {
-    return 'MY PC & GAMING SETUP CHECKLIST\nContributed/Saved toward PC: '+fmt(contributed)+
-        '\nPC left to save: '+fmt(totals().share)+'\nSavings target: '+fmt(totals().currentGoal)+'\n\n'+
+    return 'MY PC & GAMING SETUP CHECKLIST\nAvailable PC contribution: '+fmt(contributed)+
+        '\nPC left to save: '+fmt(totals().share)+'\nRemaining savings target: '+fmt(totals().currentGoal)+
+        '\nAlready purchased: '+fmt(totals().purchasedTotal)+'\nStill to buy: '+fmt(totals().full)+'\n\n'+
         items.map(i=>(checked[i.id]?'[x] ':'[ ] ')+i.name+' — '+fmt(i.price)+
             (i.url?'\nListing: '+i.url:'')+(notes[i.id]?'\nNotes: '+notes[i.id]:'')).join('\n')+
         '\n\nSaved toward remaining goal: '+fmt(safePrice($('saved').value));
@@ -528,6 +582,7 @@ $('reset').onclick=()=>{
     Object.keys(checked).forEach(id=>delete checked[id]);
     Object.keys(notes).forEach(id=>delete notes[id]);
     $('saved').value='0';
+    purchaseView='all';
     render();persist();
 };
 $('export').onclick=async()=>{
@@ -538,7 +593,7 @@ $('export').onclick=async()=>{
             const photo=await getPhoto(item.id);
             if (photo && photo.blob) photos[item.id]=await blobToData(photo.blob);
         }
-        const data={version:4,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,showProductImages,
+        const data={version:4,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
             deletedIds:[...deletedIds],blankPreset,contributed,saved:$('saved').value,future:future.checked,filter,photos};
         const backupText=JSON.stringify(data,null,2);
         if(window.AndroidBackup && typeof window.AndroidBackup.saveJson==='function') {
@@ -588,6 +643,7 @@ $('importFile').onchange=async e=>{
         Object.assign(notes,data.notes||{});
         currentCurrency=isCurrency(data.currency)?data.currency:'PKR';
         sortOrder=SORT_ORDERS.includes(data.sortOrder)?data.sortOrder:'default';
+        purchaseView=PURCHASE_VIEWS.includes(data.purchaseView)?data.purchaseView:'all';
         showProductImages=data.showProductImages!==false;
         contributionEdited=data.contributed!==undefined;
         contributed=initialContribution({contributed:data.contributed,contributionEdited,blankPreset,customItems:restored});
@@ -623,6 +679,7 @@ function loadPresetIntoApp(id) {
     deletedIds.clear();
     if(Array.isArray(state.deletedIds))state.deletedIds.forEach(id=>deletedIds.add(String(id)));
     sortOrder=SORT_ORDERS.includes(state.sortOrder)?state.sortOrder:'default';
+    purchaseView=PURCHASE_VIEWS.includes(state.purchaseView)?state.purchaseView:'all';
     showProductImages=state.showProductImages!==false;
     items.splice(0,items.length);
     customCategories.splice(0);
@@ -650,7 +707,7 @@ function loadPresetIntoApp(id) {
 function createEmptyPreset(id) {
     localStorage.setItem(presetStateKey(id),JSON.stringify({
         blankPreset:true,checked:{},notes:{},overrides:{},customItems:[],categories:[],deletedIds:[],currency:currentCurrency,
-        sortOrder:'default',showProductImages:true,
+        sortOrder:'default',purchaseView:'all',showProductImages:true,
         contributed:0,contributionEdited:false,saved:'0',future:false,filter:'All'
     }));
 }
