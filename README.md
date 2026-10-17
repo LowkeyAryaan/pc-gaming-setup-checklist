@@ -8,21 +8,24 @@ A free, offline-first Android checklist and savings tracker for building a custo
 
 **[Download PC Gaming Setup Checklist v1.4.1 — signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v1.4.1/PC-Gaming-Setup-Checklist-v1.4.1-signed.apk)**
 
-This is a **direct `.apk` installer**, not a ZIP archive. The link becomes available once the v1.4.1 draft release is published. Android may ask you to allow installations from your browser or file manager. Only install the APK from this project's official GitHub Release.
+This is a **direct `.apk` installer**, not a ZIP archive. This v1.4.1 APK is the current stable public release. Any newer version in development is only for testing until its signed release is published. Android may ask you to allow installations from your browser or file manager. Only install the APK from this project's official GitHub Release.
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
 ## Features
 
 - **Multiple presets:** separate PC and gaming setups, each with its own products, budgets, categories and photos.
-- **Savings dashboard:** plan component costs, contribution amounts, target savings and remaining balance.
-- **Custom products:** add, edit, delete, check off or categorize your components; save links, prices, photos and notes.
+- **Savings dashboard:** track contributions, purchase checkmarks and the live cost of items still to buy. Checked items leave the remaining savings target without losing their price history.
+- **Custom products:** add, edit, delete, mark purchased or categorize your components; save links, prices, photos and notes. Filter your Items list by All items, To buy or Purchased.
 - **Custom categories:** choose whether each category counts toward current PC cost, setup cost or future purchases.
 - **Worldwide currency display:** select ISO-supported currencies separately per preset; prices remain in manually entered units. **Changing currency never performs FX conversion.**
 - **Chrome shopping links:** shop externally and return to the checklist without resetting progress.
 - **Local backups:** export or import JSON backups, including images.
 - **Onboarding and welcome:** first run asks users to select their currency and accept terms; subsequent launches can show a welcome screen.
 - **Saved feedback comments:** write, save, edit, copy or delete comments in the Feedback tab. Comments are stored on this device across restarts. Email them directly to aryaanmikaeel@gmail.com using the user’s email application; users must explicitly tap Send.
+
+
+**Purchase tracking in v1.4.2 (currently in testing):** Checking a product removes its price from current budget categories and the remaining savings target, but keeps the product in your Purchased list and totals. Unchecking restores the pending cost. Future purchases never enter the current savings target. Your Saved and PC Contribution inputs represent money still available; adjust them manually if a purchase used those funds. Existing v1.4.1 data and backups are supported.
 
 ## Getting started
 
