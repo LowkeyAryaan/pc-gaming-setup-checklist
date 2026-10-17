@@ -26,7 +26,7 @@ function pureFunction(name,extra={}){
 const eligibleSwipe=pureFunction('eligibleSwipe');
 const blockedSwipeTarget=pureFunction('blockedSwipeTarget');
 const selectedText=pureFunction('selectedText');
-const atEdge=pureFunction('atEdge');
+const atEdge=pureFunction('atEdge',{pages:['tracker','items','summary']});
 const resistedOffset=pureFunction('resistedOffset',{viewportWidth:360,atEdge});
 
 test('Instagram-like swipes register with a short fast flick or a reasonable drag',()=>{
