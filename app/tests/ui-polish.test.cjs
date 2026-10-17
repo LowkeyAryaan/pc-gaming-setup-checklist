@@ -10,6 +10,8 @@ const ui=fs.readFileSync(path.join(base,'ui-polish.js'),'utf8');
 const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
 const shell=fs.readFileSync(path.join(base,'shell.js'),'utf8');
 const gradle=fs.readFileSync(path.join(__dirname,'../build.gradle'),'utf8');
+const theme=fs.readFileSync(path.join(base,'theme-finishing.css'),'utf8');
+const onboarding=fs.readFileSync(path.join(base,'onboarding.js'),'utf8');
 
 function pureFunction(name,extra={}){
     const start=ui.indexOf('    function '+name+'(');
@@ -137,4 +139,16 @@ test('Blue is the primary accent for picker, buttons, selection, progress and on
     assert.match(html,/progress\{[^}]*accent-color:#3b82f6/);
     assert.match(html,/\.item input\[type=checkbox\]\{[^}]*accent-color:#3b82f6/);
     assert.doesNotMatch(html,/#79f4aa|#6ee7b7|#34d399|#7ff1b3/);
+});
+
+test('Money remains green and welcome action stands out against the blue theme',()=>{
+    assert.match(theme,/#6ee7b7/);
+    assert.match(theme,/#savedLabel/);
+    assert.match(theme,/#purchasedTotal/);
+    assert.match(theme,/#fullTotal/);
+    assert.match(theme,/\.intro-stage\.welcome \.intro-cta/);
+    assert.match(theme,/linear-gradient\(115deg/);
+    assert.match(theme,/box-shadow/);
+    assert.match(onboarding,/finishTheme\.href='theme-finishing\.css'/);
+    assert.match(html,/\.app-picker-check\{color:#93c5fd/);
 });
