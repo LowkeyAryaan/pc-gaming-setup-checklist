@@ -4,6 +4,14 @@ A free, offline-first Android checklist and savings tracker for building a custo
 
 **Made by Aryaan** · [@aryaan_creates on Instagram](https://www.instagram.com/aryaan_creates/)
 
+## Download for Android
+
+**[Download PC Gaming Setup Checklist v1.4.1 — signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v1.4.1/PC-Gaming-Setup-Checklist-v1.4.1-signed.apk)**
+
+This is a **direct `.apk` installer**, not a ZIP archive. The link becomes available once the v1.4.1 draft release is published. Android may ask you to allow installations from your browser or file manager. Only install the APK from this project's official GitHub Release.
+
+**Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
+
 ## Features
 
 - **Multiple presets:** separate PC and gaming setups, each with its own products, budgets, categories and photos.
@@ -18,7 +26,7 @@ A free, offline-first Android checklist and savings tracker for building a custo
 
 ## Getting started
 
-Install the official **signed release APK** from the new repository's GitHub **Releases** page after the maintainer publishes it. New installations begin with an **empty Preset #1** so you can build your own list.
+Install the official **signed release APK** using the direct link above or from the repository's GitHub **Releases** page. New installations begin with an **empty Preset #1** so you can build your own list.
 
 All checklist data lives on your Android device in the app's WebView storage / IndexedDB. There is **no backend account and no automatic cloud sync**. Always export your presets before uninstalling, replacing your phone or clearing app storage.
 
