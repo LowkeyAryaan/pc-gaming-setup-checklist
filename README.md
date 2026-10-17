@@ -1,2 +1,59 @@
-# pc-gaming-setup-checklist
-A free and open-source PC &amp; Gaming Setup Checklist for Android.
+# PC Gaming Setup Checklist
+
+A free, offline-first Android checklist and savings tracker for building a custom PC or gaming setup.
+
+**Made by Aryaan** · [@aryaan_creates on Instagram](https://www.instagram.com/aryaan_creates/)
+
+## Features
+
+- **Multiple presets:** separate PC and gaming setups, each with its own products, budgets, categories and photos.
+- **Savings dashboard:** plan component costs, contribution amounts, target savings and remaining balance.
+- **Custom products:** add, edit, delete, check off or categorize your components; save links, prices, photos and notes.
+- **Custom categories:** choose whether each category counts toward current PC cost, setup cost or future purchases.
+- **Worldwide currency display:** select ISO-supported currencies separately per preset; prices remain in manually entered units. **Changing currency never performs FX conversion.**
+- **Chrome shopping links:** shop externally and return to the checklist without resetting progress.
+- **Local backups:** export or import JSON backups, including images.
+- **Onboarding and welcome:** first run asks users to select their currency and accept terms; subsequent launches can show a welcome screen.
+- **Saved feedback comments:** write, save, edit, copy or delete comments in the Feedback tab. Comments are stored on this device across restarts. Email them directly to aryaanmikaeel@gmail.com using the user’s email application; users must explicitly tap Send.
+
+## Getting started
+
+Install the official **signed release APK** from the new repository's GitHub **Releases** page after the maintainer publishes it. New installations begin with an **empty Preset #1** so you can build your own list.
+
+All checklist data lives on your Android device in the app's WebView storage / IndexedDB. There is **no backend account and no automatic cloud sync**. Always export your presets before uninstalling, replacing your phone or clearing app storage.
+
+## Build from source
+
+The Android project wraps HTML, CSS and JavaScript in a small Java `WebView` host. It uses Android Gradle Plugin **8.6.1**, Gradle **8.7**, JDK **17** and Android SDK **35**.
+
+1. Open the project in Android Studio, sync and build a debug APK; or
+2. Use **Actions → Build Android APK** for a CI debug/testing build.
+
+The CI workflows download the welcome-screen artwork during the build into `app/src/main/assets/welcome.jpg`. For offline local development, place a legitimately licensed image at that path, or use the existing dark background fallback.
+
+**Important:** Debug APKs use temporary test signing. They are **not** the installable public release. The signed community release uses the stable package ID **`com.aryaan.pcsetup.community`** and a long-lived signing key. See [Release signing](docs/RELEASE_SIGNING.md).
+
+## Privacy and trust
+
+- The app does not operate its own cloud service or automatically upload your checklist, saved amounts or photos.
+- Product links and Instagram links open externally; those sites have their own privacy practices.
+- The Feedback tab saves drafts **on your device only**, across presets. You can edit, delete, copy, or open an addressed email draft for Aryaan. **No feedback is automatically sent.** You must tap Send in your mail app.
+- Sending feedback by email can disclose the sender's email address and message to Aryaan (`aryaanmikaeel@gmail.com`) and involves the sender's email provider. Saved feedback comments are separate from individual presets and are not part of a preset JSON backup. Copy or share any comments you need to keep elsewhere before clearing app data.
+- Exported backups can contain your savings, product prices, notes and photos. Treat backup files as private.
+- The app's local Terms & Conditions are about the use of the app, not the open-source license.
+
+## Development and contributions
+
+Start with `app/src/main/assets/index.html` (UI), `app.js` (data and savings), `shell.js` (navigation/presets and Feedback), `feedback-store.js` (persistent comments), `onboarding.js` (welcome and first run) and `MainActivity.java` (native Android bridge).
+
+CI runs JavaScript validation and safety/migration tests. New changes should preserve existing saved presets and must never add another person's private product links/prices as public starter data.
+
+Contributions and bug reports will be welcomed after the repository is publicly launched.
+
+## License
+
+Licensed under the **MIT License**. Copyright © 2026 Aryaan. See [LICENSE](LICENSE). The MIT license covers our original software; third-party artwork and assets may have their own license terms. See [Open-source publishing checklist](docs/PUBLISH_OPEN_SOURCE.md).
+
+## Creator
+
+[Instagram · @aryaan_creates](https://www.instagram.com/aryaan_creates/)

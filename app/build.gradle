@@ -1,0 +1,58 @@
+plugins { id 'com.android.application' }
+
+// The long-lived release signing key is never stored in source control.
+// Supply these variables only for production/release builds, e.g. from
+// protected GitHub Actions secrets (see docs/RELEASE_SIGNING.md).
+def releaseSigningVars = [
+    'ANDROID_RELEASE_KEYSTORE',
+    'ANDROID_RELEASE_STORE_PASSWORD',
+    'ANDROID_RELEASE_KEY_ALIAS',
+    'ANDROID_RELEASE_KEY_PASSWORD'
+]
+def hasReleaseSigning = releaseSigningVars.every { System.getenv(it) != null && !System.getenv(it).isEmpty() }
+
+android {
+    namespace 'com.aryaan.pcsetup'
+    compileSdk 35
+
+    defaultConfig {
+        // Old debug APKs must keep their installed package and local data.
+        applicationId 'com.aryaan.pcsetup'
+        minSdk 23
+        targetSdk 35
+        versionCode 6
+        versionName '1.4.1'
+        manifestPlaceholders = [appLabel: 'PC & Gaming Checklist']
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            community {
+                storeFile file(System.getenv('ANDROID_RELEASE_KEYSTORE'))
+                storePassword System.getenv('ANDROID_RELEASE_STORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_RELEASE_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            if (project.hasProperty('previewInstall')) {
+                applicationIdSuffix '.preview141fix'
+                manifestPlaceholders = [appLabel: 'PC Checklist Fix Preview']
+            }
+        }
+        release {
+            // This is a NEW public identity so it can coexist with the old
+            // debug-signed private checklist. Future community updates MUST
+            // retain this exact application ID and signing certificate.
+            applicationIdSuffix '.community'
+            manifestPlaceholders = [appLabel: 'PC Setup Checklist']
+            minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.community
+            }
+        }
+    }
+}

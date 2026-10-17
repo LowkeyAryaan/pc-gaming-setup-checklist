@@ -1,0 +1,107 @@
+
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Validate JavaScript syntax and app UI fields
+        run: |
+          node --check app/src/main/assets/app.js
+          node --check app/src/main/assets/shell.js
+          node --check app/src/main/assets/feedback-store.js
+          node --check app/src/main/assets/onboarding.js
+          node --test app/tests/*.test.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('app/src/main/assets/index.html').read_text()
+          js = Path('app/src/main/assets/app.js').read_text()
+          shell = Path('app/src/main/assets/shell.js').read_text()
+          ids = set(re.findall(r"(?:\$|el)\('([^']+)'\)", js + shell))
+          missing = sorted(x for x in ids if f'id="{x}"' not in html)
+          if missing:
+              raise SystemExit(f"Missing app fields: {missing}")
+          assert '<script src="app.js"></script>' in html
+          assert '<script src="feedback-store.js"></script>' in html
+          assert '<script src="shell.js"></script>' in html
+          assert '<script src="onboarding.js"></script>' in html
+          assert all(f'id="{name}"' in html for name in ('introOverlay','introCurrency','introTerms','introWelcome','introCurrencyNext','introTermsNext','introAcceptTerms','introEnter'))
+          assert "Made by Aryaan" in html
+          assert 'id="feedbackButton"' in html
+          assert "const items=[];" in js
+          assert "function hydrateProducts(" in js
+          assert "currency:currentCurrency" in js
+          assert "deletedIds" in js
+          assert all(f'id="page-{p}"' in html for p in ('tracker','items','summary'))
+          assert 'function loadPresetIntoApp(' in js
+          assert 'function createEmptyPreset(' in js
+          assert 'id="contributed"' in html
+          assert 'id="newPhoto"' in html
+          print("App UI fields verified:", len(ids))
+          PY
+
+      - name: Download licensed welcome background
+        run: |
+          curl --fail --location --retry 3 --max-time 40 'https://images.unsplash.com/photo-1642791401714-a0d4e02d4bb6?auto=format&fit=crop&w=960&h=1600&q=74' --output app/src/main/assets/welcome.jpg
+          test -s app/src/main/assets/welcome.jpg
+          file app/src/main/assets/welcome.jpg
+
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC-Setup-Checklist-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Verify unsigned community release variant and package identity
+        run: |
+          set -euo pipefail
+          gradle :app:assembleRelease --stacktrace
+          APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.aryaan.pcsetup.community'"
+          echo "Unsigned release build succeeds. Only the separate protected signing workflow produces distributable APKs."
+
+      - name: Build isolated preview APK
+        run: |
+          gradle :app:clean :app:assembleDebug -PpreviewInstall --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/app-preview-debug.apk
+
+      - name: Upload clean-install preview APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC-Setup-Checklist-Preview-APK
+          path: app/build/outputs/apk/debug/app-preview-debug.apk
+          if-no-files-found: error

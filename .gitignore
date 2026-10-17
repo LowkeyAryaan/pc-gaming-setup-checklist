@@ -1,0 +1,30 @@
+# Local Android/Gradle build outputs
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml
+
+# Android signing material — NEVER commit private signing keys
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+secrets.properties
+*.base64
+*.b64
+*.asc
+
+# Local release files
+*.apk
+*.aab
+*.apks
+
+# Machine-specific tooling and temp files
+.DS_Store
+Thumbs.db
+*.log
+
+# Downloaded welcome artwork, fetched by CI at build time
+app/src/main/assets/welcome.jpg

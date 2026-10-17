@@ -1,0 +1,319 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My PC & Gaming Setup Checklist</title><style>
+
+:root{font-family:system-ui,Arial,sans-serif;color:#f3f4f6;background:#0b1020}*{box-sizing:border-box}body{margin:0;padding:22px;background:linear-gradient(140deg,#0b1020,#111827)}main{max-width:980px;margin:auto}.muted{color:#aab4c5}.panel,.item{background:#141c2d;border:1px solid #2b3549;border-radius:18px;padding:18px;margin:14px 0}h1{font-size:clamp(1.7rem,4vw,2.4rem);margin:0 0 6px}h2{font-size:1.15rem;margin:0 0 12px}.goal{font-size:2rem;color:#6ee7b7;font-weight:800}.small{font-size:.88rem}input[type=number],textarea{width:100%;background:#0c1322;color:#f3f4f6;border:1px solid #3a465c;border-radius:10px;padding:11px}progress{width:100%;height:12px;accent-color:#34d399}button{border:1px solid #43516a;border-radius:999px;padding:9px 13px;background:#202b40;color:#f3f4f6;cursor:pointer}.active{background:#2563eb}.filters,.actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.itemhead{display:flex;gap:12px;align-items:flex-start}.item input[type=checkbox]{width:21px;height:21px;margin-top:4px;accent-color:#34d399;flex-shrink:0}.itemname{font-weight:700;line-height:1.35}.price{font-size:1.2rem;font-weight:800;margin:8px 0}.tag{font-size:.78rem;color:#b5c0d2}.item img{display:block;width:100%;height:170px;object-fit:contain;background:#0b1220;border-radius:12px;margin:12px 0}.item textarea{margin-top:10px;min-height:65px;resize:vertical}.strike{text-decoration:line-through;color:#9ca3af}.summaryline{padding:7px 0}.green{color:#6ee7b7}.futuretoggle{display:flex;gap:8px;align-items:center;margin:12px 0}.futuretoggle input{width:18px;height:18px}a{color:#93c5fd}.editbtn{margin-top:6px}.editform{display:grid;gap:8px;margin-top:12px;padding:12px;background:#0c1322;border:1px solid #334155;border-radius:12px}.editform label{font-size:.85rem;color:#aab4c5}.editform input,.editform select{width:100%;padding:10px;background:#111827;color:#f3f4f6;border:1px solid #3a465c;border-radius:9px}.itemtools{display:flex;gap:8px;flex-wrap:wrap}.status{font-size:.8rem;color:#6ee7b7;min-height:1.2em}
+
+.rule{border:0;border-top:1px solid #2b3549;margin:16px 0}.fieldlabel{display:block;margin-bottom:8px;font-size:.9rem;color:#dce5f0}.setupform{display:grid;gap:12px;margin-top:12px}.setupform label{display:grid;gap:7px;font-size:.87rem;color:#b5c0d2}.setupform input,.setupform select{width:100%;min-width:0;background:#0c1322;color:#f3f4f6;border:1px solid #3a465c;border-radius:10px;padding:12px}.setupform input[type=file],.editform input[type=file]{font-size:.85rem}.setupform button{justify-self:start}.setupform .status{min-height:1.4em}.editform .status{min-height:1.4em}[hidden]{display:none!important}#contributed{width:100%;background:#0c1322;color:#f3f4f6;border:1px solid #3a465c;border-radius:10px;padding:12px;font-size:1rem}.itemtools{align-items:center}.item img{object-position:center}input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+
+
+/* Version 1.3: mobile-first shell */
+html{scroll-behavior:smooth}
+body{padding:0;background:#0b1020;color:#f3f4f6;min-height:100vh}
+.app-topbar{position:sticky;top:0;z-index:30;background:rgba(11,16,32,.98);border-bottom:1px solid #27344a;padding: max(52px,calc(env(safe-area-inset-top,0px) + 24px)) 17px 13px;box-shadow:0 6px 24px rgba(0,0,0,.13)}
+.topbar-inner{display:flex;align-items:center;gap:12px;max-width:980px;margin:auto}
+.menu-button{width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border:1px solid #38465c;background:#1c2638;border-radius:13px;flex-shrink:0}
+.menu-button span{width:20px;height:2px;background:#f3f4f6;border-radius:3px;display:block}
+.app-identity{min-width:0;flex:1}.eyebrow{color:#93a5c0;font-weight:750;letter-spacing:.1em;font-size:.66rem;text-transform:uppercase}
+.app-identity strong{display:block;font-size:1.02rem;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin-top:2px}
+.top-version{font-size:.72rem;color:#7b8da7;border:1px solid #344158;border-radius:9px;padding:6px}
+.app-content{width:min(100%,1020px);margin:auto;padding:18px 16px calc(112px + env(safe-area-inset-bottom,0px))}
+.section-intro{padding:7px 5px 4px}.section-intro h1{font-size:1.5rem;letter-spacing:-.035em;margin:6px 0}.section-intro p{margin:0;line-height:1.55}
+.page{display:none}.page.is-current{display:block}
+.page .panel{margin:13px 0;padding:19px 18px;border-radius:18px}
+.page .panel h2{font-size:1.05rem;letter-spacing:-.01em}
+.page .item{margin:11px 0;padding:16px;border-radius:17px}
+.page .item img{height:150px}
+.page .goal{font-size:clamp(1.75rem,8vw,2.25rem);letter-spacing:-.03em}
+.page .row{min-width:0}.page .row strong{word-break:normal;text-align:right}
+.page .summaryline{font-size:.91rem}
+.page .summaryline span{max-width:65%;overflow-wrap:anywhere}
+.section-note{font-size:.83rem;color:#9daec7;line-height:1.5}
+.bottom-tabs{position:fixed;z-index:35;left:0;right:0;bottom:0;border-top:1px solid #37455c;background:rgba(14,20,34,.98);display:flex;justify-content:space-around;align-items:center;gap:3px;padding:10px 10px calc(12px + env(safe-area-inset-bottom,0px))}
+.bottom-tabs button{flex:1;border:0;background:transparent;border-radius:13px;color:#97a6bd;font-size:.78rem;font-weight:650;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:9px 4px}
+.bottom-tabs button.is-active{background:#1d3354;color:#9fd0ff}
+.tab-glyph{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.nav-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.nav-actions button{padding:10px 15px;border-radius:12px}
+.drawer-shade{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7)}
+.side-drawer{position:fixed;inset:0 auto 0 0;width:min(85vw,350px);z-index:51;background:#111b2d;box-shadow:18px 0 40px rgba(0,0,0,.45);display:flex;flex-direction:column;padding: max(48px,calc(env(safe-area-inset-top,0px) + 20px)) 17px calc(23px + env(safe-area-inset-bottom,0px));transform:translateX(-105%);transition:transform .24s ease}
+.side-drawer.is-open{transform:translateX(0)}
+.drawer-title{display:flex;align-items:center;justify-content:space-between;padding:0 4px 14px;border-bottom:1px solid #31405b}
+.drawer-title strong{font-size:1.09rem}.drawer-close{width:36px;height:36px;border-radius:10px;font-size:1.5rem;padding:0;line-height:1}
+.preset-list{display:grid;gap:7px;padding:17px 0;overflow-y:auto}
+.preset-row{display:flex;align-items:center;justify-content:space-between;width:100%;border-radius:12px;border:1px solid #35465e;background:#18243a;text-align:left;padding:14px 13px;font-size:.93rem}
+.preset-row.selected{border-color:#60a5fa;background:#243c5f}
+.preset-badge{font-size:.7rem;color:#74d9b5}
+.add-preset{width:100%;border:1px dashed #56749a;background:#1a2d44;color:#b5dbff;border-radius:13px;font-weight:700;padding:13px 10px}
+.drawer-footer{display:grid;gap:5px;margin-top:auto;border-top:1px solid #33425a;padding-top:17px}
+.drawer-footer button{border:0;background:transparent;border-radius:10px;text-align:left;padding:12px;color:#becce0;font-size:.92rem}
+.drawer-footer button:active{background:#253752}
+.modal-shade{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:22px}
+.modal-window{background:#18243a;border:1px solid #3a4a64;border-radius:19px;max-width:480px;max-height:82vh;overflow:auto;width:100%;padding:19px}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:11px}
+.modal-head h2{margin:2px 0 0;font-size:1.25rem}.modal-head button{font-size:1.4rem;width:34px;height:34px;border-radius:10px;padding:0}
+.modal-body{font-size:.91rem;line-height:1.55}.modal-body p{color:#b9c7da}.modal-body ul{padding-left:18px;color:#b9c7da}
+.modal-body .option-row{display:flex;align-items:center;gap:10px;justify-content:flex-start;margin:10px 0}.modal-body .option-row input{width:18px;height:18px;accent-color:#60a5fa}.modal-body label{display:grid;gap:7px;margin:12px 0;color:#bdcce0}
+.modal-body input[type=text]{width:100%;min-width:0;background:#0b1323;border:1px solid #405170;border-radius:9px;color:white;padding:12px;font-size:1rem}
+.modal-body button{margin-top:8px;border-radius:10px}
+.modal-body .danger{background:#48202a;border:1px solid #903d4e;color:#ffb3bd}
+.modal-actions{margin-top:16px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+#categoryManagement{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.category-token.is-active{background:#2563eb;border-color:#60a5fa;color:white}.category-token{cursor:pointer}
+.category-token{background:#243449;border:1px solid #3e516c;border-radius:9px;padding:7px 10px;font-size:.78rem;color:#c4d4e9}
+.itemscount{margin:10px 0 0;color:#99aac0;font-size:.8rem}
+#items:empty:after{content:"No products yet. Add a product from the Tracker page.";display:block;color:#9eafc7;padding:22px 15px;border:1px dashed #46566f;border-radius:16px;margin-top:20px;text-align:center}
+@media (min-width:640px){.app-content{padding-left:24px;padding-right:24px}.app-topbar{padding-top:26px}.side-drawer{padding-top:28px}}
+@media(prefers-reduced-motion:reduce){.side-drawer{transition:none}html{scroll-behavior:auto}}
+
+
+/* Version 1.4: first-run onboarding, cinematic entry and management controls */
+.top-version{font-size:.68rem}
+.preset-row.preset-managed{display:flex;align-items:stretch;gap:3px;padding:3px 5px}
+.preset-select{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:9px 7px;border:0;background:transparent;border-radius:9px;text-align:left}
+.preset-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f5f7fb}
+.preset-icon{display:grid;place-items:center;width:37px;min-width:37px;height:42px;padding:0;background:transparent;border:0;border-radius:9px;color:#b9cbe1}
+.preset-icon.delete-icon{color:#ff909c}
+.preset-icon:active{background:#294464}
+.category-row{display:flex;gap:5px;align-items:center;background:#1a273b;border:1px solid #3a4a65;border-radius:10px;overflow:hidden}
+.category-row .category-token{border:0;border-radius:0;background:transparent;flex:1;text-align:left;padding:10px}
+.category-row .category-token.is-active{background:#285ab0;color:white}
+.category-delete{width:38px;height:37px;padding:0;border:0;border-left:1px solid #42536a;border-radius:0;background:transparent;color:#ff9aa7;display:grid;place-items:center}
+button.deleteItem{border-color:#a54d5c;background:#562733;color:#ffd6dc;font-weight:650}
+.currency-search{display:block;width:100%;border:1px solid #475774;background:#0a1323;color:#fff;border-radius:11px;padding:12px;font-size:1rem}
+.currency-list{max-height:46vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid #344761;border-radius:12px;margin-top:10px;padding:6px}
+.currency-option{width:100%;border:0;background:transparent;border-radius:8px;text-align:left;font-size:.9rem;padding:12px 10px;display:block;color:#d7e2f2}
+.currency-option.currency-selected{background:#193d48;color:#a6f7d5}
+.modal-body .option-row{display:flex;align-items:center;gap:10px;justify-content:flex-start;margin:10px 0}
+.modal-body .option-row input{width:18px;height:18px;accent-color:#60a5fa}
+.intro-shell{position:fixed;inset:0;z-index:80;display:none;background:#080e1b;overflow-y:auto}
+.intro-shell.is-visible{display:flex;flex-direction:column}
+.intro-stage{flex:1;min-height:100%;display:flex;flex-direction:column;align-items:stretch;padding:max(76px,calc(env(safe-area-inset-top,0px) + 43px)) 23px calc(32px + env(safe-area-inset-bottom,0px));width:100%;max-width:700px;margin:auto}
+.intro-stage[hidden]{display:none!important}
+.intro-head{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.intro-step{background:#183454;border:1px solid #3c6589;color:#a3cafe;border-radius:100px;padding:6px 11px;font-size:.77rem;font-weight:700}
+.intro-stage h1{font-size:clamp(1.9rem,8vw,2.65rem);letter-spacing:-.04em;margin:8px 0 10px}
+.intro-stage p{line-height:1.6;color:#aabbd3}
+.intro-stage .intro-sub{margin:0 0 22px}
+.intro-stage .currency-search{margin-bottom:10px}
+.intro-stage .currency-list{flex:1;max-height:none;min-height:210px}
+.intro-cta{display:block;width:100%;padding:15px 15px;background:#79f4aa;border:1px solid #97ffd0;border-radius:15px;color:#08201a;font-weight:800;font-size:1rem;margin-top:17px}
+.intro-cta:disabled{cursor:not-allowed;background:#384d55;color:#89a0a6;border-color:#455b63}
+.terms-copy{background:#101e31;border:1px solid #344861;border-radius:14px;padding:17px;flex:1;min-height:260px;max-height:53vh;overflow:auto;line-height:1.6}
+.terms-copy h2{font-size:1rem;margin:14px 0 6px}
+.terms-copy h2:first-child{margin-top:0}
+.terms-copy p{font-size:.88rem;margin:0 0 12px;color:#c8d4e5}
+.accept-row{display:flex;align-items:flex-start;gap:11px;margin-top:18px;line-height:1.45;color:#e4edf7;font-size:.9rem}
+.accept-row input{width:21px;height:21px;min-width:21px;accent-color:#79f4aa}
+.intro-stage.welcome{max-width:none;min-height:100svh;padding:0;position:relative;justify-content:end;overflow:hidden;background:#0c1424}
+.welcome:before{content:"";position:absolute;inset:0;background-image:linear-gradient(180deg,rgba(5,10,20,.17) 0%,rgba(5,10,20,.18) 40%,rgba(5,10,20,.72) 68%,#060d1b 100%),url('welcome.jpg');background-size:cover;background-position:center center;transform:scale(1.02)}
+.welcome-copy{position:relative;z-index:1;text-align:center;max-width:510px;width:100%;margin:0 auto;padding:28px 25px calc(58px + env(safe-area-inset-bottom,0px))}
+.welcome-copy .welcome-kicker{font-size:.72rem;letter-spacing:.22em;font-weight:800;color:#a3f9ca}
+.welcome-copy h1{font-size:clamp(2.15rem,9vw,3.4rem);line-height:1.04;text-wrap:balance;text-shadow:0 3px 30px #000;margin:14px 0}
+.welcome-copy p{color:#d1dbe6;margin:0 0 22px;text-shadow:0 2px 14px #000}
+.welcome-copy .intro-cta{box-shadow:0 9px 38px rgba(64,237,151,.15)}
+.intro-back{border:0;background:transparent;color:#adc3e1;text-align:left;padding:9px 0;margin-bottom:13px;align-self:flex-start}
+
+/* Final v1.4 visual refinements */
+.intro-watermark{font-size:.73rem;letter-spacing:.06em;color:#94a8bd;opacity:.9;font-weight:650;text-align:center;padding:19px 0 0}
+.intro-watermark.welcome-mark{color:#d1e8f2;text-shadow:0 2px 10px #000;padding-top:21px}
+.settings-title{font-size:.83rem;letter-spacing:.1em;color:#7f9dbc;text-transform:uppercase;margin:22px 0 10px}
+.setting-field{display:grid;gap:8px;margin:14px 0;color:#cdd9e9;font-size:.9rem}
+.setting-field textarea{border-radius:11px;min-height:120px;padding:13px;width:100%;max-width:100%;resize:vertical}
+.setting-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #2b3f58;margin:0!important}
+.setting-toggle span{font-size:.92rem;color:#e0e9f6;line-height:1.4}
+.setting-toggle input{width:21px;height:21px;min-width:21px;accent-color:#6ee7b7}
+.setting-action{display:block;border:1px solid #3b4d66;background:#1e3046;border-radius:12px;width:100%;padding:13px;text-align:left;font-size:.91rem;margin:8px 0}
+.modal-actions button.active{background:#2563eb}
+
+/* v1.4 creator credit — deliberate, discreet placement */
+.instagram-credit{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#a9d4ff;font-weight:650;letter-spacing:.025em;font-size:.79rem;border-radius:9px;min-height:38px}
+.instagram-credit:focus-visible{outline:2px solid #79f4aa;outline-offset:3px}
+.welcome-instagram{color:#d9e8ff;justify-content:center;padding:5px 13px;text-shadow:0 2px 14px #000;margin-top:2px}
+.drawer-instagram{justify-content:flex-start;color:#89b5d7;padding:8px 12px;margin-top:1px}
+.creator-link{display:inline-flex;align-items:center;gap:7px;color:#97cfff;text-decoration:none;min-height:40px;font-weight:700;padding:6px 10px;border-radius:10px;background:#162b40;border:1px solid #34506b;font-size:.9rem}
+.creator-link:focus-visible{outline:2px solid #79f4aa;outline-offset:3px}
+.creator-label{font-size:.78rem;color:#a3b4cb;margin:14px 0 6px}
+
+/* Persistent, device-local feedback comment history */
+.feedback-shell{display:grid;gap:14px;min-width:0}
+.feedback-intro{color:#b3c4d8;line-height:1.55;font-size:.88rem;margin:0}
+.feedback-composer{display:grid;gap:9px}
+.feedback-composer textarea{background:#0b1527;border:1px solid #3e5270;border-radius:12px;color:#f2f6fe;display:block;width:100%;max-width:100%;min-height:112px;resize:vertical;padding:12px;font:inherit}
+.feedback-composer textarea:focus-visible{outline:2px solid #79f4aa;outline-offset:2px}
+.feedback-action-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.feedback-action-row button,.feedback-comment-actions button{min-height:38px;border:1px solid #3a5676;background:#1b3047;border-radius:10px;padding:9px 12px;color:#daebff;font-size:.85rem}
+.feedback-action-row button.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.feedback-divider{border:0;border-top:1px solid #3b4c64;width:100%;margin:1px 0}
+.feedback-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.feedback-heading strong{font-size:.98rem;color:#f1f5fc}
+.feedback-count{font-size:.78rem;color:#91a9bf}
+.feedback-list{display:grid;gap:12px;max-width:100%}
+.feedback-comment{background:#121f32;border:1px solid #344761;border-radius:14px;padding:14px;display:grid;gap:10px;min-width:0}
+.feedback-comment-head{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;font-size:.78rem;color:#91a7c2}
+.feedback-comment-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;color:#e2ebf6;font-size:.92rem;margin:0}
+.feedback-comment-actions{display:flex;flex-wrap:wrap;gap:7px}
+.feedback-comment-actions .feedback-delete{color:#ffabb7;border-color:#814653;background:#3d2531}
+.feedback-empty{border:1px dashed #425672;border-radius:12px;color:#9bb0c9;padding:18px 14px;font-size:.88rem;text-align:center}
+.feedback-status{font-size:.81rem;line-height:1.4;color:#9beec1;min-height:1.2em}
+
+/* Welcome-to-tracker cinematic transition: short, subtle and responsive. */
+.intro-shell.is-visible{will-change:opacity,transform,filter}
+.intro-shell.is-visible.is-exiting{
+  opacity:0;
+  transform:scale(1.045);
+  filter:blur(4px);
+  pointer-events:none;
+  transition:opacity 560ms cubic-bezier(.2,.7,.2,1),transform 630ms cubic-bezier(.19,1,.22,1),filter 550ms ease
+}
+.intro-stage.welcome .welcome-copy{transition:opacity 420ms ease,transform 560ms cubic-bezier(.19,1,.22,1)}
+.intro-shell.is-exiting .welcome-copy{opacity:0;transform:translateY(-16px) scale(1.025)}
+body.app-entering .app-content{animation:setup-enter 630ms cubic-bezier(.22,1,.36,1) both}
+body.app-entering .bottom-tabs{animation:setup-enter 670ms cubic-bezier(.22,1,.36,1) both}
+@keyframes setup-enter{
+  from{opacity:.52;transform:translateY(15px) scale(.992);filter:blur(3px)}
+  to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+@media (prefers-reduced-motion:reduce){
+  .intro-shell.is-visible.is-exiting,
+  .intro-stage.welcome .welcome-copy{transition:none!important;filter:none!important;transform:none!important}
+  body.app-entering .app-content,body.app-entering .bottom-tabs{animation:none!important}
+}
+</style></head><body>
+<div id="introOverlay" class="intro-shell" aria-label="Application introduction">
+  <section id="introCurrency" class="intro-stage" hidden>
+    <div class="intro-head"><span class="intro-step">01 / 02</span><span class="eyebrow">LET'S GET STARTED</span></div>
+    <h1>Choose your currency.</h1>
+    <p class="intro-sub">Make your dream setup budget your own. You can pick a different currency for each preset later.</p>
+    <label for="introCurrencySearch" class="fieldlabel">Search by currency name or code</label>
+    <input id="introCurrencySearch" class="currency-search" type="search" autocomplete="off" placeholder="Search e.g. USD, Euro, Yen">
+    <div id="introCurrencyOptions" class="currency-list" role="listbox" aria-label="Available currencies"></div>
+    <div class="section-note" id="introCurrencySelected" aria-live="polite">Select one currency to continue.</div>
+    <button type="button" id="introCurrencyNext" class="intro-cta" disabled>Continue</button>
+    <div class="intro-watermark">Made by Aryaan</div>
+  </section>
+  <section id="introTerms" class="intro-stage" hidden>
+    <div class="intro-head"><span class="intro-step">02 / 02</span><span class="eyebrow">ONE-TIME SETUP</span></div>
+    <button type="button" id="introTermsBack" class="intro-back">← Change currency</button>
+    <h1>Terms &amp; Conditions.</h1>
+    <p class="intro-sub">Please review the terms before using your setup planner.</p>
+    <div class="terms-copy" id="introTermsCopy" tabindex="0">
+      <h2>1. Purpose</h2>
+      <p>This is a personal PC and gaming setup planning tool. It helps you track products, estimated costs, contributions and savings. It is not a seller or financial service.</p>
+      <h2>2. Pricing and purchases</h2>
+      <p>Product prices, availability, seller information and external links may change. Verify compatibility, retailer legitimacy, warranties and final prices before purchasing anything. Purchases happen outside the app.</p>
+      <h2>3. Your device and data</h2>
+      <p>Your presets, product details, images, preferences and savings records are stored on your device. The app does not provide an online account or automatic cloud backup. Clearing app storage or uninstalling may permanently erase this information. Export backups regularly.</p>
+      <h2>4. Currency settings</h2>
+      <p>Changing a currency only changes its label and formatting. Existing amounts are never converted automatically. Enter correct values yourself for the currency you select.</p>
+      <h2>5. User responsibility</h2>
+      <p>You are responsible for the details you enter and the purchases you choose to make. This app is provided as a planning aid without a guarantee that product links, prices or calculations meet your personal circumstances.</p>
+      <h2>6. Feedback by email</h2>
+      <p>Feedback comments are saved locally until you choose to email one. Sending feedback opens your email app with the recipient aryaanmikaeel@gmail.com and your message filled in. Nothing is automatically delivered. Your email provider may disclose your sender address to the recipient when you press Send.</p>
+    </div>
+    <label class="accept-row"><input type="checkbox" id="introAcceptTerms"><span>I have read and agree to the Terms &amp; Conditions.</span></label>
+    <button type="button" id="introTermsNext" class="intro-cta" disabled>Accept &amp; continue</button>
+    <div class="intro-watermark">Made by Aryaan</div>
+  </section>
+  <section id="introWelcome" class="intro-stage welcome" hidden>
+    <div class="welcome-copy">
+      <div class="welcome-kicker">PLAN · TRACK · BUILD</div>
+      <h1>My PC &amp;<br>Gaming Setup</h1>
+      <p>Your dream build starts here.</p>
+      <button type="button" class="intro-cta" id="introEnter">Let's build your dream setup!</button>
+      <div class="intro-watermark welcome-mark">Made by Aryaan</div>
+      <a class="instagram-credit welcome-instagram" href="https://www.instagram.com/aryaan_creates/" target="_self" rel="noopener noreferrer" aria-label="Aryaan on Instagram, @aryaan_creates">@aryaan_creates</a>
+    </div>
+  </section>
+</div>
+
+<header class="app-topbar">
+ <div class="topbar-inner">
+  <button id="menuButton" class="menu-button" aria-label="Open presets menu" aria-expanded="false" aria-controls="sideDrawer"><span></span><span></span><span></span></button>
+  <div class="app-identity"><div class="eyebrow">MY PC &amp; GAMING SETUP</div><strong id="currentPresetName">Preset #1</strong></div>
+  <span class="top-version">v1.4.1</span>
+ </div>
+</header>
+<main class="app-content">
+ <section class="page is-current" id="page-tracker" aria-label="Tracker">
+  <div class="section-intro"><span class="eyebrow">01 / TRACKER</span><h1>Your setup, your pace.</h1><p class="section-note">Track your savings, manage the PC contribution, and plan new products.</p></div>
+  <section class="panel"><div class="muted small">PERSONAL SAVINGS GOAL</div><div class="goal" id="goalLabel">0</div><p class="muted small">Includes the PC cost left after contributions, plus your current setup products. Future purchases are excluded.</p><hr style="border-color:#2b3549"><div class="row"><label for="saved">Saved toward remaining goal</label><strong id="savedLabel">Rs. 0</strong></div><input id="saved" type="number" min="0" step="any" value="0" placeholder="Enter savings amount in PKR"><progress id="progress" value="0" max="1"></progress><div class="row muted small"><span id="percent">0.0% saved</span><span id="remaining">0 left</span></div><p id="count" class="small">0 / 0 current-goal items checked off</p></section>
+
+  <section class="panel" id="contributionPanel">
+  <h2>PC contribution &amp; shortfall</h2>
+  <p class="muted small">Money already contributed or set aside specifically for PC parts. The savings tracker above measures additional money saved toward the remaining setup goal, so the same money is not counted twice.</p>
+  <label for="contributed" class="fieldlabel">Contributed / Saved toward PC (<span id="contributedCurrency">PKR</span>)</label>
+  <input id="contributed" type="number" min="0" step="any" inputmode="decimal" value="0">
+  <div class="row summaryline" style="margin-top:9px"><strong>PC amount left to save</strong><strong class="green" id="pcLeft">0</strong></div>
+  <p class="section-note" id="contributionMessage" role="status" aria-live="polite">Only PC category products count toward the contributor calculation.</p>
+</section>
+
+  <section class="panel"><h2>Filter items</h2><div class="filters" id="filters"></div><label class="futuretoggle"><input id="future" type="checkbox"> Include future purchases</label><div class="muted small">Tick products as purchased, or edit names, prices, links and pictures. Your changes save on this device.</div></section>
+  <section class="panel">
+  <h2>Add a new product</h2>
+  <form id="addProductForm" class="setupform">
+    <label>Product name<input id="newName" type="text" maxlength="180" placeholder="e.g. Logitech G Pro Mouse" required></label>
+    <label>Price (<span id="newPriceCurrency">PKR</span>)<input id="newPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 15000" required></label>
+    <label>Category<select id="newCategory"></select></label>
+    <label>Product listing link (optional)<input id="newUrl" type="url" placeholder="https://..."></label>
+    <label>Product picture (optional)<input id="newPhoto" type="file" accept="image/*"></label>
+    <p class="muted small">Choose a picture from your phone. It will be resized and kept locally on this device. New PC parts automatically update the remaining PC budget.</p>
+    <button type="submit" class="active">Add product to checklist</button>
+    <div id="addMessage" class="status" role="status"></div>
+  </form>
+</section>
+
+  <div class="nav-actions"><span class="section-note">Browse your full product list on the Items page.</span><button type="button" id="trackerToItems">View items →</button></div>
+ </section>
+ <section class="page" id="page-items" aria-label="Items and categories">
+  <div class="section-intro"><span class="eyebrow">02 / ITEMS</span><h1>Products &amp; categories</h1><p class="section-note">Edit, check off, and organize every part of your build.</p></div>
+  <section class="panel"><div class="eyebrow">ORGANIZE YOUR BUILD</div>  <h2>Create a category</h2>
+  <form id="categoryForm" class="setupform">
+    <label>Category name<input id="catName" type="text" maxlength="48" placeholder="e.g. Streaming gear" required></label>
+    <label>Counts toward<select id="catGroup"><option value="pc">PC parts cost</option><option value="setup" selected>Current setup cost</option><option value="future">Future purchases (excluded from savings goal)</option></select></label>
+    <button type="submit" class="active">Add category</button>
+    <div id="catMessage" class="status" role="status"></div>
+  </form>
+</section>
+  <div id="categoryManagement" aria-label="Your categories"></div>
+  <div class="nav-actions"><div class="section-note">Your products</div><button type="button" id="itemsToTracker">+ Add product</button></div>
+  <div class="itemscount" id="visibleItemsCount" aria-live="polite"></div>
+  <div id="items"></div>
+ </section>
+ <section class="page" id="page-summary" aria-label="Budget summary">
+  <div class="section-intro"><span class="eyebrow">03 / SUMMARY</span><h1>Your budget, clearly.</h1><p class="section-note">Automatic breakdown of PC components, contributions, and your remaining setup target.</p></div>
+  <section class="panel"><h2>Budget summary</h2><div class="row summaryline"><span>PC parts total</span><strong id="pcTotal">0</strong></div><div class="row summaryline"><span>Contributed / Saved</span><strong id="dadContribution">0</strong></div><div class="row summaryline"><span>PC amount left to save</span><strong id="pcShare">0</strong></div><div class="row summaryline"><span>Main monitor</span><strong id="mainTotal">0</strong></div><div class="row summaryline"><span>Desk + mat + peripherals + arm</span><strong id="deskTotal">0</strong></div><div class="row summaryline"><span>Gaming chair</span><strong id="chairTotal">0</strong></div>
+<div class="row summaryline" id="otherRow" hidden><span>Other setup products</span><strong id="otherTotal">Rs. 0</strong></div><hr style="border-color:#2b3549"><div class="row"><strong>Current savings target</strong><strong class="green" id="currentGoal">0</strong></div><p class="muted small">Full setup value, including contributions and future products: <strong id="fullTotal">0</strong>.</p><div class="actions"><button id="copy">Copy checklist + notes</button><button id="export">Export backup</button><button id="import">Import backup</button><input id="importFile" type="file" accept="application/json" hidden><button id="reset">Reset checkmarks, notes &amp; tracker</button></div><p class="muted small">Check compatibility, seller reputation and warranties before purchasing. Product details remain on this device unless you share a backup.</p></section>
+ </section>
+</main>
+<nav class="bottom-tabs" aria-label="Primary navigation">
+ <button type="button" class="is-active" data-page="tracker" aria-current="page"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 7-9M15 6h4v4"/><path d="M4 21h16"/></svg><span>Tracker</span></button>
+ <button type="button" data-page="items"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v0M8 12v0M8 19v0"/></svg><span>Items</span></button>
+ <button type="button" data-page="summary"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-8M21 19H2"/></svg><span>Summary</span></button>
+</nav>
+<div id="drawerShade" class="drawer-shade" hidden></div>
+<aside id="sideDrawer" class="side-drawer" role="navigation" aria-label="Presets and app information" aria-hidden="true">
+ <div class="drawer-title"><strong>My presets</strong><button id="closeDrawer" class="drawer-close" aria-label="Close menu">×</button></div>
+ <div id="presetList" class="preset-list"></div>
+ <button id="addPresetButton" class="add-preset">+ Add new preset</button>
+ <div class="drawer-footer">
+  <button id="termsButton">Terms &amp; Conditions</button>
+  <button id="aboutButton">About</button>
+  <button id="settingsButton">Settings</button>
+  <button id="feedbackButton">Feedback</button>
+  <a class="instagram-credit drawer-instagram" href="https://www.instagram.com/aryaan_creates/" target="_self" rel="noopener noreferrer" aria-label="Aryaan on Instagram, @aryaan_creates">@aryaan_creates <span aria-hidden="true">↗</span></a>
+ </div>
+</aside>
+<div id="modalShade" class="modal-shade" hidden>
+ <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+  <div class="modal-head"><h2 id="modalHeading"></h2><button id="closeModalButton" aria-label="Close dialog">×</button></div>
+  <div id="modalBody" class="modal-body"></div>
+  <div id="modalActions" class="modal-actions"></div>
+ </div>
+</div>
+<script>
+window.__v14WasExistingUser=!!(localStorage.getItem('pc-gaming-setup-app-v2')||localStorage.getItem('pc-gaming-setup-checklist-v1')||localStorage.getItem('pc-gaming-presets-v3'));
+if(!window.__v14WasExistingUser&&!localStorage.getItem('pc-gaming-onboarding-v14'))localStorage.setItem('pc-gaming-onboarding-v14',JSON.stringify({status:'pending'}));
+</script>
+<script src="app.js"></script>
+<script src="feedback-store.js"></script>
+<script src="shell.js"></script>
+<script src="onboarding.js"></script>
+</body></html>
