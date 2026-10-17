@@ -1,0 +1,94 @@
+name: Prepare v1.4.1 draft release (direct APK)
+
+# One-time preparation: adding this workflow to main starts a draft-only job.
+# It reuses the already verified signed APK; no private key is downloaded.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/prepare-v1.4.1-draft.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the exact signed build and its original source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RUN_ID=39030402939
+          SOURCE_SHA=ae6b6131c2dcf35cb9a68a160549866847e5aeee
+          RUN_PATH="repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID"
+          test "$(gh api "$RUN_PATH" --jq '.conclusion')" = "success"
+          test "$(gh api "$RUN_PATH" --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api "$RUN_PATH" --jq '.name')" = "Build signed community release APK"
+          test "$(gh api "$RUN_PATH" --jq '.event')" = "workflow_dispatch"
+          if gh release view v1.4.1 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release v1.4.1 already exists; refusing to overwrite its draft or assets." >&2
+            exit 1
+          fi
+
+      - name: Retrieve the verified signed APK (not the workflow ZIP)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh run download 39030402939 \
+            --repo "$GITHUB_REPOSITORY" \
+            --name PC-Gaming-Setup-Checklist-v1.4.1-SIGNED \
+            --dir dist
+          test -s dist/PC-Gaming-Setup-Checklist-v1.4.1-signed.apk
+          sha256sum dist/PC-Gaming-Setup-Checklist-v1.4.1-signed.apk
+
+      - name: Create unpublished draft release with a direct APK asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > /tmp/v141-release-notes.md <<'NOTES'
+          ## PC Gaming Setup Checklist v1.4.1
+
+          Your PC and gaming setup, all in one offline-first Android app.
+
+          ### What's included
+          - Build and manage multiple PC and gaming setup presets.
+          - Set budgets, track savings, and calculate PC contributions.
+          - Add products, prices, notes, links and pictures.
+          - Export and import your local backup files.
+          - Instant welcome screen and smooth transition into the checklist.
+          - Save feedback locally or prepare an email draft to the creator.
+
+          ### Install on Android
+          Under **Assets**, select **PC-Gaming-Setup-Checklist-v1.4.1-signed.apk**.
+          This is the direct installer, **not the auto-generated source-code ZIP**.
+
+          Your checklist is stored locally on your device. Export backups before uninstalling.
+          This community release has a different Android package ID from older preview
+          builds, so it installs separately; import your exported data if needed.
+
+          Software is MIT-licensed. Artwork licensing and final phone tests
+          must be checked before this draft is published.
+          NOTES
+          gh release create v1.4.1 \
+            "dist/PC-Gaming-Setup-Checklist-v1.4.1-signed.apk#Android APK (direct installer)" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target ae6b6131c2dcf35cb9a68a160549866847e5aeee \
+            --title "PC Gaming Setup Checklist v1.4.1" \
+            --notes-file /tmp/v141-release-notes.md \
+            --draft
+
+      - name: Confirm release remains a draft and direct APK is attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RELEASE_PATH="repos/$GITHUB_REPOSITORY/releases/tags/v1.4.1"
+          test "$(gh api "$RELEASE_PATH" --jq '.draft')" = "true"
+          test "$(gh api "$RELEASE_PATH" --jq '.assets[0].name')" = "PC-Gaming-Setup-Checklist-v1.4.1-signed.apk"
+          echo "Draft exists, private repository unchanged, signed APK attached as a direct-download release asset."
