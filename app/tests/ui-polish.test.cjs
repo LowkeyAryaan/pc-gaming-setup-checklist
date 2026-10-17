@@ -92,5 +92,5 @@ test('New controls initialize after existing app/shell/onboarding; no signing or
     assert.match(gradle,/versionCode 7/);
     assert.match(gradle,/versionName '1\.4\.2'/);
     assert.match(gradle,/applicationIdSuffix '\.community'/);
-    assert.match(gradle,/applicationIdSuffix '\.preview142'/);
+    assert.match(gradle,/applicationIdSuffix '\.preview142ui'/);
 });
