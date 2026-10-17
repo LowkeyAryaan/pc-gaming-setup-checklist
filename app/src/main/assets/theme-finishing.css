@@ -1,2 +1,17 @@
-.goal,.green{color:#6ee7b7}
-.intro-stage.welcome .intro-cta{background:#6ee7b7}
+/* v1.4.2 final brand polish: blue controls, green budget figures. */
+:root { --money-accent: #6ee7b7; }
+.goal, .green, #savedLabel, #remaining, #pcShare, #purchasedTotal,
+#page-summary .summaryline strong:not(#toBuyCount):not(#purchasedCount) {
+    color: var(--money-accent) !important;
+}
+#page-items .item .price { color: #9be7c8; }
+#page-items .item.is-purchased .price { color: #93a9b9; }
+.intro-stage.welcome .intro-cta {
+    background: linear-gradient(115deg,#a3ffc1,#6ee7b7);
+    border: 1px solid #c7ffe0;
+    color: #062b20;
+    min-height: 55px;
+    font-size: 1.07rem;
+    font-weight: 850;
+    box-shadow: 0 11px 32px rgba(67,230,158,.34);
+}
