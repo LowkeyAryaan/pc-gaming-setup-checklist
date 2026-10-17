@@ -6,7 +6,7 @@
 
 
 /* Version 1.3: mobile-first shell */
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto}
 body{padding:0;background:#0b1020;color:#f3f4f6;min-height:100vh}
 .app-topbar{position:sticky;top:0;z-index:30;background:rgba(11,16,32,.98);border-bottom:1px solid #27344a;padding: max(52px,calc(env(safe-area-inset-top,0px) + 24px)) 17px 13px;box-shadow:0 6px 24px rgba(0,0,0,.13)}
 .topbar-inner{display:flex;align-items:center;gap:12px;max-width:980px;margin:auto}
@@ -187,6 +187,16 @@ body.app-entering .bottom-tabs{animation:setup-enter 670ms cubic-bezier(.22,1,.3
 .item.is-purchased .price{color:#93a9b9}
 .purchase-summary{border-top:1px solid #2b3549;border-bottom:1px solid #2b3549;margin-top:15px;margin-bottom:12px;padding:8px 0}
 
+
+/* v1.4.2 fast swipe: move adjacent pages with the finger, snap in 155ms.
+   pan-y preserves vertical scrolling; horizontal gestures remain available. */
+.app-content{position:relative;touch-action:pan-y;overflow-x:clip}
+.page.is-swipe-neighbor{display:block!important;position:absolute!important;
+    z-index:2;pointer-events:none!important;visibility:visible}
+.app-content.is-swipe-gesture .page.is-current,
+.app-content.is-swipe-gesture .page.is-swipe-neighbor{
+    animation:none!important;backface-visibility:hidden}
+
 /* v1.4.2 polished input controls and motion. Preserve keyboard-visible focus. */
 button,a,label,input,select,textarea,[role="button"]{-webkit-tap-highlight-color:transparent}
 button{touch-action:manipulation;transform-origin:center;
@@ -238,12 +248,12 @@ body.app-picker-open{overflow:hidden}
 .app-picker-option:disabled{opacity:.42}
 .app-picker-check{color:#7ff1b3;font-size:1.1rem;font-weight:900;flex:none}
 @media(min-width:700px){.app-picker-shade{align-items:center;padding:22px}}
-.page.is-current{animation:app-page-show .17s ease-out}
-@keyframes app-page-show{from{opacity:.78;transform:translateY(5px)}to{opacity:1;transform:none}}
-.app-content[data-swipe-direction="left"] .page.is-current{animation:app-page-from-right .24s cubic-bezier(.22,.8,.25,1)}
-.app-content[data-swipe-direction="right"] .page.is-current{animation:app-page-from-left .24s cubic-bezier(.22,.8,.25,1)}
-@keyframes app-page-from-right{from{opacity:.5;transform:translateX(28px)}to{opacity:1;transform:none}}
-@keyframes app-page-from-left{from{opacity:.5;transform:translateX(-28px)}to{opacity:1;transform:none}}
+.page.is-current{animation:none}
+
+
+
+
+
 @media(prefers-reduced-motion:reduce){
     button,button.app-tap-pop,.app-picker-sheet,.page.is-current,
     .app-content[data-swipe-direction="left"] .page.is-current,
