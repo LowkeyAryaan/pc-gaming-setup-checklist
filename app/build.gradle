@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview142'
-                manifestPlaceholders = [appLabel: 'PC Checklist 1.4.2 Preview']
+                applicationIdSuffix '.preview142ui'
+                manifestPlaceholders = [appLabel: 'PC Checklist UI Preview']
             }
         }
         release {
