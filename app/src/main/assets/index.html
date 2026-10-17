@@ -197,9 +197,8 @@ button.app-tap-pop{animation:app-tap-pop .22s cubic-bezier(.2,.8,.3,1.1)}
 input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,a:focus-visible{
     outline:2px solid #79f4aa;outline-offset:3px
 }
-.app-select-native{position:absolute!important;width:1px!important;height:1px!important;
-    padding:0!important;margin:0!important;border:0!important;opacity:0!important;
-    pointer-events:none!important;clip-path:inset(50%)!important}
+.app-select-native{display:none!important}
+/* Preserve source select's value for the app without opening Android's native picker. */
 .app-select-native[hidden]+.app-select-trigger{display:none!important}
 .app-select-trigger{width:100%;min-height:46px;min-width:0;display:flex;align-items:center;
     justify-content:space-between;gap:12px;text-align:left;border:1px solid #425a74;
@@ -216,7 +215,7 @@ body.app-picker-open{overflow:hidden}
     -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
 .app-picker-shade[hidden]{display:none!important}
 .app-picker-sheet{display:flex;flex-direction:column;min-width:0;width:100%;max-width:520px;
-    max-height:min(78dvh,720px);overflow:hidden;background:#132238;color:#edf5ff;
+    max-height:76vh;max-height:min(78dvh,720px);overflow:hidden;background:#132238;color:#edf5ff;
     border:1px solid #3a5973;border-radius:22px;
     box-shadow:0 20px 55px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.065);
     animation:app-sheet-open .25s cubic-bezier(.15,.83,.28,1)}
