@@ -39,6 +39,7 @@ jobs:
           node --check app/src/main/assets/shell.js
           node --check app/src/main/assets/feedback-store.js
           node --check app/src/main/assets/onboarding.js
+          node --check app/src/main/assets/ui-polish.js
           node --test app/tests/*.test.cjs
           python3 - <<'PY'
           from pathlib import Path
@@ -54,6 +55,7 @@ jobs:
           assert '<script src="feedback-store.js"></script>' in html
           assert '<script src="shell.js"></script>' in html
           assert '<script src="onboarding.js"></script>' in html
+          assert '<script src="ui-polish.js"></script>' in html
           assert all(f'id="{name}"' in html for name in ('introOverlay','introCurrency','introTerms','introWelcome','introCurrencyNext','introTermsNext','introAcceptTerms','introEnter'))
           assert "Made by Aryaan" in html
           assert 'id="feedbackButton"' in html
