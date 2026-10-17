@@ -186,6 +186,73 @@ body.app-entering .bottom-tabs{animation:setup-enter 670ms cubic-bezier(.22,1,.3
 .purchase-status.to-buy{color:#c4ddff;background:#203b5c;border:1px solid #3e5d84}
 .item.is-purchased .price{color:#93a9b9}
 .purchase-summary{border-top:1px solid #2b3549;border-bottom:1px solid #2b3549;margin-top:15px;margin-bottom:12px;padding:8px 0}
+
+/* v1.4.2 polished input controls and motion. Preserve keyboard-visible focus. */
+button,a,label,input,select,textarea,[role="button"]{-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation;transform-origin:center;
+    transition:transform .15s cubic-bezier(.2,.75,.3,1.3),filter .15s ease,background-color .18s ease}
+button:active,button.app-pressing{transform:scale(.965);filter:brightness(1.12)}
+button.app-tap-pop{animation:app-tap-pop .22s cubic-bezier(.2,.8,.3,1.1)}
+@keyframes app-tap-pop{0%{transform:scale(.95)}65%{transform:scale(1.025)}100%{transform:scale(1)}}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible,a:focus-visible{
+    outline:2px solid #79f4aa;outline-offset:3px
+}
+.app-select-native{position:absolute!important;width:1px!important;height:1px!important;
+    padding:0!important;margin:0!important;border:0!important;opacity:0!important;
+    pointer-events:none!important;clip-path:inset(50%)!important}
+.app-select-native[hidden]+.app-select-trigger{display:none!important}
+.app-select-trigger{width:100%;min-height:46px;min-width:0;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;text-align:left;border:1px solid #425a74;
+    border-radius:11px;padding:12px 14px;background:#101e31;color:#e8f1fb;font:inherit;
+    font-size:.92rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
+.app-select-trigger:disabled{opacity:.55}
+.app-select-trigger[aria-expanded="true"]{border-color:#79f4aa;background:#192e3f}
+.app-select-value{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600}
+.app-select-chevron{flex:none;color:#79f4aa;font-size:1.45rem;font-weight:800;line-height:1;
+    transform:translateY(-3px)}
+body.app-picker-open{overflow:hidden}
+.app-picker-shade{position:fixed;inset:0;z-index:120;padding:16px 13px max(16px,env(safe-area-inset-bottom,0px));
+    display:flex;justify-content:center;align-items:flex-end;background:rgba(4,9,19,.8);
+    -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+.app-picker-shade[hidden]{display:none!important}
+.app-picker-sheet{display:flex;flex-direction:column;min-width:0;width:100%;max-width:520px;
+    max-height:min(78dvh,720px);overflow:hidden;background:#132238;color:#edf5ff;
+    border:1px solid #3a5973;border-radius:22px;
+    box-shadow:0 20px 55px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.065);
+    animation:app-sheet-open .25s cubic-bezier(.15,.83,.28,1)}
+@keyframes app-sheet-open{from{opacity:.7;transform:translateY(25px) scale(.98)}
+    to{opacity:1;transform:none}}
+.app-picker-head{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:21px 19px 16px;border-bottom:1px solid #314760}
+.app-picker-kicker{color:#86dcb3;font-size:.68rem;letter-spacing:.14em;font-weight:800}
+.app-picker-head h2{font-size:1.16rem;margin:5px 0 0;letter-spacing:-.02em}
+.app-picker-close{width:38px;height:38px;flex:none;display:grid;place-items:center;
+    border-radius:12px;border:1px solid #455b73;background:#22374b;color:#e0ecf8;
+    font-size:1.45rem;line-height:1;padding:0}
+.app-picker-options{padding:10px;overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;display:grid;gap:6px}
+.app-picker-option{width:100%;display:flex;justify-content:space-between;align-items:center;
+    gap:15px;text-align:left;padding:14px 13px;min-height:49px;border-radius:13px;
+    border:1px solid transparent;background:#1b2d44;color:#d8e7f7;font-size:.92rem;
+    font-weight:600;white-space:normal}
+.app-picker-option.is-selected{background:#1d453f;color:#adf4cf;border-color:#5caa86}
+.app-picker-option:disabled{opacity:.42}
+.app-picker-check{color:#7ff1b3;font-size:1.1rem;font-weight:900;flex:none}
+@media(min-width:700px){.app-picker-shade{align-items:center;padding:22px}}
+.page.is-current{animation:app-page-show .17s ease-out}
+@keyframes app-page-show{from{opacity:.78;transform:translateY(5px)}to{opacity:1;transform:none}}
+.app-content[data-swipe-direction="left"] .page.is-current{animation:app-page-from-right .24s cubic-bezier(.22,.8,.25,1)}
+.app-content[data-swipe-direction="right"] .page.is-current{animation:app-page-from-left .24s cubic-bezier(.22,.8,.25,1)}
+@keyframes app-page-from-right{from{opacity:.5;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes app-page-from-left{from{opacity:.5;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+    button,button.app-tap-pop,.app-picker-sheet,.page.is-current,
+    .app-content[data-swipe-direction="left"] .page.is-current,
+    .app-content[data-swipe-direction="right"] .page.is-current{
+        animation:none!important;transition:none!important;transform:none!important;filter:none!important
+    }
+}
+
 </style></head><body>
 <div id="introOverlay" class="intro-shell" aria-label="Application introduction">
   <section id="introCurrency" class="intro-stage" hidden>
@@ -335,4 +402,5 @@ if(!window.__v14WasExistingUser&&!localStorage.getItem('pc-gaming-onboarding-v14
 <script src="feedback-store.js"></script>
 <script src="shell.js"></script>
 <script src="onboarding.js"></script>
+<script src="ui-polish.js"></script>
 </body></html>
