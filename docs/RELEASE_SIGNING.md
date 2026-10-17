@@ -49,11 +49,11 @@ Paste the result **only** into the GitHub secret form, never into a commit, issu
 
 Go to **Actions → Build signed community release APK → Run workflow**.
 
-The manual-only workflow validates the project, restores the keystore temporarily from secrets, builds the `release` variant, verifies the signature and package ID, and uploads an artifact named **PC-Gaming-Setup-Checklist-v1.4.1-SIGNED**. It then removes the temporary key file.
+The manual-only workflow validates the project, restores the keystore temporarily from secrets, builds the `release` variant, verifies the signature and package ID, and uploads an artifact named **PC-Gaming-Setup-Checklist-v1.4.2-SIGNED**. It then removes the temporary key file.
 
 If required secrets are missing, the job fails explicitly; it will **not** silently upload a debug or unsigned release.
 
-Download the artifact and extract `PC-Gaming-Setup-Checklist-v1.4.1-signed.apk`.
+Download the artifact and extract `PC-Gaming-Setup-Checklist-v1.4.2-signed.apk`.
 
 ## 4. Test migration without uninstalling
 

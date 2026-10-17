@@ -20,9 +20,9 @@ function initialContribution(state){
     const context={safePrice,state};
     return vm.runInNewContext(initialCode+'\ninitialContribution(state)',context);
 }
-function totals(items,contributed){
+function totals(items,contributed,checked={}){
     const context={
-        items,contributed,safePrice,
+        items,contributed,checked,safePrice,
         categoryGroup:cat=>cat==='PC'?'pc':cat==='Future'?'future':'setup'
     };
     return JSON.parse(JSON.stringify(vm.runInNewContext(totalsCode+'\ntotals()',context)));
@@ -83,4 +83,88 @@ test('Welcome CTA is an animated handoff, with accessible reduced-motion fallbac
     assert.match(html,/\.intro-shell\.is-visible\.is-exiting/);
     assert.match(html,/@keyframes setup-enter/);
     assert.match(html,/@media \(prefers-reduced-motion:reduce\)/);
+});
+
+test('Purchased PC parts no longer count toward PC cost, shortfall or savings target',()=>{
+    const parts=[
+        {id:'cpu',cat:'PC',price:40000},
+        {id:'gpu',cat:'PC',price:60000},
+        {id:'monitor',cat:'Monitor',price:25000}
+    ];
+    const before=totals(parts,10000);
+    assert.equal(before.pc,100000);
+    assert.equal(before.share,90000);
+    assert.equal(before.currentGoal,115000);
+
+    const purchased={cpu:true};
+    const after=totals(parts,10000,purchased);
+    assert.equal(after.pc,60000);
+    assert.equal(after.share,50000);
+    assert.equal(after.currentGoal,75000);
+    assert.equal(after.purchasedTotal,40000);
+    assert.equal(after.purchasedCount,1);
+    assert.equal(after.remainingCount,2);
+    assert.equal(after.purchasedCurrent,1);
+    assert.equal(after.remainingCurrent,2);
+
+    const uncheck=totals(parts,10000,{cpu:false});
+    assert.equal(uncheck.currentGoal,before.currentGoal);
+    assert.equal(uncheck.purchasedTotal,0);
+});
+test('Purchased non-PC items also leave savings and remaining summaries',()=>{
+    const parts=[
+        {id:'cpu',cat:'PC',price:300},
+        {id:'display',cat:'Monitor',price:200},
+        {id:'desk',cat:'Desk',price:100},
+        {id:'chair',cat:'Chair',price:50},
+        {id:'future',cat:'Future',price:400}
+    ];
+    const t=totals(parts,0,{display:true,desk:true,chair:true});
+    assert.equal(t.currentGoal,300);
+    assert.equal(t.main,0);
+    assert.equal(t.desk,0);
+    assert.equal(t.chair,0);
+    assert.equal(t.full,700); // Only unpurchased PC and future items
+    assert.equal(t.purchasedTotal,350);
+});
+test('Purchased future products never enter current savings and stay in history',()=>{
+    const parts=[
+        {id:'cpu',cat:'PC',price:1000},
+        {id:'future',cat:'Future',price:300}
+    ];
+    const before=totals(parts,0);
+    assert.equal(before.currentGoal,1000);
+    assert.equal(before.full,1300);
+    const after=totals(parts,0,{future:true});
+    assert.equal(after.currentGoal,1000);
+    assert.equal(after.full,1000);
+    assert.equal(after.futureTotal,0);
+    assert.equal(after.purchasedTotal,300);
+    assert.equal(after.purchasedCount,1);
+});
+test('Purchased status uses legacy checked records without a schema migration',()=>{
+    const parts=[{id:'cpu',cat:'PC',price:1.25},{id:'monitor',cat:'Monitor',price:2.75}];
+    const t=totals(parts,0,{cpu:true,monitor:true});
+    assert.equal(t.currentGoal,0);
+    assert.equal(t.pc,0);
+    assert.equal(t.full,0);
+    assert.equal(t.purchasedTotal,4);
+    assert.equal(t.purchasedCount,2);
+    assert.equal(t.remainingCurrent,0);
+});
+test('Marked items stay in the app and can be sorted by purchased/to-buy status',()=>{
+    assert.match(app,/const unpurchased=items\.filter\(i=>!checked\[i\.id\]\)/);
+    assert.match(app,/const purchased=items\.filter\(i=>!!checked\[i\.id\]\)/);
+    assert.match(app,/if\(purchaseView==='purchased'&&!purchased\)return/);
+    assert.match(app,/if\(purchaseView==='to-buy'&&purchased\)return/);
+    assert.match(app,/renderPurchaseViews\(\)/);
+    assert.match(app,/purchaseView=PURCHASE_VIEWS\.includes\(state\.purchaseView\)/);
+    assert.match(app,/sortOrder,purchaseView,showProductImages/);
+    assert.match(app,/purchaseView:'all'/);
+    assert.match(html,/id="purchaseStatusFilters"/);
+    assert.match(html,/id="purchasedTotal"/);
+    assert.match(html,/id="purchasedCount"/);
+    assert.match(html,/id="toBuyCount"/);
+    assert.match(html,/v1\.4\.2/);
+    assert.match(html,/Checkmarks track purchases, not cash transactions/);
 });
