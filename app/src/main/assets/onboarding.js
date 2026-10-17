@@ -1,6 +1,11 @@
 /* v1.4: one-time setup followed by a welcome screen on cold launch. */
 (() => {
     'use strict';
+    // Load the final brand accents after the base blue stylesheet.
+    const finishTheme=document.createElement('link');
+    finishTheme.rel='stylesheet';
+    finishTheme.href='theme-finishing.css';
+    document.head.append(finishTheme);
     const $id=id=>document.getElementById(id);
     const key='pc-gaming-onboarding-v14';
     const overlay=$id('introOverlay');
