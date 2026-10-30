@@ -41,7 +41,7 @@ function photoStorageKey(id) {return activePresetId==='preset-1'?id:activePreset
 function photoFallbackKey(id) {return 'pc-setup-photo-'+photoStorageKey(id);}
 
 const $ = id => document.getElementById(id);
-const BUILTIN = {PC:'pc',Monitor:'setup',Desk:'setup',Accessory:'setup',Chair:'setup',Future:'future'};
+const BUILTIN = {PC:'pc',Setup:'setup',Future:'future'};
 const builtinNames = Object.keys(BUILTIN);
 function safePrice(value) {return Math.max(0,Math.round((Number(value)||0)*1000)/1000);}
 function validUrl(value) {
@@ -77,6 +77,18 @@ if (Array.isArray(savedState.categories)) {
         customCategories.push({name,group});
     });
 }
+// Upgrade historical named built-ins into user-editable categories. New installs
+// get only PC, Setup and Future; saved categories and products are preserved.
+function migrateLegacyCategories(state){
+    const raw=[...Object.values(state.overrides||{}),...(Array.isArray(state.customItems)?state.customItems:[])];
+    for(const item of raw){
+        const cat=String(item&&item.cat||'');
+        if(['Monitor','Desk','Accessory','Chair'].includes(cat)&&
+           !customCategories.some(x=>x.name===cat))
+            customCategories.push({name:cat,group:'setup'});
+    }
+}
+migrateLegacyCategories(savedState);
 const originalIds = new Set(originalItems.map(x => x.id));
 const deletedIds = new Set(Array.isArray(savedState.deletedIds)?savedState.deletedIds.map(String):[]);
 if(blankPreset)items.splice(0,items.length);
@@ -90,8 +102,8 @@ function normalizeProduct(raw) {
     if (!raw || typeof raw !== 'object') return null;
     const id=String(raw.id||'').slice(0,90), name=String(raw.name||'').trim().slice(0,180);
     if (!id || !name) return null;
-    let cat=String(raw.cat||'Accessory');
-    if (!builtinNames.includes(cat) && !customCategories.some(c=>c.name===cat)) cat='Accessory';
+    let cat=String(raw.cat||'Setup');
+    if (!builtinNames.includes(cat) && !customCategories.some(c=>c.name===cat)) cat='Setup';
     return {id,name,price:safePrice(raw.price),cat,q:String(raw.q||name),url:validUrl(String(raw.url||'')) ? String(raw.url||'') : ''};
 }
 const newProducts = Array.isArray(savedState.customItems) ? savedState.customItems : [];
@@ -133,6 +145,8 @@ function initialContribution(state) {
 }
 let contributed=initialContribution(savedState);
 let contributionEdited=savedState.contributionEdited===true;
+let contributionScope=['pc','nonpc','all','category'].includes(savedState.contributionScope)?savedState.contributionScope:'pc';
+let contributionCategory=String(savedState.contributionCategory||'Setup');
 let filter = 'All';
 const future=$('future'), filtersEl=$('filters'), itemsEl=$('items');
 const photoCache=new Map();
@@ -258,7 +272,7 @@ function persist() {
         overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url}])),
         customItems:items.filter(i=>!originalIds.has(i.id)),
         categories:customCategories,
-        contributed,contributionEdited,
+        contributed,contributionEdited,contributionScope,contributionCategory,
         saved:$('saved').value,
         future:future.checked,
         filter
@@ -288,9 +302,22 @@ function renderFilters() {
     });
     categoryOptions($('newCategory'),$('newCategory').value || 'PC');
 }
+function refreshContributionCategories(){
+    const select=$('contributionCategory'),wrap=$('contributionCategoryWrap');
+    if(!select||!wrap)return;
+    select.replaceChildren();
+    for(const name of builtinNames.concat(customCategories.map(c=>c.name))){
+        const option=document.createElement('option');option.value=name;option.textContent=name;select.append(option);
+    }
+    if(![...select.options].some(o=>o.value===contributionCategory))contributionCategory='Setup';
+    select.value=contributionCategory;
+    wrap.hidden=contributionScope!=='category';
+}
 function restoreControls() {
     $('saved').value=savedState.saved===undefined?'0':String(safePrice(savedState.saved));
     $('contributed').value=String(contributed);
+    $('contributionScope').value=contributionScope;
+    refreshContributionCategories();
     future.checked=!!savedState.future;
     const available=['All'].concat(builtinNames,customCategories.map(c=>c.name));
     filter=available.includes(savedState.filter)?savedState.filter:'All';
@@ -447,39 +474,42 @@ function render() {
     });
     renderStats();
 }
-function pcRemaining(pcTotal,contribution){
+function pcRemaining(pcTotal,contribution) {
     return Math.max(0,safePrice(pcTotal)-safePrice(contribution));
 }
-function totals() {
-    // A checkmark means the purchase is complete: its price is retained
-    // in product history, but not included in the remaining spend or savings.
-    const unpurchased=items.filter(i=>!checked[i.id]);
-    const purchased=items.filter(i=>!!checked[i.id]);
-    const sum=fn=>unpurchased.filter(fn).reduce((a,i)=>a+safePrice(i.price),0);
-    const pc=sum(i=>categoryGroup(i.cat)==='pc');
-    // The PC contribution is the amount still available for future PC
-    // purchases; users must adjust it if they spend that money.
-    const share=pcRemaining(pc,contributed);
-    const main=sum(i=>i.cat==='Monitor');
-    const desk=sum(i=>i.cat==='Desk'||i.cat==='Accessory');
-    const chair=sum(i=>i.cat==='Chair');
-    const other=sum(i=>categoryGroup(i.cat)==='setup'&&!['Monitor','Desk','Accessory','Chair'].includes(i.cat));
-    const futureTotal=sum(i=>categoryGroup(i.cat)==='future');
-    const currentGoal=share+main+desk+chair+other;
-    const full=pc+main+desk+chair+other+futureTotal;
-    const purchasedTotal=purchased.reduce((a,i)=>a+safePrice(i.price),0);
-    const currentItems=items.filter(i=>categoryGroup(i.cat)!=='future');
-    const purchasedCurrent=currentItems.filter(i=>!!checked[i.id]).length;
-    const remainingCurrent=currentItems.length-purchasedCurrent;
-    return {pc,contributed,share,main,desk,chair,other,futureTotal,
-        currentGoal,full,purchasedTotal,purchasedCount:purchased.length,
-        remainingCount:unpurchased.length,purchasedCurrent,remainingCurrent};
+function totals(){
+    const t=BudgetModel.compute(items,checked,categoryGroup,contributed,contributionScope,contributionCategory);
+    // Compatibility with historical summary hooks, now replaced with dynamic rows.
+    const total=name=>t.rows.filter(x=>x.name===name).reduce((v,r)=>v+r.remaining,0);
+    return {...t,main:total('Monitor'),desk:total('Desk')+total('Accessory'),
+       chair:total('Chair'),other:t.setup-total('Monitor')-total('Desk')-total('Accessory')-total('Chair')};
 }
 function renderStats() {
     if($('newPriceCurrency'))$('newPriceCurrency').textContent=currentCurrency;
     if($('contributedCurrency'))$('contributedCurrency').textContent=currentCurrency;
     const t=totals();
-    $('pcTotal').textContent=fmt(t.pc);$('dadContribution').textContent=fmt(t.contributed);
+    $('pcTotal').textContent=fmt(t.rows.filter(r=>r.group==='pc').reduce((x,r)=>x+r.total,0));$('dadContribution').textContent=fmt(t.contributed);
+    const list=$('dynamicCategoryTotals');
+    if(list){
+        list.replaceChildren();
+        for(const r of t.rows){
+            const row=document.createElement('div');
+            row.className='row summaryline';
+            const label=document.createElement('span'),value=document.createElement('strong');
+            label.textContent=r.name+(r.group==='future'?' · Future':'');
+            value.textContent=fmt(r.remaining);
+            row.append(label,value);list.append(row);
+        }
+        if(!t.rows.length){
+            const empty=document.createElement('p');empty.className='muted small';
+            empty.textContent='Add products to see your breakdown.';list.append(empty);
+        }
+    }
+    const unallocated=$('contributionUnused');
+    if(unallocated)unallocated.textContent=t.unallocated>0?'Unallocated contribution: '+fmt(t.unallocated):'';
+    const categorySelect=$('contributionCategory');
+    if(categorySelect&&categorySelect.options.length!==builtinNames.length+customCategories.length)
+        refreshContributionCategories();
     $('purchasedTotal').textContent=fmt(t.purchasedTotal);
     $('purchasedCount').textContent=t.purchasedCount+' item'+(t.purchasedCount===1?'':'s');
     $('toBuyCount').textContent=t.remainingCount+' item'+(t.remainingCount===1?'':'s');
@@ -519,6 +549,8 @@ $('categoryForm').onsubmit=e=>{
     categoryOptions($('newCategory'),name);
     render();persist();
     $('catMessage').textContent='Category added: '+name;
+    refreshContributionCategories();
+    window.dispatchEvent(new CustomEvent('category-created',{detail:{name}}));
 };
 $('addProductForm').onsubmit=async e=>{
     e.preventDefault();
@@ -537,12 +569,20 @@ $('addProductForm').onsubmit=async e=>{
         renderFilters();
         categoryOptions($('newCategory'),selected);
         filter='All';renderFilters();persist();render();
-        $('addMessage').textContent='Product added. It is now in your checklist!';
+        $('addMessage').textContent='Product added.';
+        window.dispatchEvent(new Event('product-created'));
     } catch(err) {
         $('addMessage').textContent=err.message||'Could not add the product.';
     } finally { submit.disabled=false; }
 };
 future.onchange=()=>{render();persist();};
+$('contributionScope').addEventListener('change',event=>{
+    contributionScope=event.target.value;
+    refreshContributionCategories();renderStats();persist();
+});
+$('contributionCategory').addEventListener('change',event=>{
+    contributionCategory=event.target.value;renderStats();persist();
+});
 $('saved').oninput=()=>{renderStats();persist();};
 function syncPCContribution() {
     const input=$('contributed');
@@ -561,7 +601,7 @@ $('contributed').addEventListener('change',()=>{
     syncPCContribution();
 });
 function copyText() {
-    return 'MY PC & GAMING SETUP CHECKLIST\nAvailable PC contribution: '+fmt(contributed)+
+    return 'MY PC & GAMING SETUP CHECKLIST\nAvailable contribution ('+contributionScope+'): '+fmt(contributed)+
         '\nPC left to save: '+fmt(totals().share)+'\nRemaining savings target: '+fmt(totals().currentGoal)+
         '\nAlready purchased: '+fmt(totals().purchasedTotal)+'\nStill to buy: '+fmt(totals().full)+'\n\n'+
         items.map(i=>(checked[i.id]?'[x] ':'[ ] ')+i.name+' — '+fmt(i.price)+
@@ -569,13 +609,25 @@ function copyText() {
         '\n\nSaved toward remaining goal: '+fmt(safePrice($('saved').value));
 }
 $('copy').onclick=async()=>{
-    try {await navigator.clipboard.writeText(copyText());}
-    catch(_){
-        const txt=document.createElement('textarea');txt.value=copyText();
-        document.body.append(txt);txt.select();document.execCommand('copy');txt.remove();
+    const btn=$('copy');
+    try {
+        if(window.AndroidClipboard&&typeof AndroidClipboard.copy==='function'){
+            AndroidClipboard.copy(copyText());
+        }else if(navigator.clipboard&&navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(copyText());
+        }else{
+            const field=document.createElement('textarea');
+            field.value=copyText();field.style.position='fixed';field.style.opacity='0';
+            document.body.append(field);field.focus();field.select();
+            const ok=document.execCommand('copy');field.remove();
+            if(!ok)throw new Error('Clipboard unavailable');
+        }
+        btn.textContent='Copied';
+    }catch(error){
+        btn.textContent='Copy unavailable';
+        alert('Could not copy to clipboard on this device.');
     }
-    $('copy').textContent='Copied!';
-    setTimeout(()=>$('copy').textContent='Copy checklist + notes',1600);
+    setTimeout(()=>btn.textContent='Copy checklist + notes',1600);
 };
 $('reset').onclick=()=>{
     if(!confirm('Clear your checkmarks, notes and savings tracker? Products, prices, pictures, categories and contributions will be kept.'))return;
@@ -594,7 +646,7 @@ $('export').onclick=async()=>{
             if (photo && photo.blob) photos[item.id]=await blobToData(photo.blob);
         }
         const data={version:4,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
-            deletedIds:[...deletedIds],blankPreset,contributed,saved:$('saved').value,future:future.checked,filter,photos};
+            deletedIds:[...deletedIds],blankPreset,contributed,contributionScope,contributionCategory,planner:window.PersonalPlanner?window.PersonalPlanner.exportState():null,saved:$('saved').value,future:future.checked,filter,photos};
         const backupText=JSON.stringify(data,null,2);
         if(window.AndroidBackup && typeof window.AndroidBackup.saveJson==='function') {
             window.AndroidBackup.saveJson(backupText);
@@ -647,6 +699,11 @@ $('importFile').onchange=async e=>{
         showProductImages=data.showProductImages!==false;
         contributionEdited=data.contributed!==undefined;
         contributed=initialContribution({contributed:data.contributed,contributionEdited,blankPreset,customItems:restored});
+        contributionScope=['pc','nonpc','all','category'].includes(data.contributionScope)?data.contributionScope:'pc';
+        contributionCategory=String(data.contributionCategory||'Setup');
+        $('contributionScope').value=contributionScope;
+        refreshContributionCategories();
+        if(data.planner&&window.PersonalPlanner&&confirm('Restore the global salary planner from this backup? This replaces the planner currently stored on this device.'))window.PersonalPlanner.importState(data.planner);
         $('contributed').value=contributed;
         $('saved').value=safePrice(data.saved);
         future.checked=!!data.future;
@@ -689,6 +746,7 @@ function loadPresetIntoApp(id) {
         if(name&& !builtinNames.concat(customCategories.map(x=>x.name)).some(x=>x.toLowerCase()===name.toLowerCase()))
             customCategories.push({name,group:c.group});
     });
+    migrateLegacyCategories(state);
     items.splice(0,items.length,...hydrateProducts(state));
     for(const key of Object.keys(checked))delete checked[key];
     for(const key of Object.keys(notes))delete notes[key];
@@ -696,6 +754,9 @@ function loadPresetIntoApp(id) {
     if(state.notes && typeof state.notes==='object')Object.assign(notes,state.notes);
     contributionEdited=state.contributionEdited===true;
     contributed=initialContribution({...state,blankPreset});
+    contributionScope=['pc','nonpc','all','category'].includes(state.contributionScope)?state.contributionScope:'pc';
+    contributionCategory=String(state.contributionCategory||'Setup');
+    $('contributionScope').value=contributionScope;refreshContributionCategories();
     $('contributed').value=String(contributed);
     $('saved').value=String(safePrice(state.saved));
     future.checked=!!state.future;
