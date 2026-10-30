@@ -12,6 +12,18 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.5 planner and interface refresh
+
+- **Four sections:** Tracker, Items, Summary and a new monthly financial Planner.
+- **Fast welcome transition:** composite-only handoff, reduced blur and shorter delay.
+- **Clean item workflow:** Add Product and Add Category open focused bottom sheets. The Tracker no longer contains item filters or creation forms.
+- **Custom categories:** PC, Setup and Future remain protected; all other categories (including migrated legacy categories) may be reassigned or deleted.
+- **Flexible contribution allocation:** PC only, everything except PC, everything or a named category. Available contribution is separate from ordinary savings and prioritizes current purchases over Future.
+- **Global monthly planner:** salary, fixed and variable expenses, planned savings, actual savings and month-by-month history. The planner never automatically treats income as savings or transfers it into preset Tracker funds.
+- **Android clipboard:** native bridge for copying checklists and feedback reliably.
+
+Existing per-preset data is retained, including purchased items and original product photos. Local backups now use schema version 5 and can optionally restore the global planner. The planner uses a single currency fixed at first setup; changing a preset currency does not convert the global planner.
+
 ## Features
 
 - **Multiple presets:** separate PC and gaming setups, each with its own products, budgets, categories and photos.
