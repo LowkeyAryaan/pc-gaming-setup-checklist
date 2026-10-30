@@ -612,7 +612,7 @@ $('copy').onclick=async()=>{
     const btn=$('copy');
     try {
         if(window.AndroidClipboard&&typeof AndroidClipboard.copy==='function'){
-            AndroidClipboard.copy(copyText());
+            if(!AndroidClipboard.copy(copyText()))throw new Error('Native clipboard unavailable');
         }else if(navigator.clipboard&&navigator.clipboard.writeText){
             await navigator.clipboard.writeText(copyText());
         }else{
