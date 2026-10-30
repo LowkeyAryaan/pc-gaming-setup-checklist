@@ -75,8 +75,9 @@ test('Premium UI moves product/category forms into dedicated sheets',()=>{
 });
 test('Global finance planner separates actual savings from planned income allocations',()=>{
  assert.match(planner,/pc-gaming-global-planner-v1/);
- assert.match(planner,/plannerActual/);
- assert.match(planner,/plannerTarget/);
+ assert.match(planner,/const ids=\['Salary','Fixed','Variable','Target','Actual'\]/);
+ assert.match(html,/id="plannerActual"/);
+ assert.match(html,/id="plannerTarget"/);
  assert.match(planner,/exportState/);
  assert.match(planner,/importState/);
  assert.doesNotMatch(planner,/\$\('saved'\)\.value\s*=/);
