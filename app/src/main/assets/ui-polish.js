@@ -211,7 +211,7 @@
 
     // Fixed viewport + three independently scrollable pages. Only the page
     // panels slide; the header, bottom tabs and app shell remain perfectly still.
-    const pages=['tracker','items','summary'];
+    const pages=['tracker','items','summary','planner'];
     const appMain=document.querySelector('main.app-content');
     const pageNodes=pages.map(page=>document.getElementById('page-'+page));
     const header=document.querySelector('.app-topbar');
@@ -229,7 +229,8 @@
 
     const isOverlayOpen=()=>!sheetShade.hidden ||
         !modalShade.hidden || !navShade.hidden ||
-        introOverlay.classList.contains('is-visible');
+        introOverlay.classList.contains('is-visible') ||
+        !!document.querySelector('.premium-sheet-shade:not([hidden])');
 
     function currentPageIndex(){
         const active=appMain.querySelector('.page.is-current');
