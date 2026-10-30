@@ -111,7 +111,7 @@
         // avoids the sudden cut without slowing down the app.
         document.body.classList.add('app-entering');
         overlay.classList.add('is-exiting');
-        window.setTimeout(finish,650);
+        window.setTimeout(finish,300);
     };
     renderCurrencies();
     const state=readStatus();
