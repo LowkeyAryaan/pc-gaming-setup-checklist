@@ -486,7 +486,9 @@
         }
         async function copyText(text){
             try {
-                if(navigator.clipboard && typeof navigator.clipboard.writeText==='function'){
+                if(window.AndroidClipboard && typeof window.AndroidClipboard.copy==='function'){
+                    if(!window.AndroidClipboard.copy(text))throw new Error('Android clipboard unavailable');
+                } else if(navigator.clipboard && typeof navigator.clipboard.writeText==='function'){
                     await navigator.clipboard.writeText(text);
                 }else{
                     const temp=document.createElement('textarea');
