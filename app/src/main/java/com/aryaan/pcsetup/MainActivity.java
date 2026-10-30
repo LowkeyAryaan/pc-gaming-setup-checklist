@@ -20,6 +20,9 @@ import android.webkit.JavascriptInterface;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebChromeClient;
@@ -59,6 +62,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new StartupBridge(), "AndroidStartup");
         web.addJavascriptInterface(new BackupBridge(), "AndroidBackup");
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
+        web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -237,6 +241,21 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             });
+        }
+    }
+
+    private class ClipboardBridge {
+        @JavascriptInterface
+        public boolean copy(String text) {
+            if (text == null || text.length() > 250000) return false;
+            try {
+                ClipboardManager clipboard=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) return false;
+                clipboard.setPrimaryClip(ClipData.newPlainText("Checklist", text));
+                return true;
+            } catch (Exception error) {
+                return false;
+            }
         }
     }
 
