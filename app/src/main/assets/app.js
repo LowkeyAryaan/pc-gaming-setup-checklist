@@ -645,7 +645,7 @@ $('export').onclick=async()=>{
             const photo=await getPhoto(item.id);
             if (photo && photo.blob) photos[item.id]=await blobToData(photo.blob);
         }
-        const data={version:4,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
+        const data={version:5,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
             deletedIds:[...deletedIds],blankPreset,contributed,contributionScope,contributionCategory,planner:window.PersonalPlanner?window.PersonalPlanner.exportState():null,saved:$('saved').value,future:future.checked,filter,photos};
         const backupText=JSON.stringify(data,null,2);
         if(window.AndroidBackup && typeof window.AndroidBackup.saveJson==='function') {
@@ -677,6 +677,7 @@ $('importFile').onchange=async e=>{
                 customCategories.push({name,group:cat.group});
             });
         }
+        migrateLegacyCategories({customItems:data.items});
         const byId=new Map();
         data.items.forEach(raw=>{
             const item=normalizeProduct(raw);
