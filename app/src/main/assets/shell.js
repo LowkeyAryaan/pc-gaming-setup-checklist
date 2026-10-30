@@ -2,7 +2,7 @@
 (() => {
     'use strict';
     const el=id=>document.getElementById(id);
-    const pages=['tracker','items','summary'];
+    const pages=['tracker','items','summary','planner'];
     const CREATOR_INSTAGRAM_URL='https://www.instagram.com/aryaan_creates/';
     function instagramCreatorLink(){
         const link=document.createElement('a');
@@ -32,13 +32,14 @@
         if(opts.history!==false)try{history.pushState({page},'', '#'+page);}catch(_){}
         if(opts.scroll!==false)window.scrollTo(0,0);
         if(page==='items')updateItemCount();
+        if(page==='planner'&&window.PersonalPlanner)window.PersonalPlanner.render();
     }
     window.goToPage=p=>goToPage(p);
     document.querySelectorAll('.bottom-tabs button[data-page]').forEach(b=>b.onclick=()=>goToPage(b.dataset.page));
     try{history.replaceState({page:'tracker'},'', '#tracker');}catch(_){}
     window.addEventListener('popstate',e=>goToPage(e.state&&pages.includes(e.state.page)?e.state.page:'tracker',{history:false}));
     el('trackerToItems').onclick=()=>goToPage('items');
-    el('itemsToTracker').onclick=()=>{goToPage('tracker');el('addProductForm').scrollIntoView({behavior:'smooth',block:'start'});};
+    el('itemsToTracker').onclick=()=>{if(window.openProductSheet)window.openProductSheet();};
 
     const pencilIcon='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16 4a2 2 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
     const trashIcon='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg>';
@@ -239,6 +240,11 @@
             }
             root.append(row);
         });
+        const add=document.createElement('button');
+        add.type='button';add.className='category-add';add.textContent='+';
+        add.setAttribute('aria-label','Add category');
+        add.onclick=()=>{if(window.openCategorySheet)window.openCategorySheet();};
+        root.append(add);
     }
     function deleteCategory(name) {
         const category=customCategories.find(c=>c.name===name);
@@ -248,6 +254,8 @@
             const index=customCategories.findIndex(c=>c.name===name);
             if(index>=0)customCategories.splice(index,1);
             if(filter===name)filter='All';
+            if(contributionScope==='category'&&contributionCategory===name)contributionCategory='Setup';
+            refreshContributionCategories();
             renderFilters();render();persist();closeModal();
         }
         if(!affected.length){
@@ -269,7 +277,7 @@
         builtinNames.concat(customCategories.map(c=>c.name)).filter(c=>c!==name).forEach(c=>{
             const option=document.createElement('option');option.value=c;option.textContent=c;target.append(option);
         });
-        target.value='Accessory';container.append(target);
+        target.value='Setup';container.append(target);
         container.addEventListener('change',()=>{target.hidden=!move.checked;});
         const warning=document.createElement('p');warning.className='section-note';
         warning.textContent='Deleting products also removes their images and notes from this preset. Moving them retains all product details but changes their budget category.';
