@@ -276,7 +276,8 @@ body.app-picker-open{overflow:hidden}
     }
 }
 
-</style></head><body>
+</style><link rel="stylesheet" href="premium-v15.css">
+</head><body>
 <div id="introOverlay" class="intro-shell" aria-label="Application introduction">
   <section id="introCurrency" class="intro-stage" hidden>
     <div class="intro-head"><span class="intro-step">01 / 02</span><span class="eyebrow">LET'S GET STARTED</span></div>
@@ -328,75 +329,54 @@ body.app-picker-open{overflow:hidden}
  <div class="topbar-inner">
   <button id="menuButton" class="menu-button" aria-label="Open presets menu" aria-expanded="false" aria-controls="sideDrawer"><span></span><span></span><span></span></button>
   <div class="app-identity"><div class="eyebrow">MY PC &amp; GAMING SETUP</div><strong id="currentPresetName">Preset #1</strong></div>
-  <span class="top-version">v1.4.2</span>
+  <span class="top-version">v1.5 preview</span>
  </div>
 </header>
 <main class="app-content">
  <section class="page is-current" id="page-tracker" aria-label="Tracker">
-  <div class="section-intro"><span class="eyebrow">01 / TRACKER</span><h1>Your setup, your pace.</h1><p class="section-note">Track your savings, manage the PC contribution, and plan new products.</p></div>
-  <section class="panel"><div class="muted small">PERSONAL SAVINGS GOAL</div><div class="goal" id="goalLabel">0</div><p class="muted small">Only unchecked PC and setup products count toward this remaining target. Future purchases and already bought items are excluded.</p><hr style="border-color:#2b3549"><div class="row"><label for="saved">Saved toward remaining goal</label><strong id="savedLabel">Rs. 0</strong></div><input id="saved" type="number" min="0" step="any" value="0" placeholder="Enter savings amount in PKR"><progress id="progress" value="0" max="1"></progress><div class="row muted small"><span id="percent">0.0% saved</span><span id="remaining">0 left</span></div><p id="count" class="small">0 purchased · 0 left to buy (current setup)</p>
-   <p class="section-note">Checking an item removes its price from your remaining goal, but doesn't spend money entered as Saved or PC Contribution. Update those balances if you used them to pay.</p></section>
+  <div class="section-intro"><span class="eyebrow">01 / TRACKER</span><h1>Your setup, your pace.</h1></div>
+  <section class="panel"><div class="muted small">PERSONAL SAVINGS GOAL</div><div class="goal" id="goalLabel">0</div><hr style="border-color:#2b3549"><div class="row"><label for="saved">Saved toward remaining goal</label><strong id="savedLabel">Rs. 0</strong></div><input id="saved" type="number" min="0" step="any" value="0" placeholder="Enter savings amount in PKR"><progress id="progress" value="0" max="1"></progress><div class="row muted small"><span id="percent">0.0% saved</span><span id="remaining">0 left</span></div><p id="count" class="small">0 purchased · 0 left to buy (current setup)</p>
+   </section>
 
   <section class="panel" id="contributionPanel">
-  <h2>PC contribution &amp; shortfall</h2>
-  <p class="muted small">Money still available for unchecked PC parts only. If you used some of this contribution to buy an item, adjust this field to the funds remaining so your savings target stays accurate.</p>
-  <label for="contributed" class="fieldlabel">Available PC contribution (<span id="contributedCurrency">PKR</span>)</label>
-  <input id="contributed" type="number" min="0" step="any" inputmode="decimal" value="0">
-  <div class="row summaryline" style="margin-top:9px"><strong>PC amount left to save</strong><strong class="green" id="pcLeft">0</strong></div>
-  <p class="section-note" id="contributionMessage" role="status" aria-live="polite">Only PC category products count toward the contributor calculation.</p>
+  <h2>Contribution <button type="button" class="help-icon" data-help="contribution" aria-label="Contribution information">ⓘ</button></h2>
+  
+  <label for="contributed" class="fieldlabel">Available contribution (<span id="contributedCurrency">PKR</span>)</label>
+  <input id="contributed" type="number" min="0" step="any" inputmode="decimal" value="0"><label class="fieldlabel" for="contributionScope">Apply to</label><select id="contributionScope"><option value="pc">PC only</option><option value="nonpc">Everything except PC</option><option value="all">Everything</option><option value="category">Specific category</option></select><label class="fieldlabel" id="contributionCategoryWrap" for="contributionCategory" hidden>Category<select id="contributionCategory"></select></label><div class="fine-print" id="contributionUnused"></div>
+  <div class="row summaryline" style="margin-top:9px"><strong>Remaining PC cost</strong><strong class="green" id="pcLeft">0</strong></div>
+  <p class="sr-only" id="contributionMessage" role="status" aria-live="polite">Only PC category products count toward the contributor calculation.</p>
 </section>
 
-  <section class="panel"><h2>Filter items</h2><div class="filters" id="filters"></div><label class="futuretoggle"><input id="future" type="checkbox"> Include future purchases</label><div class="muted small">Mark items purchased to exclude them from your remaining budget. Uncheck to add their prices back. You can still edit purchased products and keep their details.</div></section>
-  <section class="panel">
-  <h2>Add a new product</h2>
-  <form id="addProductForm" class="setupform">
-    <label>Product name<input id="newName" type="text" maxlength="180" placeholder="e.g. Logitech G Pro Mouse" required></label>
-    <label>Price (<span id="newPriceCurrency">PKR</span>)<input id="newPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 15000" required></label>
-    <label>Category<select id="newCategory"></select></label>
-    <label>Product listing link (optional)<input id="newUrl" type="url" placeholder="https://..."></label>
-    <label>Product picture (optional)<input id="newPhoto" type="file" accept="image/*"></label>
-    <p class="muted small">Choose a picture from your phone. It will be resized and kept locally on this device. New PC parts automatically update the remaining PC budget.</p>
-    <button type="submit" class="active">Add product to checklist</button>
-    <div id="addMessage" class="status" role="status"></div>
-  </form>
-</section>
+  <div id="filters" hidden aria-hidden="true"></div>
+  
 
-  <div class="nav-actions"><span class="section-note">Browse your full product list on the Items page.</span><button type="button" id="trackerToItems">View items →</button></div>
+  <div class="tracker-link"><button type="button" id="trackerToItems">View products →</button></div>
  </section>
  <section class="page" id="page-items" aria-label="Items and categories">
-  <div class="section-intro"><span class="eyebrow">02 / ITEMS</span><h1>Products &amp; categories</h1><p class="section-note">Switch between items you still need and items you've already bought. Your purchase history stays in this preset.</p></div>
-  <section class="panel"><div class="eyebrow">ORGANIZE YOUR BUILD</div>  <h2>Create a category</h2>
-  <form id="categoryForm" class="setupform">
-    <label>Category name<input id="catName" type="text" maxlength="48" placeholder="e.g. Streaming gear" required></label>
-    <label>Counts toward<select id="catGroup"><option value="pc">PC parts cost</option><option value="setup" selected>Current setup cost</option><option value="future">Future purchases (excluded from savings goal)</option></select></label>
-    <button type="submit" class="active">Add category</button>
-    <div id="catMessage" class="status" role="status"></div>
-  </form>
-</section>
-  <div id="categoryManagement" aria-label="Your categories"></div>
-  <div class="nav-actions"><div class="section-note">Your products</div><button type="button" id="itemsToTracker">+ Add product</button></div>
-  <div class="purchase-tabs" id="purchaseStatusFilters" role="group" aria-label="Filter products by purchase status"></div>
+  <div class="section-intro"><span class="eyebrow">02 / ITEMS</span><h1>Products &amp; categories</h1></div>
+  
+  <div class="category-heading"><span class="eyebrow">CATEGORIES</span><button class="help-icon" type="button" data-help="category" aria-label="Category information">ⓘ</button></div><div id="categoryManagement" aria-label="Your categories"></div>
+  <div class="product-actions"><h2>Products</h2><button class="primary-small" type="button" id="itemsToTracker">+ Add product</button></div>
+  <div class="purchase-tabs" id="purchaseStatusFilters" role="group" aria-label="Filter products by purchase status"></div><label class="futuretoggle"><input id="future" type="checkbox"> Show future purchases</label>
    <div class="itemscount" id="visibleItemsCount" aria-live="polite"></div>
   <div id="items"></div>
  </section>
  <section class="page" id="page-summary" aria-label="Budget summary">
-  <div class="section-intro"><span class="eyebrow">03 / SUMMARY</span><h1>Your budget, clearly.</h1><p class="section-note">All category totals show items you still need to buy. Checked purchases are listed separately.</p></div>
-  <section class="panel"><h2>Budget summary</h2><div class="row summaryline"><span>PC parts left to buy</span><strong id="pcTotal">0</strong></div><div class="row summaryline"><span>Available PC contribution</span><strong id="dadContribution">0</strong></div><div class="row summaryline"><span>PC amount left to save</span><strong id="pcShare">0</strong></div><div class="row summaryline"><span>Monitors left to buy</span><strong id="mainTotal">0</strong></div><div class="row summaryline"><span>Desk + peripherals left to buy</span><strong id="deskTotal">0</strong></div><div class="row summaryline"><span>Gaming chairs left to buy</span><strong id="chairTotal">0</strong></div>
-<div class="row summaryline" id="otherRow" hidden><span>Other setup products left to buy</span><strong id="otherTotal">Rs. 0</strong></div><hr style="border-color:#2b3549"><div class="row"><strong>Remaining savings target</strong><strong class="green" id="currentGoal">0</strong></div>
- <div class="purchase-summary" aria-label="Your purchased and remaining products">
+  <div class="section-intro"><span class="eyebrow">03 / SUMMARY</span><h1>Your budget, clearly.</h1></div>
+  <section class="panel"><h2>Budget breakdown <button type="button" class="help-icon" data-help="totals" aria-label="Budget calculation information">ⓘ</button></h2><div id="dynamicCategoryTotals"></div><div class="row summaryline"><span>Available contribution</span><strong id="dadContribution">0</strong></div><div class="row summaryline"><span>Remaining PC cost</span><strong id="pcShare">0</strong></div><span id="pcTotal" hidden>0</span><span id="mainTotal" hidden>0</span><span id="deskTotal" hidden>0</span><span id="chairTotal" hidden>0</span><span id="otherTotal" hidden>0</span><div id="otherRow" hidden></div><hr><div class="row total-row"><strong>Remaining goal</strong><strong class="green" id="currentGoal">0</strong></div><div class="purchase-summary" aria-label="Your purchased and remaining products">
    <div class="row summaryline"><span>Still to buy (all categories)</span><strong id="toBuyCount">0 items</strong></div>
    <div class="row summaryline"><span>Already purchased (all categories)</span><strong id="purchasedCount">0 items</strong></div>
    <div class="row summaryline"><span>Purchased items value</span><strong id="purchasedTotal">0</strong></div>
  </div>
  <p class="muted small">Total left to purchase including future items, before PC contribution: <strong id="fullTotal">0</strong>. Purchased items are excluded from this figure.</p>
- <p class="section-note">If you paid for a purchased item using money entered as Saved or PC Contribution, update those cash balances manually. Checkmarks track purchases, not cash transactions.</p><div class="actions"><button id="copy">Copy checklist + notes</button><button id="export">Export backup</button><button id="import">Import backup</button><input id="importFile" type="file" accept="application/json" hidden><button id="reset">Reset checkmarks, notes &amp; tracker</button></div><p class="muted small">Check compatibility, seller reputation and warranties before purchasing. Product details remain on this device unless you share a backup.</p></section>
+ <div class="actions"><button id="copy">Copy checklist + notes</button><button id="export">Export backup</button><button id="import">Import backup</button><input id="importFile" type="file" accept="application/json" hidden><button id="reset">Reset checkmarks, notes &amp; tracker</button></div></section>
  </section>
-</main>
+<section class="page" id="page-planner" aria-label="Monthly financial planner"><div class="section-intro"><span class="eyebrow">04 / PLANNER</span><h1>Your money, organized.</h1></div><div class="month-control"><label for="plannerMonth">Month</label><input id="plannerMonth" type="month"><button type="button" id="plannerCurrentMonth">Today</button></div><section class="panel planner-panel"><div class="panel-title"><h2>Monthly salary <button type="button" class="help-icon" data-help="salary" aria-label="Salary information">ⓘ</button></h2><span id="plannerCurrency" class="eyebrow">PKR</span></div><div class="planner-fields"><label>Salary<input id="plannerSalary" type="number" min="0" step="any" inputmode="decimal"></label><label>Fixed expenses<input id="plannerFixed" type="number" min="0" step="any" inputmode="decimal"></label><label>Variable expenses<input id="plannerVariable" type="number" min="0" step="any" inputmode="decimal"></label><label>Planned savings<input id="plannerTarget" type="number" min="0" step="any" inputmode="decimal"></label></div><div class="row total-row"><strong>Unallocated balance</strong><strong class="green" id="plannerAvailable">0</strong></div><p id="plannerOverspend" class="fine-print" role="status"></p></section><section class="panel planner-panel"><h2>Savings planner <button type="button" class="help-icon" data-help="savings" aria-label="Savings planner information">ⓘ</button></h2><label for="plannerActual">Actually saved this month</label><input id="plannerActual" type="number" min="0" step="any" inputmode="decimal"><progress id="plannerProgress" max="1" value="0"></progress><div class="row"><span id="plannerPercent" class="muted small">0%</span><strong class="green" id="plannerGap">0</strong></div><div class="row summaryline"><span>Total savings logged</span><strong id="plannerTotalSaved">0</strong></div><div class="row summaryline"><span>Monthly average</span><strong id="plannerAverage">0</strong></div></section><section class="panel planner-panel"><h2>Monthly history</h2><div id="plannerHistory"></div></section></section></main>
 <nav class="bottom-tabs" aria-label="Primary navigation">
  <button type="button" class="is-active" data-page="tracker" aria-current="page"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 7-9M15 6h4v4"/><path d="M4 21h16"/></svg><span>Tracker</span></button>
  <button type="button" data-page="items"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v0M8 12v0M8 19v0"/></svg><span>Items</span></button>
  <button type="button" data-page="summary"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-8M21 19H2"/></svg><span>Summary</span></button>
-</nav>
+<button type="button" data-page="planner"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19V5h18v14H3Zm3-9h12M7 15h4"/></svg><span>Planner</span></button></nav>
 <div id="drawerShade" class="drawer-shade" hidden></div>
 <aside id="sideDrawer" class="side-drawer" role="navigation" aria-label="Presets and app information" aria-hidden="true">
  <div class="drawer-title"><strong>My presets</strong><button id="closeDrawer" class="drawer-close" aria-label="Close menu">×</button></div>
@@ -417,13 +397,34 @@ body.app-picker-open{overflow:hidden}
   <div id="modalActions" class="modal-actions"></div>
  </div>
 </div>
-<script>
+<div id="productSheet" class="premium-sheet-shade" hidden><div class="premium-sheet" role="dialog" aria-modal="true" aria-labelledby="productSheetTitle"><div class="sheet-head"><h2 id="productSheetTitle">Add product</h2><button class="sheet-close" type="button" data-close-sheet aria-label="Close product form">×</button></div>
+  <form id="addProductForm" class="setupform">
+    <label>Product name<input id="newName" type="text" maxlength="180" placeholder="e.g. Logitech G Pro Mouse" required></label>
+    <label>Price (<span id="newPriceCurrency">PKR</span>)<input id="newPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 15000" required></label>
+    <label>Category<select id="newCategory"></select></label>
+    <label>Product listing link (optional)<input id="newUrl" type="url" placeholder="https://..."></label>
+    <label>Product picture (optional)<input id="newPhoto" type="file" accept="image/*"></label>
+    
+    <button type="submit" class="active">Add product to checklist</button>
+    <div id="addMessage" class="status" role="status"></div>
+  </form>
+</div></div><div id="categorySheet" class="premium-sheet-shade" hidden><div class="premium-sheet" role="dialog" aria-modal="true" aria-labelledby="categorySheetTitle"><div class="sheet-head"><h2 id="categorySheetTitle">New category</h2><button class="sheet-close" type="button" data-close-sheet aria-label="Close category form">×</button></div>
+  <form id="categoryForm" class="setupform">
+    <label>Category name<input id="catName" type="text" maxlength="48" placeholder="e.g. Streaming gear" required></label>
+    <label>Counts toward<select id="catGroup"><option value="pc">PC parts cost</option><option value="setup" selected>Current setup cost</option><option value="future">Future purchases (excluded from savings goal)</option></select></label>
+    <button type="submit" class="active">Add category</button>
+    <div id="catMessage" class="status" role="status"></div>
+  </form>
+</div></div><script>
 window.__v14WasExistingUser=!!(localStorage.getItem('pc-gaming-setup-app-v2')||localStorage.getItem('pc-gaming-setup-checklist-v1')||localStorage.getItem('pc-gaming-presets-v3'));
 if(!window.__v14WasExistingUser&&!localStorage.getItem('pc-gaming-onboarding-v14'))localStorage.setItem('pc-gaming-onboarding-v14',JSON.stringify({status:'pending'}));
 </script>
+<script src="budget-model.js"></script>
 <script src="app.js"></script>
 <script src="feedback-store.js"></script>
 <script src="shell.js"></script>
 <script src="onboarding.js"></script>
 <script src="ui-polish.js"></script>
+<script src="planner.js"></script>
+<script src="premium-v15.js"></script>
 </body></html>
