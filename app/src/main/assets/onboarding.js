@@ -136,15 +136,7 @@
         if(!window.AndroidStartup || typeof window.AndroidStartup.ready!=='function')return;
         const ready=()=>window.requestAnimationFrame(()=>
             window.requestAnimationFrame(()=>window.AndroidStartup.ready()));
-        if(!welcomePage.hidden && overlay.classList.contains('is-visible')) {
-            // Decode the same backdrop before fading out the native cover.
-            const image=new Image();
-            image.onload=ready;
-            image.onerror=ready;
-            image.src='welcome.jpg';
-        }else {
-            ready();
-        }
+        ready();
     }
     notifyNativeStartupReady();
 })();
