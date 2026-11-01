@@ -112,25 +112,13 @@ public class MainActivity extends Activity {
 
     private FrameLayout buildInstantWelcome() {
         FrameLayout stage = new FrameLayout(this);
-        stage.setBackgroundColor(Color.rgb(8, 14, 27));
+        stage.setBackgroundColor(Color.rgb(11, 14, 11));
 
-        try (InputStream in = getAssets().open("welcome.jpg")) {
-            Bitmap background = BitmapFactory.decodeStream(in);
-            if (background != null) {
-                ImageView photo = new ImageView(this);
-                photo.setImageBitmap(background);
-                photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                stage.addView(photo, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            }
-        } catch (Exception ignored) {
-            // Offline fallback: the same dark background as the HTML welcome.
-        }
-
+        // Render a lightweight branded native cover while HTML initializes.
         View shade = new View(this);
         shade.setBackground(new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x3A050A14, 0x88050A14, 0xFA060D1B}));
+                new int[]{0xFF0B0E0B, 0xFF142013, 0xFF090C09}));
         stage.addView(shade, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -139,15 +127,15 @@ public class MainActivity extends Activity {
         content.setGravity(Gravity.CENTER_HORIZONTAL);
 
         TextView kicker = new TextView(this);
-        kicker.setText("PLAN  ·  TRACK  ·  BUILD");
+        kicker.setText("PC SETUP");
         kicker.setTextSize(11);
-        kicker.setTextColor(Color.rgb(163, 249, 202));
+        kicker.setTextColor(0xFFBAFF43);
         kicker.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         kicker.setGravity(Gravity.CENTER);
         content.addView(kicker);
 
         TextView title = new TextView(this);
-        title.setText("My PC &\nGaming Setup");
+        title.setText("Plan. Save.\nBuild.");
         title.setTextSize(34);
         title.setTextColor(Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -158,7 +146,7 @@ public class MainActivity extends Activity {
         content.addView(title, titleParams);
 
         TextView tagline = new TextView(this);
-        tagline.setText("Your dream build starts here.");
+        tagline.setText("Make every upgrade count.");
         tagline.setTextSize(14);
         tagline.setTextColor(0xFFD1DBE6);
         tagline.setGravity(Gravity.CENTER);
@@ -168,14 +156,14 @@ public class MainActivity extends Activity {
         content.addView(tagline, tagParams);
 
         TextView buttonVisual = new TextView(this);
-        buttonVisual.setText("Let's build your dream setup!");
+        buttonVisual.setText("Get Started");
         buttonVisual.setTextSize(15);
         buttonVisual.setTextColor(0xFF08201A);
         buttonVisual.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         buttonVisual.setGravity(Gravity.CENTER);
         GradientDrawable buttonBackground = new GradientDrawable();
-        buttonBackground.setColor(0xFF79F4AA);
-        buttonBackground.setCornerRadius(dp(15));
+        buttonBackground.setColor(0xFFBAFF43);
+        buttonBackground.setCornerRadius(dp(28));
         buttonVisual.setBackground(buttonBackground);
         LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(56));
