@@ -38,6 +38,7 @@ jobs:
           node --check app/src/main/assets/budget-model.js
           node --check app/src/main/assets/planner.js
           node --check app/src/main/assets/premium-v15.js
+          node --check app/src/main/assets/design-v16.js
           node --check app/src/main/assets/app.js
           node --check app/src/main/assets/shell.js
           node --check app/src/main/assets/feedback-store.js
@@ -57,6 +58,9 @@ jobs:
           assert '<script src="budget-model.js"></script>' in html
           assert '<script src="planner.js"></script>' in html
           assert '<script src="premium-v15.js"></script>' in html
+          assert '<script src="design-v16.js"></script>' in html
+          assert 'id="newPriority"' in html
+          assert 'id="newTargetMonth"' in html
           assert '<script src="app.js"></script>' in html
           assert '<script src="feedback-store.js"></script>' in html
           assert '<script src="shell.js"></script>' in html
@@ -76,12 +80,6 @@ jobs:
           assert 'id="newPhoto"' in html
           print("App UI fields verified:", len(ids))
           PY
-
-      - name: Download licensed welcome background
-        run: |
-          curl --fail --location --retry 3 --max-time 40 'https://images.unsplash.com/photo-1642791401714-a0d4e02d4bb6?auto=format&fit=crop&w=960&h=1600&q=74' --output app/src/main/assets/welcome.jpg
-          test -s app/src/main/assets/welcome.jpg
-          file app/src/main/assets/welcome.jpg
 
       - name: Build Debug APK
         run: gradle :app:assembleDebug --stacktrace
