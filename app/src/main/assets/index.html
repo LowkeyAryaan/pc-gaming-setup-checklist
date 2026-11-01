@@ -314,12 +314,7 @@ body.app-picker-open{overflow:hidden}
     <div class="intro-watermark">Made by Aryaan</div>
   </section>
   <section id="introWelcome" class="intro-stage welcome" hidden>
-    <div class="welcome-copy">
-      <div class="welcome-kicker">PLAN · TRACK · BUILD</div>
-      <h1>My PC &amp;<br>Gaming Setup</h1>
-      <p>Your dream build starts here.</p>
-      <button type="button" class="intro-cta" id="introEnter">Let's build your dream setup!</button>
-      <div class="intro-watermark welcome-mark">Made by Aryaan</div>
+    <div class="welcome-copy"><div class="welcome-brand"><img src="brand-mark.svg" class="brand-hero-mark" alt="PC Setup abstract A logo"></div><h1>Plan. Save. Build.</h1><p>Everything you need to plan your setup and make every upgrade count.</p><div class="welcome-dots" aria-hidden="true"><span class="active"></span><span></span><span></span></div><button type="button" class="intro-cta" id="introEnter" aria-label="Let's build your dream setup!">Get Started <span aria-hidden="true">→</span></button><button type="button" id="welcomeBackup" class="welcome-backup">I already have a backup</button><div class="intro-watermark welcome-mark">Made by Aryaan</div>
       <a class="instagram-credit welcome-instagram" href="https://www.instagram.com/aryaan_creates/" target="_self" rel="noopener noreferrer" aria-label="Aryaan on Instagram, @aryaan_creates">@aryaan_creates</a>
     </div>
   </section>
@@ -328,32 +323,21 @@ body.app-picker-open{overflow:hidden}
 <header class="app-topbar">
  <div class="topbar-inner">
   <button id="menuButton" class="menu-button" aria-label="Open presets menu" aria-expanded="false" aria-controls="sideDrawer"><span></span><span></span><span></span></button>
-  <div class="app-identity"><div class="eyebrow">MY PC &amp; GAMING SETUP</div><strong id="currentPresetName">Preset #1</strong></div>
+  <div class="app-identity"><div class="header-brand"><img src="brand-mark.svg" alt="" class="header-mark"><span>PC <b>SETUP</b></span></div><strong id="currentPresetName">Preset #1</strong></div>
   <span class="top-version">v1.5 preview</span>
  </div>
 </header>
 <main class="app-content">
  <section class="page is-current" id="page-tracker" aria-label="Tracker">
-  <div class="section-intro"><span class="eyebrow">01 / TRACKER</span><h1>Your setup, your pace.</h1></div>
-  <section class="panel"><div class="muted small">PERSONAL SAVINGS GOAL</div><div class="goal" id="goalLabel">0</div><hr style="border-color:#2b3549"><div class="row"><label for="saved">Saved toward remaining goal</label><strong id="savedLabel">Rs. 0</strong></div><input id="saved" type="number" min="0" step="any" value="0" placeholder="Enter savings amount in PKR"><progress id="progress" value="0" max="1"></progress><div class="row muted small"><span id="percent">0.0% saved</span><span id="remaining">0 left</span></div><p id="count" class="small">0 purchased · 0 left to buy (current setup)</p>
-   </section>
-
-  <section class="panel" id="contributionPanel">
-  <h2>Contribution <button type="button" class="help-icon" data-help="contribution" aria-label="Contribution information">ⓘ</button></h2>
-  
-  <label for="contributed" class="fieldlabel">Available contribution (<span id="contributedCurrency">PKR</span>)</label>
-  <input id="contributed" type="number" min="0" step="any" inputmode="decimal" value="0"><label class="fieldlabel" for="contributionScope">Apply to</label><select id="contributionScope"><option value="pc">PC only</option><option value="nonpc">Everything except PC</option><option value="all">Everything</option><option value="category">Specific category</option></select><label class="fieldlabel" id="contributionCategoryWrap" for="contributionCategory" hidden>Category<select id="contributionCategory"></select></label><div class="fine-print" id="contributionUnused"></div>
-  <div class="row summaryline" style="margin-top:9px"><strong>Remaining PC cost</strong><strong class="green" id="pcLeft">0</strong></div>
-  <p class="sr-only" id="contributionMessage" role="status" aria-live="polite">Only PC category products count toward the contributor calculation.</p>
-</section>
-
-  <div id="filters" hidden aria-hidden="true"></div>
-  
-
-  <div class="tracker-link"><button type="button" id="trackerToItems">View products →</button></div>
+ <div class="dashboard-hello"><span class="eyebrow">YOUR BUILD AT A GLANCE</span><h1 id="dashboardPresetName">My Setup</h1></div>
+ <section class="panel goal-card"><div class="goal-top"><div><div class="eyebrow">SETUP GOAL</div><div class="goal" id="goalLabel">0</div></div><img src="brand-mark.svg" class="goal-mark" alt=""></div><progress id="progress" value="0" max="1"></progress><div class="row"><span class="muted small" id="percent">0% saved</span><strong class="lime" id="remaining">0 left</strong></div><label for="saved" class="small saved-field-label">Your saved balance</label><input id="saved" type="number" min="0" step="any" inputmode="decimal" value="0" aria-label="Savings available for this setup"><span id="savedLabel" class="sr-only">Rs. 0</span><p id="count" class="muted small">0 purchased</p></section>
+ <div class="dashboard-stat-grid"><div class="dashboard-mini-stat"><span class="eyebrow">SAVED</span><strong id="dashboardSaved">0</strong></div><div class="dashboard-mini-stat"><span class="eyebrow">PURCHASED VALUE</span><strong id="dashboardPurchased">0</strong></div></div>
+ <div class="group-overview" id="dashboardGroups"></div>
+ <section class="panel contribution-card" id="contributionPanel"><h2>Contribution <button type="button" class="help-icon" data-help="contribution" aria-label="Contribution information">ⓘ</button></h2><label for="contributed" class="fieldlabel">Available contribution (<span id="contributedCurrency">PKR</span>)</label><input id="contributed" type="number" min="0" step="any" inputmode="decimal" value="0"><label for="contributionScope" class="fieldlabel">Apply to</label><select id="contributionScope"><option value="pc">PC only</option><option value="nonpc">Everything except PC</option><option value="all">Everything</option><option value="category">Specific category</option></select><label class="fieldlabel" id="contributionCategoryWrap" for="contributionCategory" hidden>Category<select id="contributionCategory"></select></label><div class="row summaryline"><span>Remaining PC cost</span><strong class="green" id="pcLeft">0</strong></div><div class="fine-print" id="contributionUnused"></div><p class="sr-only" id="contributionMessage" role="status" aria-live="polite"></p></section>
+ <button type="button" id="nextPurchase" class="next-purchase" hidden><div class="eyebrow">NEXT PURCHASE · PRIORITY PICK</div><div class="next-purchase-row"><span><strong id="nextPurchaseName"></strong><small id="nextPurchaseCategory"></small></span><b id="nextPurchasePrice"></b></div></button><div id="filters" hidden aria-hidden="true"></div><div class="tracker-link"><button type="button" id="trackerToItems">View all products →</button></div>
  </section>
  <section class="page" id="page-items" aria-label="Items and categories">
-  <div class="section-intro"><span class="eyebrow">02 / ITEMS</span><h1>Products &amp; categories</h1></div>
+  <div class="section-intro"><h1>Items</h1><p class="muted small">Your setup, one purchase at a time.</p></div><label class="product-search-label"><span class="sr-only">Search your products</span><input id="searchProducts" type="search" autocomplete="off" placeholder="⌕  Search products"></label>
   
   <div class="category-heading"><span class="eyebrow">CATEGORIES</span><button class="help-icon" type="button" data-help="category" aria-label="Category information">ⓘ</button></div><div id="categoryManagement" aria-label="Your categories"></div>
   <div class="product-actions"><h2>Products</h2><button class="primary-small" type="button" id="itemsToTracker">+ Add product</button></div>
@@ -362,7 +346,7 @@ body.app-picker-open{overflow:hidden}
   <div id="items"></div>
  </section>
  <section class="page" id="page-summary" aria-label="Budget summary">
-  <div class="section-intro"><span class="eyebrow">03 / SUMMARY</span><h1>Your budget, clearly.</h1></div>
+  <div class="section-intro"><h1>Summary</h1><p class="muted small">Your progress, clearly.</p></div><div class="summary-ring-card"><div class="summary-ring" id="summaryRing"><span id="summaryRingPercent">0%</span></div><div><span class="eyebrow">REMAINING GOAL</span><strong id="summaryRingGoal">0</strong><small>Excludes future purchases</small></div></div>
   <section class="panel"><h2>Budget breakdown <button type="button" class="help-icon" data-help="totals" aria-label="Budget calculation information">ⓘ</button></h2><div id="dynamicCategoryTotals"></div><div class="row summaryline"><span>Available contribution</span><strong id="dadContribution">0</strong></div><div class="row summaryline"><span>Remaining PC cost</span><strong id="pcShare">0</strong></div><span id="pcTotal" hidden>0</span><span id="mainTotal" hidden>0</span><span id="deskTotal" hidden>0</span><span id="chairTotal" hidden>0</span><span id="otherTotal" hidden>0</span><div id="otherRow" hidden></div><hr><div class="row total-row"><strong>Remaining goal</strong><strong class="green" id="currentGoal">0</strong></div><div class="purchase-summary" aria-label="Your purchased and remaining products">
    <div class="row summaryline"><span>Still to buy (all categories)</span><strong id="toBuyCount">0 items</strong></div>
    <div class="row summaryline"><span>Already purchased (all categories)</span><strong id="purchasedCount">0 items</strong></div>
@@ -371,8 +355,8 @@ body.app-picker-open{overflow:hidden}
  <p class="muted small">Total left to purchase including future items, before PC contribution: <strong id="fullTotal">0</strong>. Purchased items are excluded from this figure.</p>
  <div class="actions"><button id="copy">Copy checklist + notes</button><button id="export">Export backup</button><button id="import">Import backup</button><input id="importFile" type="file" accept="application/json" hidden><button id="reset">Reset checkmarks, notes &amp; tracker</button></div></section>
  </section>
-<section class="page" id="page-planner" aria-label="Monthly financial planner"><div class="section-intro"><span class="eyebrow">04 / PLANNER</span><h1>Your money, organized.</h1></div><div class="month-control"><label for="plannerMonth">Month</label><input id="plannerMonth" type="month"><button type="button" id="plannerCurrentMonth">Today</button></div><section class="panel planner-panel"><div class="panel-title"><h2>Monthly salary <button type="button" class="help-icon" data-help="salary" aria-label="Salary information">ⓘ</button></h2><span id="plannerCurrency" class="eyebrow">PKR</span></div><div class="planner-fields"><label>Salary<input id="plannerSalary" type="number" min="0" step="any" inputmode="decimal"></label><label>Fixed expenses<input id="plannerFixed" type="number" min="0" step="any" inputmode="decimal"></label><label>Variable expenses<input id="plannerVariable" type="number" min="0" step="any" inputmode="decimal"></label><label>Planned savings<input id="plannerTarget" type="number" min="0" step="any" inputmode="decimal"></label></div><div class="row total-row"><strong>Unallocated balance</strong><strong class="green" id="plannerAvailable">0</strong></div><p id="plannerOverspend" class="fine-print" role="status"></p></section><section class="panel planner-panel"><h2>Savings planner <button type="button" class="help-icon" data-help="savings" aria-label="Savings planner information">ⓘ</button></h2><label for="plannerActual">Actually saved this month</label><input id="plannerActual" type="number" min="0" step="any" inputmode="decimal"><progress id="plannerProgress" max="1" value="0"></progress><div class="row"><span id="plannerPercent" class="muted small">0%</span><strong class="green" id="plannerGap">0</strong></div><div class="row summaryline"><span>Total savings logged</span><strong id="plannerTotalSaved">0</strong></div><div class="row summaryline"><span>Monthly average</span><strong id="plannerAverage">0</strong></div></section><section class="panel planner-panel"><h2>Monthly history</h2><div id="plannerHistory"></div></section></section></main>
-<nav class="bottom-tabs" aria-label="Primary navigation">
+<section class="page" id="page-planner" aria-label="Monthly financial planner"><div class="section-intro"><h1>Planner</h1><p class="muted small">Income, expenses and savings.</p></div><div class="planner-switch" role="group" aria-label="Planner view"><button type="button" id="plannerSalaryTab" class="is-selected">Salary</button><button type="button" id="plannerSavingsTab">Savings</button></div><div class="month-control"><label for="plannerMonth">Month</label><input id="plannerMonth" type="month"><button type="button" id="plannerCurrentMonth">Today</button></div><section class="panel planner-panel" id="salaryPanel"><div class="panel-title"><h2>Monthly salary <button type="button" class="help-icon" data-help="salary" aria-label="Salary information">ⓘ</button></h2><span id="plannerCurrency" class="eyebrow">PKR</span></div><div class="planner-fields"><label>Salary<input id="plannerSalary" type="number" min="0" step="any" inputmode="decimal"></label><label>Fixed expenses<input id="plannerFixed" type="number" min="0" step="any" inputmode="decimal"></label><label>Variable expenses<input id="plannerVariable" type="number" min="0" step="any" inputmode="decimal"></label><label>Planned savings<input id="plannerTarget" type="number" min="0" step="any" inputmode="decimal"></label></div><div class="row total-row"><strong>Unallocated balance</strong><strong class="green" id="plannerAvailable">0</strong></div><p id="plannerOverspend" class="fine-print" role="status"></p></section><section class="panel planner-panel" id="savingsPanel" hidden><h2>Savings planner <button type="button" class="help-icon" data-help="savings" aria-label="Savings planner information">ⓘ</button></h2><label for="plannerActual">Actually saved this month</label><input id="plannerActual" type="number" min="0" step="any" inputmode="decimal"><progress id="plannerProgress" max="1" value="0"></progress><div class="row"><span id="plannerPercent" class="muted small">0%</span><strong class="green" id="plannerGap">0</strong></div><div class="row summaryline"><span>Total savings logged</span><strong id="plannerTotalSaved">0</strong></div><div class="row summaryline"><span>Monthly average</span><strong id="plannerAverage">0</strong></div></section><section class="panel planner-panel"><h2>Monthly history</h2><div id="plannerHistory"></div></section></section></main>
+<button type="button" id="quickAdd" class="quick-add" aria-label="Quick add product">+</button><nav class="bottom-tabs" aria-label="Primary navigation">
  <button type="button" class="is-active" data-page="tracker" aria-current="page"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 7-9M15 6h4v4"/><path d="M4 21h16"/></svg><span>Tracker</span></button>
  <button type="button" data-page="items"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><path d="M8 5v0M8 12v0M8 19v0"/></svg><span>Items</span></button>
  <button type="button" data-page="summary"><svg class="tab-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-8M21 19H2"/></svg><span>Summary</span></button>
@@ -401,14 +385,14 @@ body.app-picker-open{overflow:hidden}
   <form id="addProductForm" class="setupform">
     <label>Product name<input id="newName" type="text" maxlength="180" placeholder="e.g. Logitech G Pro Mouse" required></label>
     <label>Price (<span id="newPriceCurrency">PKR</span>)<input id="newPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 15000" required></label>
-    <label>Category<select id="newCategory"></select></label>
+    <label>Category<select id="newCategory"></select></label><div class="form-two-col"><label>Priority<select id="newPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></label><label>Target month<input type="month" id="newTargetMonth"></label></div><label class="product-purchased-checkbox"><input id="newPurchased" type="checkbox"> Already purchased</label>
     <label>Product listing link (optional)<input id="newUrl" type="url" placeholder="https://..."></label>
     <label>Product picture (optional)<input id="newPhoto" type="file" accept="image/*"></label>
     
     <button type="submit" class="active">Add product to checklist</button>
     <div id="addMessage" class="status" role="status"></div>
   </form>
-</div></div><div id="categorySheet" class="premium-sheet-shade" hidden><div class="premium-sheet" role="dialog" aria-modal="true" aria-labelledby="categorySheetTitle"><div class="sheet-head"><h2 id="categorySheetTitle">New category</h2><button class="sheet-close" type="button" data-close-sheet aria-label="Close category form">×</button></div>
+</div></div><div id="itemDetailSheet" class="premium-sheet-shade" hidden><div class="premium-sheet item-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="itemDetailTitle"><div class="sheet-head"><h2 id="itemDetailTitle">Product details</h2><button type="button" data-close-sheet class="sheet-close" aria-label="Close product details">×</button></div><div id="itemDetailBody"></div></div></div><div id="categorySheet" class="premium-sheet-shade" hidden><div class="premium-sheet" role="dialog" aria-modal="true" aria-labelledby="categorySheetTitle"><div class="sheet-head"><h2 id="categorySheetTitle">New category</h2><button class="sheet-close" type="button" data-close-sheet aria-label="Close category form">×</button></div>
   <form id="categoryForm" class="setupform">
     <label>Category name<input id="catName" type="text" maxlength="48" placeholder="e.g. Streaming gear" required></label>
     <label>Counts toward<select id="catGroup"><option value="pc">PC parts cost</option><option value="setup" selected>Current setup cost</option><option value="future">Future purchases (excluded from savings goal)</option></select></label>
@@ -426,5 +410,5 @@ if(!window.__v14WasExistingUser&&!localStorage.getItem('pc-gaming-onboarding-v14
 <script src="onboarding.js"></script>
 <script src="ui-polish.js"></script>
 <script src="planner.js"></script>
-<script src="premium-v15.js"></script>
+<script src="premium-v15.js"></script><script src="design-v16.js"></script>
 </body></html>
