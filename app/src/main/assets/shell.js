@@ -19,6 +19,7 @@
     function displayName(){
         const p=presetIndex.presets.find(x=>x.id===activePresetId);
         el('currentPresetName').textContent=p?p.name:'Preset #1';
+        if(el('dashboardPresetName'))el('dashboardPresetName').textContent=p?p.name:'Preset #1';
     }
     function goToPage(page,opts={}){
         if(!pages.includes(page))return;
@@ -380,7 +381,7 @@
         section('General');
         action('Currency  ·  '+currentCurrency+'    →',openCurrencyPicker);
         selectSetting('Item sorting',sortOrder,[
-            ['default','Custom / added order'],['name','Name · A to Z'],
+            ['default','Custom / added order'],['priority','Priority · highest first'],['name','Name · A to Z'],
             ['price-asc','Price · low to high'],['price-desc','Price · high to low']
         ],value=>{sortOrder=value;render();persist();},'Only changes how products appear. Prices and data stay unchanged.');
         toggle('Show product pictures',showProductImages,value=>{showProductImages=value;render();persist();});
