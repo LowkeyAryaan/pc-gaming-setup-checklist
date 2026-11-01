@@ -12,6 +12,16 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.6 approved design and product planning
+
+- Artistic abstract ribbon A brand mark on the welcome, header and Android launcher.
+- Charcoal/acid-lime UI with lightweight transitions, progress ring, quick add, preset tiles and focused product details.
+- Product priority (High, Medium, Low), optional target purchase month and purchased-on-create.
+- Search products by name/category/note and sort by priority from Settings.
+- Next Purchase shows the highest-priority unpurchased current-goal product, then the earliest target month; it is a suggested planning order, not a compatibility recommendation.
+- Planner Salary and Savings tabs reuse the existing local monthly data. Backup import is accessible from welcome.
+- Existing presets, categories, contribution amounts and photos retain their saved identity and values.
+
 ## v1.5 planner and interface refresh
 
 - **Four sections:** Tracker, Items, Summary and a new monthly financial Planner.
