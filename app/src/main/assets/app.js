@@ -422,14 +422,21 @@ function renderPurchaseViews(){
 }
 function render() {
     itemsEl.innerHTML='';
+    const search=($('searchProducts')?$('searchProducts').value:'').trim().toLocaleLowerCase();
     renderPurchaseViews();
     const visibleItems=[...items];
+    if(sortOrder==='priority')visibleItems.sort((a,b)=>{
+        const rank={high:0,medium:1,low:2};
+        return (rank[a.priority]??1)-(rank[b.priority]??1) ||
+            (a.targetMonth||'9999-12').localeCompare(b.targetMonth||'9999-12');
+    });
     if(sortOrder==='name')visibleItems.sort((a,b)=>a.name.localeCompare(b.name));
     else if(sortOrder==='price-asc')visibleItems.sort((a,b)=>a.price-b.price);
     else if(sortOrder==='price-desc')visibleItems.sort((a,b)=>b.price-a.price);
     visibleItems.forEach(item=>{
         const purchased=!!checked[item.id];
         if(filter!=='All' && item.cat!==filter)return;
+        if(search && !(item.name+' '+item.cat+' '+(notes[item.id]||'')).toLocaleLowerCase().includes(search))return;
         // Purchased future items remain visible in purchase history even when
         // the optional future-purchases list is hidden for regular browsing.
         if(categoryGroup(item.cat)==='future' && !future.checked && purchaseView!=='purchased')return;
@@ -447,10 +454,19 @@ function render() {
         const tag=document.createElement('div');tag.className='tag';
         tag.textContent=categoryGroup(item.cat)==='future'?'Future purchase · '+item.cat:item.cat;
         const price=document.createElement('div');price.className='price';price.textContent=fmt(item.price);
+        const meta=document.createElement('div');meta.className='product-meta';
+        const priority=document.createElement('span');priority.className='priority-chip priority-'+(item.priority||'medium');
+        priority.textContent=(item.priority||'medium').toUpperCase();
+        meta.append(priority);
+        if(item.targetMonth){
+            const date=document.createElement('span');date.className='target-chip';
+            const today=new Date(),key=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+            date.textContent=item.targetMonth===key?'This month':item.targetMonth;meta.append(date);
+        }
         const state=document.createElement('span');
         state.className='purchase-status'+(purchased?' purchased':' to-buy');
         state.textContent=purchased?'Purchased':'To buy';
-        content.append(title,tag,price,state);head.append(checkbox,content);card.append(head);
+        content.append(tag,title,price,meta,state);head.append(checkbox,content);card.append(head);
         checkbox.onchange=()=>{
             checked[item.id]=checkbox.checked;
             // Recompute all budget totals and move the product between the
@@ -460,13 +476,13 @@ function render() {
         };
         const actions=document.createElement('div');actions.className='itemtools';
         const edit=document.createElement('button');edit.type='button';
-        edit.textContent='Edit item';edit.className='editbtn';
-        edit.onclick=()=>buildEditForm(item,card,edit);actions.append(edit);
+        edit.textContent='Details';edit.className='editbtn';
+        edit.onclick=()=>{if(window.openItemDetails)window.openItemDetails(item.id);else buildEditForm(item,card,edit);};actions.append(edit);
         card.append(actions);
         const image=document.createElement('img');image.loading='lazy';
         image.dataset.productId=item.id;
         image.alt=item.name+' picture';image.src=productIllustration(item);
-        if(showProductImages){card.append(image);displayPhoto(image,item.id);}
+        if(showProductImages){card.insertBefore(image,head);displayPhoto(image,item.id);}
         if (item.url && validUrl(item.url)) {
             const link=document.createElement('a');
             link.href=item.url;link.target='_self';link.rel='noopener noreferrer';
@@ -479,7 +495,9 @@ function render() {
         note.value=notes[item.id]||'';
         note.setAttribute('aria-label','Notes for '+item.name);
         note.oninput=()=>{notes[item.id]=note.value;persist();};
-        card.append(note);itemsEl.append(card);
+        const noteDisclosure=document.createElement('details');noteDisclosure.className='item-note-disclosure';
+        const summary=document.createElement('summary');summary.textContent='Notes';noteDisclosure.append(summary,note);
+        card.append(noteDisclosure);itemsEl.append(card);
     });
     renderStats();
 }
@@ -522,6 +540,23 @@ function renderStats() {
     $('purchasedTotal').textContent=fmt(t.purchasedTotal);
     $('purchasedCount').textContent=t.purchasedCount+' item'+(t.purchasedCount===1?'':'s');
     $('toBuyCount').textContent=t.remainingCount+' item'+(t.remainingCount===1?'':'s');
+    if($('dashboardPurchased'))$('dashboardPurchased').textContent=fmt(t.purchasedTotal);
+    if($('dashboardRemainingItems'))$('dashboardRemainingItems').textContent=String(t.remainingCurrent);
+    if($('dashboardSaved'))$('dashboardSaved').textContent=fmt(safePrice($('saved').value));
+    const candidates=items.filter(i=>!checked[i.id]&&categoryGroup(i.cat)!=='future');
+    const priorityRank={high:0,medium:1,low:2};
+    candidates.sort((a,b)=>(priorityRank[a.priority]??1)-(priorityRank[b.priority]??1) ||
+        (a.targetMonth||'9999-12').localeCompare(b.targetMonth||'9999-12'));
+    const pick=candidates[0],next=$('nextPurchase');
+    if(next){
+        next.hidden=!pick;
+        if(pick){
+            $('nextPurchaseName').textContent=pick.name;
+            $('nextPurchasePrice').textContent=fmt(pick.price);
+            $('nextPurchaseCategory').textContent=pick.cat+' · '+(pick.priority||'medium')+' priority';
+            next.onclick=()=>{if(window.openItemDetails)window.openItemDetails(pick.id);else if(window.goToPage)window.goToPage('items');};
+        }
+    }
     const note=$('contributionMessage');
     if(note){
         note.textContent=t.pc===0
@@ -588,6 +623,7 @@ $('addProductForm').onsubmit=async e=>{
     } finally { submit.disabled=false; }
 };
 future.onchange=()=>{render();persist();};
+if($('searchProducts'))$('searchProducts').addEventListener('input',render);
 $('contributionScope').addEventListener('change',event=>{
     contributionScope=event.target.value;
     refreshContributionCategories();renderStats();persist();
