@@ -365,7 +365,7 @@ function buildEditForm(item,card,button) {
     form.querySelector('.cancelEdit').onclick=()=>{form.remove();button.textContent='Edit item';};
     form.querySelector('.deleteItem').onclick=async()=>{
         if(!confirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
-        try{await removeItem(item.id);persist();render();}
+        try{await removeItem(item.id);persist();render();window.dispatchEvent(new Event('item-saved'));}
         catch(err){status.textContent='Could not delete product: '+err.message;}
     };
     form.onsubmit=async e=>{
@@ -380,6 +380,7 @@ function buildEditForm(item,card,button) {
             else if (removeRequested) await removePhoto(item.id);
             item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;item.priority=priority.value;item.targetMonth=validTargetMonth(targetMonth.value)?targetMonth.value:'';
             persist();render();
+            window.dispatchEvent(new Event('item-saved'));
         } catch(err) {
             status.textContent=err.message||'Could not save picture.';
             submit.disabled=false;
@@ -571,6 +572,34 @@ function renderStats() {
     $('fullTotal').textContent=fmt(t.full);$('goalLabel').textContent=fmt(t.currentGoal);
     $('otherTotal').textContent=fmt(t.other);$('otherRow').hidden=t.other===0;
     const amount=safePrice($('saved').value),remaining=Math.max(0,t.currentGoal-amount);
+    const pctGoal=t.currentGoal?Math.min(100,amount/t.currentGoal*100):0;
+    const ring=$('summaryRing');
+    if(ring){
+        ring.style.setProperty('--pct',pctGoal+'%');
+        $('summaryRingPercent').textContent=Math.round(pctGoal)+'%';
+        $('summaryRingGoal').textContent=fmt(remaining);
+    }
+    const groups=$('dashboardGroups');
+    if(groups){
+        groups.replaceChildren();
+        for(const group of ['pc','setup','future']){
+            const active=items.filter(i=>categoryGroup(i.cat)===group);
+            const bought=active.filter(i=>checked[i.id]).length;
+            const tile=document.createElement('button');tile.type='button';tile.className='group-tile';
+            const title=document.createElement('strong');title.textContent=group.toUpperCase();
+            const count=document.createElement('small');count.textContent=bought+'/'+active.length+' purchased';
+            const line=document.createElement('span');line.className='group-line';
+            line.style.width=(active.length?Math.max(8,Math.round(bought/active.length*100)):8)+'%';
+            tile.append(title,count,line);
+            tile.onclick=()=>{
+                filter=group==='pc'?'PC':group==='setup'?'Setup':'Future';
+                if(group==='future')future.checked=true;
+                renderFilters();render();persist();
+                if(window.goToPage)window.goToPage('items');
+            };
+            groups.append(tile);
+        }
+    }
     const pct=t.currentGoal?Math.min(100,amount/t.currentGoal*100):0;
     $('savedLabel').textContent=fmt(amount);
     $('progress').max=Math.max(1,t.currentGoal);
@@ -764,6 +793,7 @@ $('importFile').onchange=async e=>{
             }
         }
         renderFilters();persist();render();
+        window.dispatchEvent(new Event('backup-restored'));
         alert('Backup imported successfully into this preset.');
     } catch(err){alert('Could not import backup: '+(err.message||'Invalid data'));}
     e.target.value='';
