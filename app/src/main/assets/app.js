@@ -586,11 +586,20 @@ function renderStats() {
             const active=items.filter(i=>categoryGroup(i.cat)===group);
             const bought=active.filter(i=>checked[i.id]).length;
             const tile=document.createElement('button');tile.type='button';tile.className='group-tile';
+            const tileHeader=document.createElement('span');tileHeader.className='group-tile-header';
+            const glyph=document.createElement('span');glyph.className='panel-icon';
+            const glyphSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+            glyphSvg.setAttribute('viewBox','0 0 24 24');
+            glyphSvg.setAttribute('aria-hidden','true');
+            const use=document.createElementNS('http://www.w3.org/2000/svg','use');
+            use.setAttribute('href','#ui-'+({pc:'cpu',setup:'monitor',future:'rocket'}[group]));
+            glyphSvg.append(use);glyph.append(glyphSvg);
             const title=document.createElement('strong');title.textContent=group.toUpperCase();
+            tileHeader.append(glyph,title);
             const count=document.createElement('small');count.textContent=bought+'/'+active.length+' purchased';
             const line=document.createElement('span');line.className='group-line';
             line.style.width=(active.length?Math.max(8,Math.round(bought/active.length*100)):8)+'%';
-            tile.append(title,count,line);
+            tile.append(tileHeader,count,line);
             tile.onclick=()=>{
                 filter=group==='pc'?'PC':group==='setup'?'Setup':'Future';
                 if(group==='future')future.checked=true;
