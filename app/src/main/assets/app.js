@@ -444,7 +444,7 @@ function render() {
         if(purchaseView==='purchased'&&!purchased)return;
         if(purchaseView==='to-buy'&&purchased)return;
         const card=document.createElement('section');
-        card.className='item'+(purchased?' is-purchased':'');
+        card.className='item'+(purchased?' is-purchased':'')+(!showProductImages?' no-image':'');
         const head=document.createElement('div');head.className='itemhead';
         const checkbox=document.createElement('input');
         checkbox.type='checkbox';checkbox.checked=purchased;
@@ -642,6 +642,7 @@ $('addProductForm').onsubmit=async e=>{
         if($('newPurchased').checked)checked[id]=true;
         const selected=cat;
         form.reset();
+        $('newPriority').dispatchEvent(new Event('change',{bubbles:true}));
         renderFilters();
         categoryOptions($('newCategory'),selected);
         filter='All';renderFilters();persist();render();
