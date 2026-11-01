@@ -69,3 +69,24 @@ test('Art mark is valid SVG and launcher icon is vector resource',()=>{
  assert.match(manifest,/android:icon="@drawable\/ic_launcher_art"/);
  assert.match(styles,/\.intro-stage\.welcome/);
 });
+
+test('Functional icons use semantic SVG symbols without repeated brand logo stamps',()=>{
+ const symbols=[...html.matchAll(/<symbol id="ui-([a-z]+)"/g)].map(match=>match[1]);
+ assert.ok(symbols.includes('wallet'));
+ assert.ok(symbols.includes('coins'));
+ assert.ok(symbols.includes('box'));
+ assert.ok(symbols.includes('target'));
+ assert.ok(symbols.includes('cart'));
+ const iconUses=[...html.matchAll(/<use href="#ui-([a-z]+)"/g)].map(match=>match[1]);
+ assert.ok(iconUses.length>=12,'panel icons should be present in key screens and sheets');
+ for(const icon of iconUses)assert.ok(symbols.includes(icon),'undefined icon: '+icon);
+ assert.match(html,/class="panel-icon[^"]*" aria-hidden="true"/);
+ assert.match(html,/id="contributionPanel"/);
+ assert.match(html,/id="plannerSalary"/);
+ assert.match(html,/id="goalLabel"/);
+ assert.doesNotMatch(html,/<img src="brand-mark\.svg" class="goal-mark"/);
+ assert.equal((html.match(/src="brand-mark\.svg"/g)||[]).length,2,
+   'Brand logo should only appear on welcome and in app identity');
+ assert.doesNotMatch(html,/class="welcome-dots"/);
+ assert.match(styles,/\.panel-icon svg/);
+});
