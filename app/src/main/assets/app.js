@@ -16,7 +16,9 @@ const fmt = n => {
 // Release builds start empty. Historical v1.3 presets are migrated from
 // previously persisted per-item overrides, not from bundled personal data.
 const originalItems = [];
-const SORT_ORDERS=['default','name','price-asc','price-desc'];
+const SORT_ORDERS=['default','priority','name','price-asc','price-desc'];
+const ITEM_PRIORITIES=['high','medium','low'];
+const validTargetMonth=value=>typeof value==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 const PURCHASE_VIEWS=['all','to-buy','purchased'];
 const STORAGE_KEY = 'pc-gaming-setup-app-v2';
 const PRESET_INDEX_KEY = 'pc-gaming-presets-v3';
@@ -104,7 +106,10 @@ function normalizeProduct(raw) {
     if (!id || !name) return null;
     let cat=String(raw.cat||'Setup');
     if (!builtinNames.includes(cat) && !customCategories.some(c=>c.name===cat)) cat='Setup';
-    return {id,name,price:safePrice(raw.price),cat,q:String(raw.q||name),url:validUrl(String(raw.url||'')) ? String(raw.url||'') : ''};
+    return {id,name,price:safePrice(raw.price),cat,q:String(raw.q||name),
+        priority:ITEM_PRIORITIES.includes(raw.priority)?raw.priority:'medium',
+        targetMonth:validTargetMonth(raw.targetMonth)?raw.targetMonth:'',
+        url:validUrl(String(raw.url||'')) ? String(raw.url||'') : ''};
 }
 const newProducts = Array.isArray(savedState.customItems) ? savedState.customItems : [];
 const overrides = (savedState.overrides&&typeof savedState.overrides==='object')?savedState.overrides:{};
@@ -135,6 +140,8 @@ items.forEach(item=>{
     if (typeof v.url==='string' && validUrl(v.url)) item.url=v.url;
     if (typeof v.cat==='string' && (builtinNames.includes(v.cat)||customCategories.some(c=>c.name===v.cat))) item.cat=v.cat;
     if (typeof v.q==='string') item.q=v.q;
+    if (ITEM_PRIORITIES.includes(v.priority)) item.priority=v.priority;
+    if (validTargetMonth(v.targetMonth)) item.targetMonth=v.targetMonth;
 });
 function initialContribution(state) {
     // Community users start with no PC contribution. A saved or imported
@@ -269,7 +276,7 @@ function persist() {
     const state={
         checked,notes,blankPreset,currency:currentCurrency,deletedIds:[...deletedIds],
         sortOrder,purchaseView,showProductImages,
-        overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url}])),
+        overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url,priority:i.priority,targetMonth:i.targetMonth}])),
         customItems:items.filter(i=>!originalIds.has(i.id)),
         categories:customCategories,
         contributed,contributionEdited,contributionScope,contributionCategory,
@@ -342,13 +349,15 @@ function buildEditForm(item,card,button) {
         '<label>Price ('+currentCurrency+')<input name="price" type="number" min="0" step="any" required></label>'+
         '<label>Listing URL<input name="url" type="url" placeholder="https://..."></label>'+
         '<label>Category<select name="cat"></select></label>'+
+        '<label>Priority<select name="priority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>'+
+        '<label>Target purchase month (optional)<input name="targetMonth" type="month"></label>'+
         '<label>Change product picture<input name="photo" type="file" accept="image/*"></label>'+
         '<div class="itemtools"><button type="button" class="removePhoto">Remove picture</button>'+
         '<button type="submit" class="active">Save changes</button><button type="button" class="cancelEdit">Cancel</button><button type="button" class="deleteItem">Delete item</button></div><div class="status" role="status"></div>';
     const name=form.querySelector('[name=name]'),price=form.querySelector('[name=price]'),
         url=form.querySelector('[name=url]'),cat=form.querySelector('[name=cat]'),
-        photo=form.querySelector('[name=photo]'),status=form.querySelector('.status');
-    name.value=item.name;price.value=item.price;url.value=item.url||'';categoryOptions(cat,item.cat);
+        photo=form.querySelector('[name=photo]'),status=form.querySelector('.status'),priority=form.querySelector('[name=priority]'),targetMonth=form.querySelector('[name=targetMonth]');
+    name.value=item.name;price.value=item.price;url.value=item.url||'';categoryOptions(cat,item.cat);priority.value=item.priority||'medium';targetMonth.value=item.targetMonth||'';
     let removeRequested=false;
     form.querySelector('.removePhoto').onclick=()=>{
         removeRequested=true;photo.value='';status.textContent='Picture will be removed when you save.';
@@ -369,7 +378,7 @@ function buildEditForm(item,card,button) {
         try {
             if (photo.files.length) await savePhoto(item.id,await shrinkImage(photo.files[0]));
             else if (removeRequested) await removePhoto(item.id);
-            item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;
+            item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;item.priority=priority.value;item.targetMonth=validTargetMonth(targetMonth.value)?targetMonth.value:'';
             persist();render();
         } catch(err) {
             status.textContent=err.message||'Could not save picture.';
@@ -563,7 +572,10 @@ $('addProductForm').onsubmit=async e=>{
     $('addMessage').textContent='Adding product...';
     try {
         if($('newPhoto').files.length) await savePhoto(id,await shrinkImage($('newPhoto').files[0]));
-        items.push({id,name:name.slice(0,180),price:safePrice(price),url,cat,q:name.slice(0,180)});
+        items.push({id,name:name.slice(0,180),price:safePrice(price),url,cat,q:name.slice(0,180),
+            priority:ITEM_PRIORITIES.includes($('newPriority').value)?$('newPriority').value:'medium',
+            targetMonth:validTargetMonth($('newTargetMonth').value)?$('newTargetMonth').value:''});
+        if($('newPurchased').checked)checked[id]=true;
         const selected=cat;
         form.reset();
         renderFilters();
