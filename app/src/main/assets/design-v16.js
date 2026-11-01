@@ -35,7 +35,17 @@
    if(textContent!==undefined)node.textContent=textContent;
    return node;
  }
- // One focused product detail surface; all values come from actual saved data.
+ function panelPictogram(name){
+   const span=create('span','panel-icon detail-attribute-icon');
+   span.setAttribute('aria-hidden','true');
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+   svg.setAttribute('viewBox','0 0 24 24');
+   const use=document.createElementNS('http://www.w3.org/2000/svg','use');
+   use.setAttribute('href','#ui-'+name);
+   svg.append(use);span.append(svg);
+   return span;
+ }
+  // One focused product detail surface; all values come from actual saved data.
  window.openItemDetails=id=>{
    const item=items.find(p=>p.id===id);
    if(!item)return;
@@ -53,12 +63,12 @@
    const price=create('strong','detail-price',fmt(item.price));
    const specs=create('div','detail-attributes');
    const priority=create('div','detail-attribute');
-   priority.append(create('span','eyebrow','PRIORITY'),create('strong','',String(item.priority||'medium').toUpperCase()));
+   priority.append(panelPictogram('bars'),create('span','eyebrow','PRIORITY'),create('strong','',String(item.priority||'medium').toUpperCase()));
    const date=create('div','detail-attribute');
    const target=item.targetMonth||( 'Not set' );
-   date.append(create('span','eyebrow','TARGET MONTH'),create('strong','',target));
+   date.append(panelPictogram('calendar'),create('span','eyebrow','TARGET MONTH'),create('strong','',target));
    const cat=create('div','detail-attribute');
-   cat.append(create('span','eyebrow','CATEGORY'),create('strong','',item.cat));
+   cat.append(panelPictogram('box'),create('span','eyebrow','CATEGORY'),create('strong','',item.cat));
    specs.append(priority,date,cat);
    const toggle=create('button','detail-purchase-toggle',checked[item.id]?'✓  Mark as not purchased':'✓  Mark as purchased');
    toggle.type='button';
