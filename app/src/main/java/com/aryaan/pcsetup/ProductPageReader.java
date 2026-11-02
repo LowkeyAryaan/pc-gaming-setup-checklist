@@ -55,15 +55,22 @@ final class ProductPageReader {
             }
             String title=first(nonempty(product!=null?product.optString("name"):null),
                 meta(html,"og:title"),meta(html,"twitter:title"),htmlTitle(html));
+            // Prefer Product/Offer schema and explicit price fields. If the
+            // store only renders WooCommerce markup, consider the visible
+            // single-product price, never a sidebar or "price history" number.
             String price=first(
                 offers!=null?value(offers.opt("price")):null,
                 offers!=null?value(offers.opt("lowPrice")):null,
                 offers!=null?priceSpecification(offers.opt("priceSpecification")):null,
+                product!=null?value(product.opt("price")):null,
                 meta(html,"product:price:amount"),meta(html,"og:price:amount"),
-                meta(html,"price"),meta(html,"product:price"));
+                meta(html,"price"),meta(html,"product:price"),
+                meta(html,"sale_price"),productPagePrice(html));
             String currency=first(
                 offers!=null?nonempty(offers.optString("priceCurrency")):null,
-                meta(html,"product:price:currency"),meta(html,"og:price:currency"));
+                product!=null?nonempty(product.optString("priceCurrency")):null,
+                meta(html,"product:price:currency"),meta(html,"og:price:currency"),
+                meta(html,"priceCurrency"),meta(html,"currency"),publishedCurrency(html));
             java.util.LinkedHashSet<String> candidates=includeImage?
                 imageCandidates(html,product,title):new java.util.LinkedHashSet<>();
             String image=candidates.isEmpty()?null:candidates.iterator().next();
@@ -78,7 +85,13 @@ final class ProductPageReader {
                 if(number!=null)result.put("price",number);
                 else result.put("price",JSONObject.NULL);
             }else result.put("price",JSONObject.NULL);
-            if(currency!=null)result.put("currency",currency.toUpperCase(Locale.US));
+            if(currency!=null)result.put("currency",currency.trim().toUpperCase(Locale.US));
+            // Let the UI distinguish an actual missing price, an unverified
+            // currency, and a retailer that blocked the HTTP request.
+            if(price==null||result.isNull("price"))result.put("priceMessage",
+                "No current product price was exposed by this store.");
+            else if(currency==null)result.put("priceMessage",
+                "The listing has a price but does not identify its currency.");
             if(includeImage&&image!=null){
                 int attempts=0;
                 boolean ready=false;
@@ -99,6 +112,7 @@ final class ProductPageReader {
             try {
                 result.put("ok",false);
                 result.put("message","Could not access this product page. Enter details manually.");
+                result.put("errorCode","fetch-blocked");
             }catch(JSONException ignored){}
             return result;
         }
@@ -248,6 +262,84 @@ final class ProductPageReader {
             cleaned.startsWith("blob:")||cleaned.startsWith("javascript:"))return;
         links.add(cleaned);
     }
+    /** Explicit ISO currency metadata only. Do not infer from .pk host or
+     * a generic rupee symbol, which may represent several currencies. */
+    private static String publishedCurrency(String html){
+        for(String key:new String[]{"woocommerce_currency","currencyCode","currency_code",
+            "priceCurrency","store_currency","currency"}){
+            Pattern field=Pattern.compile(
+                "[\"']"+Pattern.quote(key)+"[\"']\\s*[:=]\\s*[\"']([A-Za-z]{3})[\"']",
+                Pattern.CASE_INSENSITIVE);
+            Matcher match=field.matcher(html);
+            if(match.find())return match.group(1);
+        }
+        // WooCommerce often renders a hidden itemprop="priceCurrency" field
+        // outside a meta tag (e.g. <span itemprop="priceCurrency"...>PKR</span>).
+        Matcher itemprop=Pattern.compile(
+            "<(?:span|div|input)\\b[^>]*\\bitemprop\\s*=\\s*['\"]priceCurrency['\"][^>]*>",
+            Pattern.CASE_INSENSITIVE).matcher(html);
+        if(itemprop.find()){
+            Matcher attr=ATTR.matcher(itemprop.group());
+            while(attr.find()){
+                if("content".equalsIgnoreCase(attr.group(1))||
+                   "value".equalsIgnoreCase(attr.group(1)))
+                    return first(attr.group(2),attr.group(3),attr.group(4));
+            }
+        }
+        return null;
+    }
+
+    /** Last-resort targeted price from the main product summary only.
+     * Do not scan the full page for any amount: shipping, recommendations,
+     * old prices and price history would be unsafe substitutions. */
+    private static String productPagePrice(String html){
+        // WooCommerce single-product price paragraph. Prefer <ins> for sale
+        // prices; <del> is deliberately ignored to avoid former pricing.
+        Pattern priceBlock=Pattern.compile(
+            "<p\\b(?=[^>]*\\bclass\\s*=\\s*['\"][^'\"]*\\bprice\\b[^'\"]*['\"])[^>]*>(.*?)</p\\s*>",
+            Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+        Matcher blocks=priceBlock.matcher(html);
+        while(blocks.find()){
+            String raw=blocks.group(1);
+            // Only accept a main product summary region, not related products.
+            int position=blocks.start();
+            int from=Math.max(0,position-5500);
+            String prefix=html.substring(from,position).toLowerCase(Locale.US);
+            if(prefix.contains("related products")||prefix.contains("you may also like"))
+                continue;
+            Matcher sale=Pattern.compile("<ins\\b[^>]*>(.*?)</ins\\s*>",
+                Pattern.CASE_INSENSITIVE|Pattern.DOTALL).matcher(raw);
+            String active=sale.find()?sale.group(1):raw.replaceAll(
+                "(?is)<del\\b[^>]*>.*?</del\\s*>","");
+            Matcher amount=Pattern.compile(
+                "<(?:bdi|span)\\b[^>]*>([^<>]*[0-9][^<>]*)</(?:bdi|span)\\s*>",
+                Pattern.CASE_INSENSITIVE|Pattern.DOTALL).matcher(active);
+            while(amount.find()){
+                String text=decodeHtml(amount.group(1));
+                Double amountValue=parseMoney(text);
+                if(amountValue!=null&&amountValue>0)return text;
+            }
+            // Some shops put a number directly beside the currency symbol.
+            String text=decodeHtml(active.replaceAll("(?is)<[^>]+>"," "));
+            Matcher number=Pattern.compile("(?<!\\d)(\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?|\\d{2,10}(?:\\.\\d{1,2})?)(?!\\d)")
+                .matcher(text);
+            if(number.find())return number.group(1);
+        }
+        // Supported explicit product itemprop="price" markup.
+        Matcher priceAttr=Pattern.compile(
+            "<(?:span|div|input)\\b[^>]*\\bitemprop\\s*=\\s*['\"]price['\"][^>]*>",
+            Pattern.CASE_INSENSITIVE).matcher(html);
+        if(priceAttr.find()){
+            Matcher attr=ATTR.matcher(priceAttr.group());
+            while(attr.find()){
+                if("content".equalsIgnoreCase(attr.group(1))||
+                   "value".equalsIgnoreCase(attr.group(1)))
+                    return first(attr.group(2),attr.group(3),attr.group(4));
+            }
+        }
+        return null;
+    }
+
     private static JSONObject findStructuredProduct(String html){
         Matcher scripts=SCRIPT.matcher(html);
         while(scripts.find()){
@@ -297,7 +389,15 @@ final class ProductPageReader {
     }
     private static String priceSpecification(Object spec){
         JSONObject obj=asObject(spec);
-        return obj==null?null:value(obj.opt("price"));
+        if(obj!=null)return first(value(obj.opt("price")),value(obj.opt("minPrice")));
+        if(spec instanceof JSONArray){
+            JSONArray array=(JSONArray)spec;
+            for(int i=0;i<Math.min(8,array.length());i++){
+                String price=priceSpecification(array.opt(i));
+                if(price!=null)return price;
+            }
+        }
+        return null;
     }
     private static String value(Object v){return v==null||v==JSONObject.NULL?null:nonempty(String.valueOf(v));}
     private static String htmlTitle(String html){
