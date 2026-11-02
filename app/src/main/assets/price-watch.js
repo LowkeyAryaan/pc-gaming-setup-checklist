@@ -15,7 +15,7 @@
    const entry=priceWatch[item.id];
    if(!item.url)return {status:'no-link'};
    if(!enabled)return {status:'off'};
-   if(!entry)return {status:currentRun?'checking':'not-checked'};
+   if(!entry||entry.url!==item.url)return {status:currentRun?'checking':'not-checked'};
    return entry;
  }
  function appendIndicator(target,item){
@@ -37,6 +37,7 @@
  }
  function cancel(){
    // Responses from other presets / earlier runs are ignored.
+   if(currentRun&&currentRun.timer)clearTimeout(currentRun.timer);
    currentRun=null;serial++;
  }
  function showChanges(changes,failed){
@@ -113,10 +114,21 @@
      if(!priceWatch[item.id])priceWatch[item.id]={status:'checking'};
    }
    refresh();
+   run.timer=setTimeout(()=>{
+     if(currentRun!==run)return;
+     for(const item of jobs){
+       if(run.seen.has(item.id))continue;
+       priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
+       run.failed++;
+     }
+     currentRun=null;persist();refresh();
+     if(run.changes.length)showChanges(run.changes,run.failed);
+   },Math.min(180000,Math.max(30000,jobs.length*5000+12000)));
    try{
      const payload=jobs.map(item=>({id:item.id,url:item.url}));
      window.AndroidPriceWatch.checkBatch(JSON.stringify(payload),token);
    }catch(_){
+     clearTimeout(run.timer);
      currentRun=null;
      for(const item of jobs)priceWatch[item.id]={status:'unavailable',checkedAt:today()};
      persist();refresh();
@@ -133,15 +145,15 @@
    const observed=Number(data&&data.price);
    const currency=String(data&&data.currency||'').toUpperCase();
    const historical=priceWatch[id];
-   const previous=historical&&validMoney(Number(historical.observed))?
+   const previous=historical&&historical.url===item.url&&validMoney(Number(historical.observed))?
      Number(historical.observed):Number(item.price);
    const stamp=today();
    const valid=data&&data.ok&&validMoney(observed)&&currency===currentCurrency;
    if(!valid){
      run.failed++;
      priceWatch[id]={
-       status:'unavailable',checkedAt:stamp,
-       observed:historical&&validMoney(Number(historical.observed))?Number(historical.observed):null
+       status:'unavailable',url:item.url,checkedAt:stamp,
+       observed:historical&&historical.url===item.url&&validMoney(Number(historical.observed))?Number(historical.observed):null
      };
    }else{
      let kind='stable';
@@ -152,7 +164,7 @@
      const suspicious=previous>0&&(observed/previous>3||observed/previous<.25);
      if(suspicious)kind='review';
      priceWatch[id]={
-       status:kind,checkedAt:stamp,observed,
+       status:kind,url:item.url,checkedAt:stamp,observed,
        previous,sourceCurrency:currency
      };
      if(kind==='increased'||kind==='decreased'){
@@ -164,6 +176,7 @@
    }
    persist();refresh();
    if(run.seen.size===run.expected){
+     clearTimeout(run.timer);
      currentRun=null;
      // A notification is deliberately shown only after welcome is gone.
      if(run.changes.length)showChanges(run.changes,run.failed);
