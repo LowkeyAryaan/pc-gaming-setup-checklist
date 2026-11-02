@@ -29,7 +29,7 @@
  function entryFor(item){
    const entry=priceWatch[item.id];
    if(!item.url)return {status:'no-link'};
-   if(!enabled)return {status:'off'};
+   if(!enabled&&!(entry&&entry.status==='variant-selected'))return {status:'off'};
    if(!entry||entry.url!==item.url)return {status:currentRun?'checking':'not-checked'};
    return entry;
  }
@@ -223,6 +223,7 @@
        if(run.seen.has(item.id))continue;
        priceWatch[item.id]=unavailableRecord(item,'Retailer did not respond before timeout.');
        run.failed++;
+       window.dispatchEvent(new CustomEvent('price-watch-updated',{detail:{id:item.id}}));
      }
      currentRun=null;persist();refresh();
      if(run.changes.length)showChanges(run.changes,run.failed);
@@ -233,7 +234,10 @@
    }catch(_){
      clearTimeout(run.timer);
      currentRun=null;
-     for(const item of jobs)priceWatch[item.id]=unavailableRecord(item,'Could not start price check.');
+     for(const item of jobs){
+       priceWatch[item.id]=unavailableRecord(item,'Could not start price check.');
+       window.dispatchEvent(new CustomEvent('price-watch-updated',{detail:{id:item.id}}));
+     }
      persist();refresh();
    }
  }
