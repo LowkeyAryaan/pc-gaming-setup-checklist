@@ -80,13 +80,13 @@ jobs:
           APK="app/build/outputs/apk/release/app-release.apk"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.aryaan.pcsetup.community'"
-          cp "$APK" "PC-Gaming-Setup-Checklist-v1.7.2-signed.apk"
+          cp "$APK" "PC-Gaming-Setup-Checklist-v1.8.0-signed.apk"
 
       - name: Upload signed release APK
         uses: actions/upload-artifact@v4
         with:
-          name: PC-Gaming-Setup-Checklist-v1.7.2-SIGNED
-          path: PC-Gaming-Setup-Checklist-v1.7.2-signed.apk
+          name: PC-Gaming-Setup-Checklist-v1.8.0-SIGNED
+          path: PC-Gaming-Setup-Checklist-v1.8.0-signed.apk
           if-no-files-found: error
           retention-days: 60
 
