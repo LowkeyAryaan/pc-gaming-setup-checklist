@@ -262,7 +262,7 @@
        (data.price!==null&&data.price!==undefined?
          ((currency||'Currency unverified')+' '+data.price):'Price not found');
      const complete=!rangeOnly&&!!nameInput.value.trim()&&priceInput.value.trim()!==''&&!mismatch&&!!currency&&!!photoBlob;
-     if(rangeOnly)setStatus('Price range detected: '+(rangeText||'multiple variants')+
+     if(rangeOnly)setStatus((data.priceKind==='range'?'Price range detected: ':'Starting price detected: ')+(rangeText||'multiple variants')+
        '. Select your variant on the store and enter its exact price below. We will not automatically choose the lowest price.','warning');
      else if(mismatch)setStatus('Store currency '+currency+' differs from '+currentCurrency+'. Confirm the correct price.','warning');
      else if(priceInput.value.trim()==='')setStatus('Price not detected. Enter a price below.','warning');
