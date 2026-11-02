@@ -12,6 +12,14 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.8.1 month presentation, card refinement and haptic feedback
+
+- Display readable month and year such as **November - 2026** in the planner picker, history, product creation, edit form, list badges and detail panels. Persisted month values remain machine-readable `YYYY-MM` to avoid changing history or breaking JSON backups.
+- Compact Already Purchased checkbox and consistent one-line **Price (PKR)** label in the manual product editor.
+- Three matching category budget-group options with centered typography and more balanced, shorter selection cards.
+- Optional short tactile feedback for buttons, checkboxes, selection controls, page tabs/swipes and category long-press actions. **Settings → Haptic feedback** controls a persistent, device-wide preference. Android's system-level haptic settings remain authoritative.
+- This standalone 1.8.1 preview has its own install identity so earlier previews are not silently replaced; use backup export/import to move data.
+
 ## v1.8 smart product creation and premium product details
 
 - Tap anywhere on a product card to open its detailed glass sheet; the old Details button and inline item notes are removed. Purchase checkbox remains separately actionable.
