@@ -12,6 +12,17 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.9.1 smooth launch and faster welcome handoff
+
+- Dark native Android activity theme and Android 12+ splash background prevent the transient white screen observed in the launch recording.
+- Use a small branded native loading cover without a fake noninteractive Get Started button, so the transition to the real HTML welcome feels continuous rather than duplicated.
+- Native-to-WebView handoff waits for the styled first frames, while maintaining a bounded fallback for font readiness.
+- Avoid constructing the full international currency picker except during first-time currency setup.
+- Keep initial month formatting in the app's first render, avoiding redundant full product-card and planner renders during startup.
+- Remove expensive blur and scaling from full-screen welcome transitions in favor of a short opacity fade.
+- Delay no-welcome price monitoring until after first paint, and coalesce multiple price responses into fewer full UI repaints.
+- This v1.9.1 debug preview uses a separate installation identity. **Export/import a backup** to move user data from v1.9.0; don't delete an older app before backup.
+
 ## v1.9.0 launch-time Price Watch
 
 - On launch, after welcome, check each saved public HTTPS product link asynchronously using a bounded three-worker native Android queue. One-time check does not download product photos.
