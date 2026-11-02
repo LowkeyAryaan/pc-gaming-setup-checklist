@@ -52,7 +52,7 @@ test('Price movement indicators and change summaries use glass UI',()=>{
  assert.match(read('assets/design-v16.js'),/PriceWatchUI\.updateDetails\(header,item\)/);
  assert.match(watch,/price-change-dialog/);
  assert.match(watch,/price-change-row/);
- assert.match(watch,/Price change|price change/i);
+ assert.match(watch,/price-change-heading/);
  assert.match(css,/\.price-watch-chip\.watch-decreased/);
  assert.match(css,/\.price-watch-chip\.watch-increased/);
  assert.match(css,/\.price-watch-chip\.watch-stable/);
