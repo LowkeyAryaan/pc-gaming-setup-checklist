@@ -36,7 +36,11 @@ final class ProductPageReader {
 
     private ProductPageReader() {}
 
-    static JSONObject read(String input) {
+    static JSONObject read(String input) { return read(input,true); }
+    // Launch checks fetch only HTML price metadata. Never download 4MB images
+    // for every tracked product on every app opening.
+    static JSONObject readPrice(String input) { return read(input,false); }
+    private static JSONObject read(String input, boolean includeImage) {
         JSONObject result=new JSONObject();
         try {
             URL requested=secureUrl(input);
@@ -60,7 +64,8 @@ final class ProductPageReader {
             String currency=first(
                 offers!=null?nonempty(offers.optString("priceCurrency")):null,
                 meta(html,"product:price:currency"),meta(html,"og:price:currency"));
-            java.util.LinkedHashSet<String> candidates=imageCandidates(html,product,title);
+            java.util.LinkedHashSet<String> candidates=includeImage?
+                imageCandidates(html,product,title):new java.util.LinkedHashSet<>();
             String image=candidates.isEmpty()?null:candidates.iterator().next();
             if(title==null&&price==null&&image==null){
                 return result.put("ok",false).put("message",
@@ -74,7 +79,7 @@ final class ProductPageReader {
                 else result.put("price",JSONObject.NULL);
             }else result.put("price",JSONObject.NULL);
             if(currency!=null)result.put("currency",currency.toUpperCase(Locale.US));
-            if(image!=null){
+            if(includeImage&&image!=null){
                 int attempts=0;
                 boolean ready=false;
                 for(String candidate:candidates){
@@ -87,7 +92,7 @@ final class ProductPageReader {
                 }
                 if(!ready)result.put("imageMessage",
                     "Product image was listed by this store but could not be downloaded. Choose a photo manually.");
-            }else result.put("imageMessage",
+            }else if(includeImage)result.put("imageMessage",
                 "No public product photo was found. Choose a photo manually.");
             return result;
         }catch(Exception error) {
