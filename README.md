@@ -1,18 +1,26 @@
-# PC Gaming Setup Checklist
+# Setup Checklist
 
 A free, offline-first Android checklist and savings tracker for building a custom PC or gaming setup.
 
 **Made by Aryaan** · [@aryaan_creates on Instagram](https://www.instagram.com/aryaan_creates/)
 
-## Download for Android
+## Downloa## Download for Android
 
-**[Download PC Gaming Setup Checklist v1.4.2 — signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v1.4.2/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk)**
+**[Setup Checklist v2.0.0 — official signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v2.0.0/PC-Gaming-Setup-Checklist-v2.0.0-signed.apk)**
 
-This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses the same app identity and signing certificate as the v1.4.1 release, so it can update the installed public app without clearing data. Android may ask you to allow installations from your browser or file manager. Only install the APK from this project's official GitHub Release.
+The installer is published only after secure GitHub Actions signing and Android package verification. Android 6.0 or newer is required. It stores your savings, purchased items and notes locally, with optional price checks using product links.
 
-**Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
+The permanent public app package is `com.aryaan.pcsetup.community`. Preview builds use different Android identities and cannot share data automatically. **Export all presets in your previous app and import their backup in the final edition before uninstalling anything.** Future public upgrades must keep the same signing certificate.
 
-## v1.9.4 actionable price ranges and per-listing retries
+## v2.0.0 approved minimal branding and final public release
+
+- PC monogram/checkmark icon and full Setup Checklist wordmark extracted from the user's approved artwork, preserving the white/lime/black design without redrawing.
+- Applied to the Android launcher, Android 12+ launch splash, native loading cover, welcome screen and compact app header.
+- Retains the approved Tracker, Price Impact, price changes, variant selection, Salary/Savings Planner and backup model.
+- Signed release uses a stable community package ID and secured GitHub Actions key; no signing material is committed.
+- See [v2.0.0 release notes](docs/RELEASE_NOTES_v2.0.0.md) for installation and migration requirements.
+
+actionable price ranges and per-listing retries
 
 - Tap **Choose variant** directly on a product card or in Product details to open a premium price selection dialog. Pick either advertised lower/upper amount or enter the exact selected configuration price. Retailers do not always provide variant names; the app does **not** guess which variant matches each amount.
 - Confirming the selection updates the unpurchased item cost and Tracker/Price Impact/Summary, without changing saved cash, purchased history or contributions.
