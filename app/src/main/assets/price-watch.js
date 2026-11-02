@@ -5,7 +5,7 @@
  const PREF='setup-checklist-price-watch-v1';
  const el=id=>document.getElementById(id);
  const buildVersion=document.querySelector('.top-version');
- if(buildVersion)buildVersion.textContent='v1.9.3';
+ if(buildVersion)buildVersion.textContent='v1.9.4';
  let enabled=true;
  try{enabled=localStorage.getItem(PREF)!=='off';}catch(_){}
  let currentRun=null,serial=0,bootStarted=false,lastStart=0;
