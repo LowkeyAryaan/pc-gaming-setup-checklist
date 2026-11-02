@@ -219,26 +219,119 @@
     }
     el('addPresetButton').onclick=createPresetModal;
 
+    const CATEGORY_HOLD_MS=550;
+    function categoryActionMenu(name) {
+        const category=customCategories.find(c=>c.name===name);
+        if(!category)return;
+        const content=document.createElement('div');
+        content.className='category-manage-menu';
+        const description=document.createElement('p');
+        description.textContent='Manage "'+name+'" without affecting other categories.';
+        content.append(description);
+        openModal('Manage category',content,[
+            {label:'Cancel',onClick:closeModal},
+            {label:'Edit',primary:true,onClick:()=>editCategory(name)},
+            {label:'Delete',danger:true,onClick:()=>deleteCategory(name)}
+        ]);
+    }
+    function editCategory(name){
+        const category=customCategories.find(c=>c.name===name);
+        if(!category)return;
+        const form=document.createElement('form');form.className='setupform category-edit-form';
+        const nameLabel=document.createElement('label');
+        nameLabel.textContent='Category name';
+        const input=document.createElement('input');input.type='text';input.maxLength=48;
+        input.value=name;input.required=true;nameLabel.append(input);
+        const groupLabel=document.createElement('label');
+        groupLabel.textContent='Budget group';
+        const groupSelect=document.createElement('select');
+        for(const [value,label] of [['pc','PC'],['setup','Setup'],['future','Future']]){
+            const option=document.createElement('option');option.value=value;option.textContent=label;
+            groupSelect.append(option);
+        }
+        groupSelect.value=category.group;
+        groupLabel.append(groupSelect);
+        const explanation=document.createElement('p');explanation.className='section-note';
+        explanation.textContent='Renaming keeps your products, images and purchase history. Changing the budget group changes which goal they count toward.';
+        form.append(nameLabel,groupLabel,explanation);
+        const notice=document.createElement('p');notice.className='status';
+        notice.setAttribute('role','status');form.append(notice);
+        function save(){
+            const updated=input.value.trim();
+            if(!updated){notice.textContent='Enter a category name.';return;}
+            const duplicate=builtinNames.concat(customCategories.filter(c=>c!==category).map(c=>c.name))
+                .some(candidate=>candidate.toLowerCase()===updated.toLowerCase());
+            if(duplicate){notice.textContent='This category name already exists.';return;}
+            const oldName=category.name;
+            category.name=updated;category.group=groupSelect.value;
+            for(const item of items){if(item.cat===oldName)item.cat=updated;}
+            if(filter===oldName)filter=updated;
+            if(contributionCategory===oldName)contributionCategory=updated;
+            refreshContributionCategories();
+            categoryOptions(el('newCategory'),updated);
+            renderFilters();render();persist();renderCategoryTokens();closeModal();
+        }
+        form.onsubmit=e=>{e.preventDefault();save();};
+        openModal('Edit category',form,[
+            {label:'Cancel',onClick:closeModal},
+            {label:'Save changes',primary:true,onClick:save}
+        ]);
+        input.focus();
+    }
+    function attachCategoryLongPress(button,name){
+        let timer=null,startX=0,startY=0,pressed=false,suppressUntil=0;
+        const cancel=()=>{if(timer!==null)clearTimeout(timer);timer=null;};
+        button.addEventListener('pointerdown',e=>{
+            if(e.pointerType==='mouse'&&e.button!==0)return;
+            cancel();pressed=true;startX=e.clientX;startY=e.clientY;
+            timer=setTimeout(()=>{
+                timer=null;
+                if(!pressed)return;
+                suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            },CATEGORY_HOLD_MS);
+        });
+        button.addEventListener('pointermove',e=>{
+            if(Math.abs(e.clientX-startX)>12||Math.abs(e.clientY-startY)>12)cancel();
+        });
+        button.addEventListener('pointerup',()=>{pressed=false;cancel();});
+        button.addEventListener('pointercancel',()=>{pressed=false;cancel();});
+        button.addEventListener('lostpointercapture',()=>{pressed=false;cancel();});
+        button.addEventListener('contextmenu',e=>{
+            e.preventDefault();pressed=false;cancel();
+            if(Date.now()>suppressUntil){
+                suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            }
+        });
+        button.addEventListener('keydown',e=>{
+            if((e.shiftKey&&e.key==='F10')||e.key==='ContextMenu'){
+                e.preventDefault();e.stopPropagation();suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            }
+        });
+        return ()=>Date.now()<suppressUntil;
+    }
     function renderCategoryTokens(){
         const root=el('categoryManagement');root.replaceChildren();
         ['All'].concat(builtinNames,customCategories.map(c=>c.name)).forEach(name=>{
             const row=document.createElement('div');row.className='category-row';
-            const b=document.createElement('button');b.type='button';
-            b.className='category-token'+(filter===name?' is-active':'');
-            b.textContent=name+' · '+(name==='All'?items.length:items.filter(i=>i.cat===name).length);
-            b.onclick=()=>{
+            const button=document.createElement('button');button.type='button';
+            button.className='category-token'+(filter===name?' is-active':'');
+            button.textContent=name+' · '+(name==='All'?items.length:items.filter(i=>i.cat===name).length);
+            const editable=customCategories.some(c=>c.name===name);
+            const shouldSuppress=editable?attachCategoryLongPress(button,name):()=>false;
+            if(editable){
+                button.classList.add('category-hold-action');
+                button.setAttribute('aria-label',name+' category. Tap to filter, long press to edit or delete.');
+                button.title='Hold to edit or delete';
+            }
+            button.onclick=()=>{
+                if(shouldSuppress())return;
                 if(categoryGroup(name)==='future')future.checked=true;
                 filter=name;renderFilters();render();persist();
             };
-            row.append(b);
-            if(customCategories.some(c=>c.name===name)){
-                const remove=document.createElement('button');
-                remove.type='button';remove.className='category-delete';
-                remove.setAttribute('aria-label','Delete category '+name);
-                remove.title='Delete '+name;remove.innerHTML=trashIcon;
-                remove.onclick=()=>deleteCategory(name);
-                row.append(remove);
-            }
+            row.append(button);
             root.append(row);
         });
         const add=document.createElement('button');
