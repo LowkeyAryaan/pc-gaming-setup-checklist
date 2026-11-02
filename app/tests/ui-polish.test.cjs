@@ -126,8 +126,8 @@ test('New controls initialize after existing app/shell/onboarding; no signing or
     const positions=scripts.map(name=>html.indexOf('<script src="'+name+'"></script>'));
     assert.ok(positions.every(v=>v>0));
     assert.ok(positions.every((v,i)=>i===0||v>positions[i-1]));
-    assert.match(gradle,/versionCode 10/);
-    assert.match(gradle,/versionName '1\.7\.0'/);
+    assert.match(gradle,/versionCode 11/);
+    assert.match(gradle,/versionName '1\.7\.1'/);
     assert.match(gradle,/applicationIdSuffix '\.community'/);
     assert.match(gradle,/applicationIdSuffix '\.preview17glass'/);
 });
