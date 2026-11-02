@@ -61,6 +61,10 @@
    const status=create('span','purchase-status '+(checked[item.id]?'purchased':'to-buy'),checked[item.id]?'Purchased':'To buy');
    header.append(category,status);
    if(window.PriceWatchUI)window.PriceWatchUI.updateDetails(header,item);
+   const watchEntry=window.PriceWatchUI?window.PriceWatchUI.getEntry(item.id):null;
+   const watchReason=watchEntry&&watchEntry.url===item.url&&
+       watchEntry.status==='unavailable'&&watchEntry.reason?
+       create('p','price-watch-reason','Price check: '+watchEntry.reason):null;
    const price=create('strong','detail-price',fmt(item.price));
    const specs=create('div','detail-attributes');
    const priority=create('div','detail-attribute');
@@ -91,7 +95,9 @@
    note.value=notes[id]||'';
    note.addEventListener('input',()=>{notes[id]=note.value;persist();});
    label.append(note);
-   container.append(image,header,price,specs,toggle,edit,label);
+   container.append(image,header);
+   if(watchReason)container.append(watchReason);
+   container.append(price,specs,toggle,edit,label);
    if(item.url&&validUrl(item.url)){
      const listing=create('button','detail-listing-button','↗  Open product listing');
      listing.type='button';
