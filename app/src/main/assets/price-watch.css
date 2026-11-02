@@ -74,3 +74,4 @@
 @media(prefers-reduced-motion:reduce){
  .price-change-shade,.price-change-dialog{animation:none!important;transition:none!important}
 }
+.price-change-values .watch-review{color:#ffe9ad!important}
