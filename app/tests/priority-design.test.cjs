@@ -58,7 +58,7 @@ test('Design introduces actual actions and prioritization inputs',()=>{
  assert.match(premium,/getPhoto\(item\.id\)/);
  assert.match(premium,/buildEditForm\(item,container,edit\)/);
  assert.match(premium,/checked\[item\.id\]=!checked\[item\.id\]/);
- assert.match(premium,/openProductSheet/);
+ assert.match(read('premium-v15.js'),/openProductSheet/);
 });
 test('Art mark is valid SVG and launcher icon is vector resource',()=>{
  const logo=read('brand-mark.svg');
