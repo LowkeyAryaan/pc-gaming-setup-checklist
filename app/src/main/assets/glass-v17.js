@@ -177,7 +177,8 @@
      if(mismatch)setStatus('Store price is in '+currency+'; your preset uses '+currentCurrency+'. Enter the correct price manually.','warning');
      else if(data.price===null||data.price===undefined)setStatus('Product detected. Price unavailable; enter it manually.','warning');
      else if(!currency)setStatus('The store did not specify its currency. Review the detected price and enter it manually.','warning');
-     else setStatus('Product details detected. Review or edit before saving.','success');
+     else if(!photoBlob)setStatus(data.imageMessage||'Price detected, but no usable image was downloaded. You can upload one manually.','warning');
+     else setStatus('Product photo and details detected. Review or edit before saving.','success');
    }
  };
  window.addEventListener('product-created',()=>window.ProductLinkImport.clear());
