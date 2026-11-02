@@ -12,6 +12,13 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.7.2 alignment, image and category management fixes
+
+- Connected edge-to-edge glass header and consistent two-column / three-column dashboard card grid, including safe clearance above the bottom dock.
+- Custom category chips have no visible trash action. Tap to filter, hold for 550 ms to open the Edit/Delete glass menu. Keyboard users can press Shift+F10. PC, Setup and Future remain protected.
+- Editing a custom category preserves its products, photos and purchases. Users can rename or change its budget group; deleting with products offers safe reassignment.
+- Product link import now tries multiple published JSON-LD, OG, Twitter and product-gallery image URLs before falling back to manual image upload. It does not bypass retailer restrictions.
+
 ## v1.7 Setup Checklist · liquid-glass refinement
 
 - **New identity:** Setup Checklist label, connected PC monogram in-app and on the Android launcher. Existing production package identity and signing remain unchanged.
