@@ -65,7 +65,7 @@
      const button=document.createElement('button');
      button.type='button';button.className='planner-history-row';
      if(key===month)button.classList.add('selected');
-     const name=document.createElement('span');name.textContent=key;
+     const name=document.createElement('span');name.textContent=window.formatSetupMonth?window.formatSetupMonth(key):key;
      const val=document.createElement('strong');val.textContent=money(entry.Actual);
      button.append(name,val);
      button.onclick=()=>{monthInput.value=key;render();};
