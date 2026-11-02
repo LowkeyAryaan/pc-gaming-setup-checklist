@@ -19,6 +19,14 @@ const originalItems = [];
 const SORT_ORDERS=['default','priority','name','price-asc','price-desc'];
 const ITEM_PRIORITIES=['high','medium','low'];
 const validTargetMonth=value=>typeof value==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+ // Available before the first render: avoid a second expensive full render
+ // when the glass layer is loaded just to format visible month labels.
+ window.formatSetupMonth=value=>{
+     if(!validTargetMonth(value))return 'Select month';
+     const month=Number(value.slice(5,7))-1;
+     return ['January','February','March','April','May','June','July','August',
+         'September','October','November','December'][month]+' - '+value.slice(0,4);
+ };
 const PURCHASE_VIEWS=['all','to-buy','purchased'];
 const STORAGE_KEY = 'pc-gaming-setup-app-v2';
 const PRESET_INDEX_KEY = 'pc-gaming-presets-v3';
