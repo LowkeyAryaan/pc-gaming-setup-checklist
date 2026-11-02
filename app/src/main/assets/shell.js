@@ -488,6 +488,11 @@
             'Short tactile feedback on buttons, selections and page navigation. Respects your device vibration settings.');
         const hapticRow=root.children[hapticWrapBefore];
         if(hapticRow){hapticRow.classList.add('setting-haptics');const checkbox=hapticRow.querySelector('input');if(checkbox)checkbox.id='settingHapticFeedback';}
+        toggle('Check product prices on launch',
+            window.PriceWatchUI?window.PriceWatchUI.getEnabled():true,
+            value=>{if(window.PriceWatchUI)window.PriceWatchUI.setEnabled(value);},
+            'Checks public HTTPS listings after welcome. Only unpurchased item prices update. Purchased prices and saved cash stay unchanged.');
+        action('Check prices now',()=>{closeModal();if(window.PriceWatchUI)window.PriceWatchUI.checkNow({force:true});});
         toggle('Show product pictures',showProductImages,value=>{showProductImages=value;render();persist();});
         toggle('Include future purchases',future.checked,value=>{future.checked=value;render();persist();});
         toggle('Show welcome screen on launch',localStorage.getItem('pc-gaming-show-welcome-v14')!=='false',
