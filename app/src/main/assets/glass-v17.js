@@ -2,6 +2,10 @@
 (() => {
  'use strict';
  const el=id=>document.getElementById(id);
+ // The older v1.6 stylesheet is appended dynamically by design-v16.js.
+ // Move the glass stylesheet after it to guarantee new tokens win the cascade.
+ const glassStylesheet=document.querySelector('link[href="glass-v17.css"]');
+ if(glassStylesheet)document.head.append(glassStylesheet);
  const validMonth=value=>/^\d{4}-(0[1-9]|1[0-2])$/.test(value);
  const now=()=>{
    const date=new Date();
