@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setGravity(Gravity.CENTER);
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.ic_launcher_art);
+        logo.setImageResource(R.drawable.brand_icon);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         LinearLayout.LayoutParams logoParams =
             new LinearLayout.LayoutParams(dp(94), dp(94));
