@@ -167,7 +167,11 @@
      if(observed<previous-0.005)kind='decreased';
      // Unusually large differences may indicate a wrong variant or scraper error.
      // Flag for review rather than silently damaging the financial plan.
-     const suspicious=previous>0&&(observed/previous>3||observed/previous<.25);
+     // Compare anomalies against the actually saved product cost rather
+     // than only the previous observation. Repeating a suspicious fetch
+     // must never make it appear safe on the following launch.
+     const storedPrice=Number(item.price);
+     const suspicious=storedPrice>0&&(observed/storedPrice>3||observed/storedPrice<.25);
      if(suspicious)kind='review';
      priceWatch[id]={
        status:kind,url:item.url,checkedAt:stamp,observed,
