@@ -23,6 +23,9 @@
     }
     function goToPage(page,opts={}){
         if(!pages.includes(page))return;
+        const previous=document.querySelector('.bottom-tabs button.is-active[data-page]');
+        if((!previous||previous.dataset.page!==page)&&window.SetupHaptics)
+            window.SetupHaptics.pulse('navigate');
         pages.forEach(p=>el('page-'+p).classList.toggle('is-current',p===page));
         if(typeof window.syncSwipePages==='function')window.syncSwipePages(page);
         document.querySelectorAll('.bottom-tabs button[data-page]').forEach(b=>{
@@ -477,6 +480,13 @@
             ['default','Custom / added order'],['priority','Priority · highest first'],['name','Name · A to Z'],
             ['price-asc','Price · low to high'],['price-desc','Price · high to low']
         ],value=>{sortOrder=value;render();persist();},'Only changes how products appear. Prices and data stay unchanged.');
+        const hapticWrapBefore=root.children.length;
+        toggle('Haptic feedback',
+            window.SetupHaptics?window.SetupHaptics.getEnabled():true,
+            checked=>{if(window.SetupHaptics)window.SetupHaptics.setEnabled(checked);},
+            'Short tactile feedback on buttons, selections and page navigation. Respects your device vibration settings.');
+        const hapticRow=root.children[hapticWrapBefore];
+        if(hapticRow){hapticRow.classList.add('setting-haptics');const checkbox=hapticRow.querySelector('input');if(checkbox)checkbox.id='settingHapticFeedback';}
         toggle('Show product pictures',showProductImages,value=>{showProductImages=value;render();persist();});
         toggle('Include future purchases',future.checked,value=>{future.checked=value;render();persist();});
         toggle('Show welcome screen on launch',localStorage.getItem('pc-gaming-show-welcome-v14')!=='false',
