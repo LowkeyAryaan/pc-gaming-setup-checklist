@@ -47,13 +47,13 @@ Paste the result **only** into the GitHub secret form, never into a commit, issu
 
 ## 3. Build the signed APK
 
-Go to **Actions → Build signed community release APK → Run workflow**.
+For v2.0.0, the signed build runs automatically after the reviewed and tested release branch is merged into **main**. It can also be started manually from **Actions → Build signed community release APK → Run workflow** on main.
 
-The manual-only workflow validates the project, restores the keystore temporarily from secrets, builds the `release` variant, verifies the signature and package ID, and uploads an artifact named **PC-Gaming-Setup-Checklist-v1.4.2-SIGNED**. It then removes the temporary key file.
+The trusted-main release workflow validates the project, restores the keystore temporarily from secrets, builds the `release` variant, verifies the signature and package ID, and uploads an artifact named **PC-Gaming-Setup-Checklist-v2.0.0-SIGNED**. It then removes the temporary key file.
 
 If required secrets are missing, the job fails explicitly; it will **not** silently upload a debug or unsigned release.
 
-Download the artifact and extract `PC-Gaming-Setup-Checklist-v1.4.2-signed.apk`.
+Download the artifact and extract `PC-Gaming-Setup-Checklist-v2.0.0-signed.apk`.
 
 ## 4. Test migration without uninstalling
 
@@ -71,7 +71,7 @@ Keep the package name `com.aryaan.pcsetup.community` and the same signing key fo
 - Never commit `.jks`, `.p12`, secrets, passwords or signing-key base64.
 - This workflow runs on **manual dispatch only**, not untrusted community pull requests.
 - Review Gradle and release workflow changes before signing.
-- GitHub Actions artifacts can expire. After verification, publish the exact signed APK as a GitHub Release asset.
+- GitHub Actions artifacts can expire. The trusted-main workflow creates a GitHub Release containing the exact APK only after verifying its signature and package identity. If required signing secrets are missing, publication fails rather than distributing an unsigned installer.
 - These instructions cover direct APK distribution; Google Play signing has a separate process.
 
 Official references: https://developer.android.com/studio/publish/app-signing and https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
