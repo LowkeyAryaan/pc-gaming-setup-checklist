@@ -23,12 +23,14 @@ import java.util.regex.Pattern;
  */
 final class ProductPageReader {
     private static final int HTML_LIMIT = 750_000;
-    private static final int IMAGE_LIMIT = 1_250_000;
+    private static final int IMAGE_LIMIT = 4_000_000;
     private static final int TIMEOUT_MS = 6500;
     private static final Pattern META_TAG =
         Pattern.compile("<meta\\b[^>]*>",Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
     private static final Pattern ATTR =
         Pattern.compile("([a-zA-Z0-9_:-]+)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))");
+    private static final Pattern IMG_TAG =
+        Pattern.compile("<img\\b[^>]*>",Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
     private static final Pattern SCRIPT =
         Pattern.compile("<script\\b([^>]*)>(.*?)</script\\s*>",Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
 
@@ -58,8 +60,8 @@ final class ProductPageReader {
             String currency=first(
                 offers!=null?nonempty(offers.optString("priceCurrency")):null,
                 meta(html,"product:price:currency"),meta(html,"og:price:currency"));
-            String image=first(imageFromProduct(product),meta(html,"og:image"),
-                meta(html,"twitter:image"),meta(html,"image"));
+            java.util.LinkedHashSet<String> candidates=imageCandidates(html,product,title);
+            String image=candidates.isEmpty()?null:candidates.iterator().next();
             if(title==null&&price==null&&image==null){
                 return result.put("ok",false).put("message",
                     "This store did not expose product details. Enter them manually.");
@@ -73,12 +75,20 @@ final class ProductPageReader {
             }else result.put("price",JSONObject.NULL);
             if(currency!=null)result.put("currency",currency.toUpperCase(Locale.US));
             if(image!=null){
-                try {
-                    URL imageUrl=secureUrl(new URL(current,image).toString());
-                    String inline=downloadImage(imageUrl);
-                    if(inline!=null)result.put("imageData",inline);
-                } catch(Exception ignored) { /* Price/name may still be useful. */ }
-            }
+                int attempts=0;
+                boolean ready=false;
+                for(String candidate:candidates){
+                    if(attempts++>=8)break;
+                    try {
+                        URL imageUrl=secureUrl(new URL(current,decodeHtml(candidate)).toString());
+                        String inline=downloadImage(imageUrl,current);
+                        if(inline!=null){result.put("imageData",inline);ready=true;break;}
+                    }catch(Exception ignored){ /* Try another public gallery image. */ }
+                }
+                if(!ready)result.put("imageMessage",
+                    "Product image was listed by this store but could not be downloaded. Choose a photo manually.");
+            }else result.put("imageMessage",
+                "No public product photo was found. Choose a photo manually.");
             return result;
         }catch(Exception error) {
             try {
@@ -90,6 +100,9 @@ final class ProductPageReader {
     }
 
     private static byte[] download(URL initial,int limit,String expectedType) throws Exception {
+        return download(initial,limit,expectedType,null);
+    }
+    private static byte[] download(URL initial,int limit,String expectedType,URL referrer) throws Exception {
         URL url=initial;
         for(int hop=0;hop<4;hop++){
             secureUrl(url.toString());
@@ -97,6 +110,8 @@ final class ProductPageReader {
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
             connection.setInstanceFollowRedirects(false);
+            if(referrer!=null&&expectedType.equals("image/"))
+                connection.setRequestProperty("Referer",referrer.getProtocol()+"://"+referrer.getHost()+"/");
             connection.setRequestProperty("Accept",expectedType.equals("text/html")?
                 "text/html,application/xhtml+xml":"image/jpeg,image/png,image/webp");
             connection.setRequestProperty("User-Agent",
@@ -160,6 +175,60 @@ final class ProductPageReader {
             if(wanted.equalsIgnoreCase(key)&&nonempty(content)!=null)return content;
         }
         return null;
+    }
+    private static String decodeHtml(String input){
+        if(input==null)return "";
+        return Html.fromHtml(input.replace("&amp;","&")).toString().trim();
+    }
+    private static java.util.LinkedHashSet<String> imageCandidates(String html,JSONObject product,String title){
+        java.util.LinkedHashSet<String> links=new java.util.LinkedHashSet<>();
+        appendImage(links,imageFromProduct(product));
+        for(String key:new String[]{"og:image:secure_url","og:image:url","og:image",
+            "twitter:image:src","twitter:image","product:image","image","thumbnail"})
+            appendImage(links,meta(html,key));
+        Matcher tags=IMG_TAG.matcher(html);
+        int scanned=0;
+        String word="";
+        if(title!=null){
+            for(String token:title.toLowerCase(Locale.US).split("[^a-z0-9]+")){
+                if(token.length()>5){word=token;break;}
+            }
+        }
+        while(tags.find()&&scanned++<120){
+            Matcher attrs=ATTR.matcher(tags.group());
+            java.util.HashMap<String,String> values=new java.util.HashMap<>();
+            while(attrs.find()){
+                String value=first(attrs.group(2),attrs.group(3),attrs.group(4));
+                if(value!=null)values.put(attrs.group(1).toLowerCase(Locale.US),value);
+            }
+            String context=(String.valueOf(values.get("class"))+" "+
+                String.valueOf(values.get("alt"))+" "+String.valueOf(values.get("id"))).toLowerCase(Locale.US);
+            boolean productLike=context.contains("product")||context.contains("gallery")||
+                context.contains("featured")||context.contains("woocommerce")||
+                context.contains("zoom")||context.contains("main-image")||
+                (!word.isEmpty()&&context.contains(word));
+            boolean icon=context.contains("logo")||context.contains("icon")||
+                context.contains("avatar")||context.contains("social")||context.contains("payment");
+            if(!productLike||icon)continue;
+            for(String key:new String[]{"data-large_image","data-zoom-image","data-original",
+                "data-src","data-lazy-src","src"})appendImage(links,values.get(key));
+            String srcset=first(values.get("data-srcset"),values.get("srcset"));
+            if(srcset!=null){
+                String[] segments=srcset.split(",");
+                if(segments.length>0){
+                    String[] tokens=segments[segments.length-1].trim().split("\\s+");
+                    if(tokens.length>0)appendImage(links,tokens[0]);
+                }
+            }
+        }
+        return links;
+    }
+    private static void appendImage(java.util.LinkedHashSet<String> links,String url){
+        if(url==null)return;
+        String cleaned=decodeHtml(url).trim();
+        if(cleaned.isEmpty()||cleaned.length()>2048||cleaned.startsWith("data:")||
+            cleaned.startsWith("blob:")||cleaned.startsWith("javascript:"))return;
+        links.add(cleaned);
     }
     private static JSONObject findStructuredProduct(String html){
         Matcher scripts=SCRIPT.matcher(html);
@@ -247,13 +316,13 @@ final class ProductPageReader {
             return Double.isFinite(number)&&number>=0&&number<=100_000_000_000.0?number:null;
         }catch(Exception e){return null;}
     }
-    private static String downloadImage(URL url){
+    private static String downloadImage(URL url,URL productUrl){
         try {
-            byte[] encoded=download(url,IMAGE_LIMIT,"image/");
+            byte[] encoded=download(url,IMAGE_LIMIT,"image/",productUrl);
             BitmapFactory.Options bounds=new BitmapFactory.Options();
             bounds.inJustDecodeBounds=true;
             BitmapFactory.decodeByteArray(encoded,0,encoded.length,bounds);
-            if(bounds.outWidth<=0||bounds.outHeight<=0)return null;
+            if(bounds.outWidth<=0||bounds.outHeight<=0||bounds.outWidth>9000||bounds.outHeight>9000)return null;
             BitmapFactory.Options options=new BitmapFactory.Options();
             int largest=Math.max(bounds.outWidth,bounds.outHeight);
             options.inSampleSize=Math.max(1,(int)Math.ceil(largest/720.0));
