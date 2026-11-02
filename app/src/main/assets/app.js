@@ -342,27 +342,49 @@ function displayPhoto(img,id) {
 }
 function buildEditForm(item,card,button) {
     const existing=card.querySelector('.editform');
-    if (existing){existing.remove();button.textContent='Edit item';return;}
+    if(existing){existing.remove();card.classList.remove('is-editing');button.textContent='Edit product';return;}
     const form=document.createElement('form');
-    form.className='editform';
-    form.innerHTML='<label>Product name<input name="name" maxlength="180" required></label>'+
+    form.className='editform glass-edit-form';
+    form.innerHTML='<div class="edit-form-heading"><span class="eyebrow">UPDATE YOUR PRODUCT</span><p>Refine the details without losing your purchase history.</p></div>'+
+        '<label>Product name<input name="name" maxlength="180" required></label>'+
         '<label>Price ('+currentCurrency+')<input name="price" type="number" min="0" step="any" required></label>'+
-        '<label>Listing URL<input name="url" type="url" placeholder="https://..."></label>'+
-        '<label>Category<select name="cat"></select></label>'+
-        '<label>Priority<select name="priority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>'+
-        '<label>Target purchase month (optional)<input name="targetMonth" type="month"></label>'+
-        '<label>Change product picture<input name="photo" type="file" accept="image/*"></label>'+
-        '<div class="itemtools"><button type="button" class="removePhoto">Remove picture</button>'+
-        '<button type="submit" class="active">Save changes</button><button type="button" class="cancelEdit">Cancel</button><button type="button" class="deleteItem">Delete item</button></div><div class="status" role="status"></div>';
+        '<label>Listing URL<input name="url" type="url" placeholder="https://store.com/product"></label>'+
+        '<div class="edit-form-pair"><label>Category<select name="cat"></select></label>'+
+        '<label>Priority<select name="priority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label></div>'+
+        '<label>Target month (optional)<input name="targetMonth" type="month" data-month-picker="true"></label>'+
+        '<label class="glass-image-upload"><span class="glass-image-preview" aria-hidden="true">▧</span><span class="glass-upload-copy"><strong>Product picture</strong><small>Tap to upload or replace</small></span><span class="glass-upload-action">Choose</span><input name="photo" type="file" accept="image/*"></label>'+
+        '<p class="glass-upload-state" role="status"></p>'+
+        '<button type="submit" class="edit-save-primary">Save changes</button>'+
+        '<div class="edit-secondary-actions"><button type="button" class="cancelEdit">Cancel</button><button type="button" class="removePhoto">Remove image</button></div>'+
+        '<button type="button" class="deleteItem">Delete product</button><div class="status" role="status"></div>';
     const name=form.querySelector('[name=name]'),price=form.querySelector('[name=price]'),
         url=form.querySelector('[name=url]'),cat=form.querySelector('[name=cat]'),
         photo=form.querySelector('[name=photo]'),status=form.querySelector('.status'),priority=form.querySelector('[name=priority]'),targetMonth=form.querySelector('[name=targetMonth]');
     name.value=item.name;price.value=item.price;url.value=item.url||'';categoryOptions(cat,item.cat);priority.value=item.priority||'medium';targetMonth.value=item.targetMonth||'';
     let removeRequested=false;
+    const previewLabel=form.querySelector('.glass-image-preview');
+    const uploadState=form.querySelector('.glass-upload-state');
+    if(typeof getPhoto==='function'){
+        getPhoto(item.id).then(existingPhoto=>{
+            if(!existingPhoto||!form.isConnected)return;
+            const img=document.createElement('img');img.src=existingPhoto.url;img.alt='';
+            previewLabel.replaceChildren(img);
+            uploadState.textContent='Current picture attached';
+        }).catch(()=>{});
+    }
+    photo.addEventListener('change',()=>{
+        if(!photo.files.length)return;
+        removeRequested=false;
+        uploadState.textContent='Selected: '+photo.files[0].name;
+        const blobUrl=URL.createObjectURL(photo.files[0]);
+        const img=document.createElement('img');img.src=blobUrl;img.alt='';
+        img.onload=()=>URL.revokeObjectURL(blobUrl);
+        previewLabel.replaceChildren(img);
+    });
     form.querySelector('.removePhoto').onclick=()=>{
-        removeRequested=true;photo.value='';status.textContent='Picture will be removed when you save.';
+        removeRequested=true;photo.value='';previewLabel.textContent='▧';uploadState.textContent='Picture will be removed when you save.';
     };
-    form.querySelector('.cancelEdit').onclick=()=>{form.remove();button.textContent='Edit item';};
+    form.querySelector('.cancelEdit').onclick=()=>{form.remove();card.classList.remove('is-editing');button.textContent='Edit product';};
     form.querySelector('.deleteItem').onclick=async()=>{
         if(!await window.glassConfirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
         try{await removeItem(item.id);persist();render();window.dispatchEvent(new Event('item-saved'));}
@@ -387,6 +409,7 @@ function buildEditForm(item,card,button) {
         }
     };
     card.append(form);
+    card.classList.add('is-editing');
     button.textContent='Close editor';
 }
 async function removeItem(id) {
@@ -475,30 +498,23 @@ function render() {
             render();
             persist();
         };
-        const actions=document.createElement('div');actions.className='itemtools';
-        const edit=document.createElement('button');edit.type='button';
-        edit.textContent='Details';edit.className='editbtn';
-        edit.onclick=()=>{if(window.openItemDetails)window.openItemDetails(item.id);else buildEditForm(item,card,edit);};actions.append(edit);
-        card.append(actions);
+        card.tabIndex=0;
+        card.classList.add('product-open-card');
+        card.setAttribute('aria-label','View '+item.name+' details');
+        const openDetails=()=>{if(typeof window.openItemDetails==='function')window.openItemDetails(item.id);};
+        card.addEventListener('click',event=>{
+            if(event.target.closest('input,button,textarea,a,select,details,summary,label'))return;
+            openDetails();
+        });
+        card.addEventListener('keydown',event=>{
+            if(event.target!==card)return;
+            if(event.key==='Enter'||event.key===' '){event.preventDefault();openDetails();}
+        });
         const image=document.createElement('img');image.loading='lazy';
         image.dataset.productId=item.id;
         image.alt=item.name+' picture';image.src=productIllustration(item);
         if(showProductImages){card.insertBefore(image,head);displayPhoto(image,item.id);}
-        if (item.url && validUrl(item.url)) {
-            const link=document.createElement('a');
-            link.href=item.url;link.target='_self';link.rel='noopener noreferrer';
-            link.textContent='Open product listing';
-            link.style.display='inline-block';link.style.margin='4px 0 10px';
-            card.append(link);
-        }
-        const note=document.createElement('textarea');
-        note.placeholder='Add notes, seller, warranty, link, or deal details...';
-        note.value=notes[item.id]||'';
-        note.setAttribute('aria-label','Notes for '+item.name);
-        note.oninput=()=>{notes[item.id]=note.value;persist();};
-        const noteDisclosure=document.createElement('details');noteDisclosure.className='item-note-disclosure';
-        const summary=document.createElement('summary');summary.textContent='Notes';noteDisclosure.append(summary,note);
-        card.append(noteDisclosure);itemsEl.append(card);
+        itemsEl.append(card);
     });
     renderStats();
 }
@@ -638,7 +654,14 @@ $('addProductForm').onsubmit=async e=>{
     e.preventDefault();
     const form=$('addProductForm'),name=$('newName').value.trim(),price=$('newPrice').value;
     const url=$('newUrl').value.trim(),cat=$('newCategory').value;
-    if (!name) return alert('Enter a product name.');
+    if(!name){
+        if(window.SetupProductUI)window.SetupProductUI.requireManual('Product name is missing. Add it below.');
+        return alert('Enter the product name before saving.');
+    }
+    if(price===''||!Number.isFinite(Number(price))||Number(price)<0){
+        if(window.SetupProductUI)window.SetupProductUI.requireManual('Price is missing or invalid. Enter it below.');
+        return alert('Enter a valid product price.');
+    }
     if (!validUrl(url))return alert('Use an https:// or http:// product link.');
     const id='custom-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
     const submit=form.querySelector('[type=submit]');submit.disabled=true;
