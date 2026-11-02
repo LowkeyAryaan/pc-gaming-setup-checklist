@@ -35,19 +35,29 @@
  }
  function appendIndicator(target,item){
    const entry=entryFor(item);
-   const tag=document.createElement('span');
-   const allowed=['stable','increased','decreased','unavailable','variant','review','checking','off','no-link','not-checked'];
+   const canAct=kind=>['variant','variant-selected','unavailable'].includes(kind);
+   const status=entryFor(item);
+   const action=canAct(status.status);
+   const tag=document.createElement(action?'button':'span');
+   if(action){tag.type='button';tag.classList.add('price-watch-action');tag.onclick=e=>{
+       e.stopPropagation();
+       if(window.PriceWatchActions)window.PriceWatchActions.open(item.id);
+       else if(window.openItemDetails)window.openItemDetails(item.id);
+     };
+   }
+   const allowed=['stable','increased','decreased','unavailable','variant','variant-selected','review','checking','off','no-link','not-checked'];
    const kind=allowed.includes(entry.status)?entry.status:'not-checked';
-   tag.className='price-watch-chip watch-'+kind;
+   tag.className='price-watch-chip watch-'+kind+(action?' price-watch-action':'');
    const labels={
      stable:'✓ Stable',increased:'↑ Increased',decreased:'↓ Decreased',
-     unavailable:'? Unavailable',variant:'! Choose variant',review:'! Review price',checking:'◌ Checking',
+     unavailable:'? Unavailable',variant:'! Choose variant','variant-selected':'✓ Price selected',review:'! Review price',checking:'◌ Checking',
      off:'Price watch off','no-link':'No link','not-checked':'Not checked'
    };
    tag.textContent=labels[kind];
    if(entry.checkedAt)tag.title='Last checked '+new Date(entry.checkedAt).toLocaleString()+
       (entry.reason?' · '+entry.reason:'');
-   if(entry.reason)tag.setAttribute('aria-label',labels[kind]+': '+entry.reason);
+   if(entry.reason)tag.setAttribute('aria-label',labels[kind]+': '+entry.reason+(action?'. Tap for options.':''));
+   if(action&&!entry.reason)tag.setAttribute('aria-label',labels[kind]+'. Tap for options.');
    else if(kind==='no-link')tag.title='Add a public product URL to track its listing price';
    target.append(tag);
    return tag;
@@ -175,7 +185,8 @@
    if(!enabled&&!options.force)return;
    lastStart=Date.now();
    cancel();
-   const linked=items.filter(item=>typeof item.url==='string'&&item.url.trim());
+   const linked=items.filter(item=>typeof item.url==='string'&&item.url.trim()&&
+       (!options.onlyId||item.id===options.onlyId));
    for(const item of linked){
      if(!/^https:\/\/[^ \t\n]+$/i.test(item.url))
        priceWatch[item.id]=unavailableRecord(item,'Only public HTTPS listings can be checked.');
@@ -240,6 +251,8 @@
    const observed=Number(data&&data.price);
    const currency=String(data&&data.currency||'').toUpperCase();
    const historical=priceWatch[id];
+   const selected=historical&&historical.url===item.url&&validMoney(Number(historical.selectedPrice))?
+       Number(historical.selectedPrice):null;
    const originalBaseline=historical&&historical.url===item.url&&
        Number.isFinite(Number(historical.baseline))&&Number(historical.baseline)>0?
        Number(historical.baseline):Number(item.price);
@@ -254,8 +267,9 @@
      const amount=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
      const range=Number.isFinite(low)&&low>0?(currency?currency+' ':'')+amount(low)+
        (data.priceKind==='range'&&Number.isFinite(high)&&high>low?' – '+amount(high):'+'):'multiple variant prices';
-     priceWatch[id]={...unavailableRecord(item,'Store lists '+range+'. Confirm your selected variant price in Edit product.'),
-       status:'variant',baseline:originalBaseline,checkedAt:stamp,
+     priceWatch[id]={...unavailableRecord(item,'Store lists '+range+'. Choose your price from the listing; a generic range cannot verify the selected configuration.'),
+       status:selected!==null?'variant-selected':'variant',baseline:originalBaseline,checkedAt:stamp,
+       selectedPrice:selected,
        lowPrice:Number.isFinite(low)&&low>0?low:null,
        highPrice:Number.isFinite(high)&&high>low?high:null};
    }else if(!valid){
@@ -269,6 +283,11 @@
            'Store price uses '+currency+', but setup uses '+currentCurrency+'.':
            'Price could not be verified.';
      priceWatch[id]={...unavailableRecord(item,reason),baseline:originalBaseline,checkedAt:stamp};
+   }else if(selected!==null){
+     // A retailer may temporarily switch from a range to a low-price offer.
+     // Once a person selects a variant, never overwrite it from generic metadata.
+     priceWatch[id]={...historical,status:'variant-selected',checkedAt:stamp,
+       reason:'Your chosen variant price is saved. Automatic changes require an exact variant-specific listing URL.'};
    }else{
      let kind='stable';
      if(observed>previous+0.005)kind='increased';
@@ -293,6 +312,7 @@
      }
    }
    persist();refresh();
+   window.dispatchEvent(new CustomEvent('price-watch-updated',{detail:{id}}));
    if(run.seen.size===run.expected){
      clearTimeout(run.timer);
      currentRun=null;
@@ -301,8 +321,24 @@
      if(run.changes.length)showChanges(run.changes,run.failed);
    }
  }
+ function applyVariantSelection(id,amount){
+   const item=items.find(p=>p.id===id);
+   const value=Number(amount);
+   if(!item||checked[id]||!validMoney(value))return false;
+   const record=priceWatch[id];
+   if(!record||record.url!==item.url||!['variant','variant-selected'].includes(record.status))return false;
+   // Explicit user decision: do not pass a range back into automatic checks.
+   item.price=safePrice(value);
+   priceWatch[id]={...record,status:'variant-selected',selectedPrice:safePrice(value),
+     baseline:safePrice(value),checkedAt:today(),
+     reason:'Manually selected. A generic range cannot confirm future price stability for this exact variant.'};
+   cancel();
+   persist();flushRefresh();
+   window.dispatchEvent(new CustomEvent('price-watch-updated',{detail:{id}}));
+   return true;
+ }
  window.PriceWatchUI={
-   appendIndicator,receive,cancel,checkNow,
+   appendIndicator,receive,cancel,checkNow,applyVariantSelection,
    getEnabled:()=>enabled,
    setEnabled:value=>{
      enabled=!!value;
