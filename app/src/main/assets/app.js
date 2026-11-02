@@ -557,6 +557,8 @@ function renderStats() {
     $('purchasedTotal').textContent=fmt(t.purchasedTotal);
     $('purchasedCount').textContent=t.purchasedCount+' item'+(t.purchasedCount===1?'':'s');
     $('toBuyCount').textContent=t.remainingCount+' item'+(t.remainingCount===1?'':'s');
+    if($('summarySpent'))$('summarySpent').textContent=fmt(t.purchasedTotal);
+    if($('summarySaved'))$('summarySaved').textContent=fmt(safePrice($('saved').value));
     if($('dashboardPurchased'))$('dashboardPurchased').textContent=fmt(t.purchasedTotal);
     if($('dashboardRemainingItems'))$('dashboardRemainingItems').textContent=String(t.remainingCurrent);
     if($('dashboardSaved'))$('dashboardSaved').textContent=fmt(safePrice($('saved').value));
