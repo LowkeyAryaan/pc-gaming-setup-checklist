@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
         web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
         web.addJavascriptInterface(new ProductLookupBridge(), "AndroidProductLookup");
+        web.addJavascriptInterface(new PriceWatchBridge(), "AndroidPriceWatch");
         web.addJavascriptInterface(new HapticBridge(), "AndroidHaptics");
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -232,6 +233,42 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             });
+        }
+    }
+
+    // A small bounded pool prevents a launch from opening many connections at once.
+    private final java.util.concurrent.ExecutorService pricePool =
+        java.util.concurrent.Executors.newFixedThreadPool(3);
+
+    private class PriceWatchBridge {
+        @JavascriptInterface
+        public void checkBatch(String json, String token) {
+            if(json==null||json.length()>160000||token==null||
+                !token.matches("[A-Za-z0-9_-]{1,72}"))return;
+            try{
+                org.json.JSONArray batch=new org.json.JSONArray(json);
+                if(batch.length()>400)return;
+                for(int i=0;i<batch.length();i++){
+                    org.json.JSONObject record=batch.optJSONObject(i);
+                    if(record==null)continue;
+                    String id=record.optString("id","");
+                    String url=record.optString("url","");
+                    if(!id.matches("[A-Za-z0-9_-]{1,90}")||
+                        url.length()>2048||!url.startsWith("https://"))continue;
+                    final String productId=id, requestUrl=url;
+                    pricePool.execute(()->{
+                        org.json.JSONObject response=ProductPageReader.readPrice(requestUrl);
+                        runOnUiThread(()->{
+                            if(web==null)return;
+                            String js="window.PriceWatchUI && window.PriceWatchUI.receive("+
+                                org.json.JSONObject.quote(token)+","+
+                                org.json.JSONObject.quote(productId)+","+
+                                org.json.JSONObject.quote(response.toString())+");";
+                            web.evaluateJavascript(js,null);
+                        });
+                    });
+                }
+            }catch(Exception ignored){/* Invalid batches never affect saved prices. */}
         }
     }
 
