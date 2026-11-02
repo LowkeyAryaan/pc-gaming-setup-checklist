@@ -117,9 +117,16 @@
    const old=priceWatch[item.id],same=old&&old.url===item.url;
    const baseline=same&&Number(old.baseline)>0?
      Number(old.baseline):Number(item.price);
-   return {status:'unavailable',url:item.url,checkedAt:today(),baseline,
+   const selected=same&&validMoney(Number(old.selectedPrice))?
+     Number(old.selectedPrice):null;
+   return {status:selected!==null?'variant-selected':'unavailable',url:item.url,
+     checkedAt:today(),baseline,selectedPrice:selected,
+     lowPrice:same?old.lowPrice:null,highPrice:same?old.highPrice:null,
      observed:same&&validMoney(Number(old.observed))?Number(old.observed):null,
-     reason:String(reason||'Price unavailable').slice(0,180)};
+     reason:selected!==null?
+       'Your chosen price is saved, but this retailer could not verify it. '+
+         String(reason||'Price unavailable').slice(0,120):
+       String(reason||'Price unavailable').slice(0,180)};
  }
  function cancel(){
    // Responses from other presets / earlier runs are ignored.
