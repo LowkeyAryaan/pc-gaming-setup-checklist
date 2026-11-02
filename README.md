@@ -12,6 +12,19 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.9.4 actionable price ranges and per-listing retries
+
+- Tap **Choose variant** directly on a product card or in Product details to open a premium price selection dialog. Pick either advertised lower/upper amount or enter the exact selected configuration price. Retailers do not always provide variant names; the app does **not** guess which variant matches each amount.
+- Confirming the selection updates the unpurchased item cost and Tracker/Price Impact/Summary, without changing saved cash, purchased history or contributions.
+- Manual selections persist in each preset and exported backups. Reopening the app or encountering an ambiguous range/retailer failure will not overwrite the chosen price; these prices remain explicitly *unverified* until the store offers a variant-specific quotation.
+- Tap **Unavailable** to see the reason and retry just that product, open its store listing or edit its URL/price. A store blocking scraping or omitting trusted currency cannot be automatically declared stable.
+- All price actions are actual accessible buttons, not decorative tags. Version 1.9.4 uses an isolated preview package; use backup export/import to move personal data from prior preview installations.
+
+## v1.9.3 safe variant price detection
+
+- Price Watch detects range or starting-at listings as ambiguous; it never silently chooses the cheapest variant.
+- Add Product shows the advertised range and asks for a confirmed exact price.
+
 ## v1.9.2 Price Impact on Tracker and stronger retailer detection
 
 - A glass **Price Impact** panel on Tracker shows **updated remaining setup goal**, **before tracked changes**, **net increase/decrease**, and counts of price increases/decreases.
