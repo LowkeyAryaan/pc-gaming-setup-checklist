@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
+import android.view.HapticFeedbackConstants;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
         web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
         web.addJavascriptInterface(new ProductLookupBridge(), "AndroidProductLookup");
+        web.addJavascriptInterface(new HapticBridge(), "AndroidHaptics");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -248,6 +250,23 @@ public class MainActivity extends Activity {
                     web.evaluateJavascript(js, null);
                 });
             }, "setup-product-metadata").start();
+        }
+    }
+
+    private class HapticBridge {
+        // Short, system-respecting tactile ticks, never a long vibrate.
+        // No VIBRATE permission and no IGNORE_GLOBAL_SETTING flag.
+        @JavascriptInterface
+        public void pulse(String kind) {
+            if (kind == null || !kind.matches("tap|navigate|select|long")) return;
+            final int feedback;
+            if ("long".equals(kind)) feedback = HapticFeedbackConstants.LONG_PRESS;
+            else if ("navigate".equals(kind)) feedback = HapticFeedbackConstants.CLOCK_TICK;
+            else feedback = HapticFeedbackConstants.VIRTUAL_KEY;
+            runOnUiThread(() -> {
+                if (web != null && web.isAttachedToWindow() && web.isHapticFeedbackEnabled())
+                    web.performHapticFeedback(feedback);
+            });
         }
     }
 
