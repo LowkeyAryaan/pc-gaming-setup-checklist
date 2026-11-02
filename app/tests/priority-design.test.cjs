@@ -86,8 +86,8 @@ test('Functional icons use semantic SVG symbols without repeated brand logo stam
  assert.match(html,/id="plannerSalary"/);
  assert.match(html,/id="goalLabel"/);
  assert.doesNotMatch(html,/<img src="brand-mark\.svg" class="goal-mark"/);
- assert.equal((html.match(/src="brand-icon\.webp"/g)||[]).length,1);
- assert.equal((html.match(/src="brand-wordmark\.webp"/g)||[]).length,2);
+ assert.equal((html.match(/src="brand-icon\.svg"/g)||[]).length,1);
+ assert.equal((html.match(/src="brand-wordmark\.svg"/g)||[]).length,2);
  assert.doesNotMatch(html,/class="welcome-dots"/);
  assert.match(styles,/\.panel-icon svg/);
 });

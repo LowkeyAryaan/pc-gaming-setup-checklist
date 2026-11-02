@@ -25,8 +25,8 @@ test('Artwork and words use the approved minimal identity',()=>{
  assert.match(java,/setText\("SETUP CHECKLIST"\)/);
  assert.match(java,/setImageResource\(R\.drawable\.brand_icon\)/);
  assert.match(html,/Plan\. Save\. Build\./);
- assert.match(html,/brand-icon\.webp/);
- assert.match(html,/brand-wordmark\.webp/);
+ assert.match(html,/brand-icon\.svg/);
+ assert.match(html,/brand-wordmark\.svg/);
  assert.match(html,/Made by Aryaan/);
  assert.match(html,/@aryaan_creates/);
 });
