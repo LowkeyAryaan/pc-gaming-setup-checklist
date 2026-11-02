@@ -291,10 +291,6 @@ final class ProductPageReader {
             rawHigh=parseMoney(value(product.opt("highPrice")));
         double[] pair=rangeFromValues(rawLow,rawHigh);
         if(pair!=null)return pair;
-        // AggregateOffer with only a lowPrice still means "from", not exact.
-        String type=offer==null?"":offer.optString("@type","");
-        if(type.toLowerCase(Locale.US).contains("aggregateoffer")&&rawLow!=null&&rawLow>0)
-            return new double[]{rawLow,Double.NaN};
         if(product!=null){
             JSONArray offers=product.optJSONArray("offers");
             if(offers!=null&&offers.length()>1){
@@ -315,14 +311,17 @@ final class ProductPageReader {
         // A numeric range in a price meta field must not pass parseMoney().
         pair=amountRange(scalar);
         if(pair!=null)return pair;
-        // WooCommerce may expose a scalar low-price meta, while the visible
-        // product price paragraph says "22,999 – 26,999".
-        return productPageRange(html);
+        // WooCommerce may expose lowPrice metadata while rendering a complete
+        // range in the visible product header. Prefer the richer range.
+        pair=productPageRange(html);
+        if(pair!=null)return pair;
+        if(rawLow!=null&&rawLow>0)return new double[]{rawLow,Double.NaN};
+        return null;
     }
 
     private static double[] rangeFromValues(Double min,Double max){
         if(min!=null&&max!=null&&min>0&&max>min+0.005)return new double[]{min,max};
-        if(min!=null&&min>0&&max==null)return new double[]{min,Double.NaN};
+
         return null;
     }
 
