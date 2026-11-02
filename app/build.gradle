@@ -20,8 +20,8 @@ android {
         applicationId 'com.aryaan.pcsetup'
         minSdk 23
         targetSdk 35
-        versionCode 18
-        versionName '1.9.3'
+        versionCode 19
+        versionName '1.9.4'
         manifestPlaceholders = [appLabel: 'Setup Checklist']
     }
 
@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview193variants'
-                manifestPlaceholders = [appLabel: 'Setup Checklist 1.9.3 Variants']
+                applicationIdSuffix '.preview194picker'
+                manifestPlaceholders = [appLabel: 'Setup Checklist 1.9.4 Price Picker']
             }
         }
         release {
