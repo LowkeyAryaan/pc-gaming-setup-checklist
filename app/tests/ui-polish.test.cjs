@@ -129,7 +129,7 @@ test('New controls initialize after existing app/shell/onboarding; no signing or
     assert.match(gradle,/versionCode 13/);
     assert.match(gradle,/versionName '1\.8\.0'/);
     assert.match(gradle,/applicationIdSuffix '\.community'/);
-    assert.match(gradle,/applicationIdSuffix '\.preview17glass'/);
+    assert.match(gradle,/applicationIdSuffix '\.preview18smart'/);
 });
 
 test('Blue is the primary accent for picker, buttons, selection, progress and onboarding',()=>{
