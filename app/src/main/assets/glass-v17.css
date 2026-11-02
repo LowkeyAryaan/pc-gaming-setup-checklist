@@ -270,3 +270,16 @@ body.app-carousel-mode .app-content>.page{
 @media(min-width:700px){
  body.app-carousel-mode .app-content>.page{padding-left:24px!important;padding-right:24px!important}
 }
+
+/* Category chips are clean by default; management appears only after a hold. */
+#categoryManagement .category-delete{display:none!important}
+#categoryManagement .category-hold-action{
+ -webkit-user-select:none!important;user-select:none!important;
+ -webkit-touch-callout:none!important;
+ min-height:43px;
+}
+#categoryManagement .category-hold-action:active{filter:brightness(1.12)}
+.category-manage-menu p{margin:0 0 10px!important;color:#b7cab2}
+.category-edit-form .status{min-height:0!important;color:#e4cb9d}
+.category-edit-form .status:empty{display:none}
+#categoryManagement .category-row{min-height:44px;overflow:hidden}
