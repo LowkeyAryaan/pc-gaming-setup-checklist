@@ -1,0 +1,213 @@
+/* Setup Checklist Price Watch · restrained liquid glass indicators and launch digest. */
+.product-meta .price-watch-chip,.detail-product-header .price-watch-chip{
+ display:inline-flex;align-items:center;white-space:nowrap;min-width:0;
+ gap:4px;padding:5px 8px;border-radius:99px;
+ font-size:.64rem;font-weight:700;line-height:1.15;
+ border:1px solid rgba(255,255,255,.14);
+ background:rgba(48,60,49,.56);color:#b2c2ad
+}
+.price-watch-chip.watch-decreased{
+ background:rgba(91,166,86,.15);border-color:rgba(143,244,113,.34);
+ color:#b3ff91
+}
+.price-watch-chip.watch-increased{
+ background:rgba(205,119,89,.12);border-color:rgba(255,165,130,.28);
+ color:#ffbcaa
+}
+.price-watch-chip.watch-stable{color:#d0e4c4;border-color:rgba(200,245,192,.17)}
+.price-watch-chip.watch-review{
+ color:#ffe5a3;background:rgba(255,201,86,.1);
+ border-color:rgba(255,198,97,.3)
+}
+.price-watch-chip.watch-unavailable,.price-watch-chip.watch-no-link,
+.price-watch-chip.watch-not-checked,.price-watch-chip.watch-off{color:#93a393}
+.price-watch-chip.watch-checking{color:#d4fcaa}
+.detail-product-header{flex-wrap:wrap}
+.price-change-shade{
+ position:fixed;inset:0;z-index:260;
+ display:flex;align-items:center;justify-content:center;
+ padding:20px 13px calc(20px + env(safe-area-inset-bottom,0px));
+ background:rgba(2,6,3,.75);
+ -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)
+}
+.price-change-dialog{
+ width:100%;max-width:470px;max-height:82dvh;
+ display:flex;flex-direction:column;gap:16px;
+ padding:24px 19px;border-radius:30px;
+ border:1px solid rgba(225,255,215,.26);
+ background:linear-gradient(150deg,rgba(51,70,46,.98),rgba(17,25,18,.985));
+ box-shadow:0 22px 50px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.11);
+ color:#f2faef
+}
+.price-change-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.price-change-heading h2{font-size:1.32rem;letter-spacing:-.037em;line-height:1.2;margin:6px 0 0}
+.price-change-heading .sheet-close{width:37px;height:37px;min-width:37px}
+.price-change-subtitle{
+ margin:0;font-size:.81rem;line-height:1.55;color:#c0d0b8
+}
+.price-change-list{min-height:0;overflow-y:auto;display:grid;gap:8px;overscroll-behavior:contain}
+.price-change-row{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;padding:12px;border-radius:17px;
+ background:rgba(11,20,12,.48);border:1px solid rgba(215,255,196,.13)
+}
+.price-change-product{display:grid;min-width:0;gap:5px}
+.price-change-product strong{font-size:.83rem;line-height:1.35;overflow-wrap:anywhere}
+.price-change-product span{font-size:.68rem;color:#a7bc9e}
+.price-change-values{display:grid;flex-shrink:0;justify-items:end;gap:5px;text-align:right}
+.price-change-values small{font-size:.72rem;color:#b9c1b2;text-decoration:line-through}
+.price-change-values strong{font-size:.83rem}
+.price-change-values .watch-increased{color:#ffbea7}
+.price-change-values .watch-decreased{color:#b8ff85}
+.price-change-more,.price-change-warning{margin:0;font-size:.74rem;color:#d9c6aa;line-height:1.4}
+.price-change-done{
+ width:100%;min-height:50px;flex-shrink:0;
+ border:1px solid #d7ffa0!important;border-radius:17px!important;
+ background:linear-gradient(115deg,#caff69,#b8ff44)!important;
+ color:#111a0c!important;font-weight:780!important
+}
+@media(max-width:360px){
+ .price-change-dialog{padding:18px 13px;border-radius:25px}
+ .price-change-row{padding:11px 9px}
+ .price-watch-chip{font-size:.59rem!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .price-change-shade,.price-change-dialog{animation:none!important;transition:none!important}
+}
+.price-change-values .watch-review{color:#ffe9ad!important}
+
+/* v1.9.2 Price Impact: aligned comparison using the SAME remaining-cost model. */
+#page-tracker .price-impact-panel{
+ display:grid!important;gap:16px!important;
+ padding:22px 19px 19px!important;
+ width:100%!important;box-sizing:border-box!important;
+ margin:0 0 15px!important;
+ border-radius:26px!important;
+ background:radial-gradient(ellipse at 94% 0%,rgba(172,255,91,.085),transparent 65%),
+ linear-gradient(155deg,rgba(53,69,52,.84),rgba(15,24,17,.96))!important;
+ border:1px solid rgba(218,255,214,.2)!important;
+ border-top-color:rgba(231,255,215,.31)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.065),0 10px 26px rgba(0,0,0,.12)!important;
+}
+.price-impact-header{display:flex;align-items:start;justify-content:space-between;gap:12px;min-width:0}
+.price-impact-header .icon-section-heading{align-items:center;gap:11px}
+.price-impact-header .icon-section-heading>div{display:grid;gap:5px;min-width:0}
+.price-impact-header h2{font-size:1.13rem!important;line-height:1.15;margin:0!important;color:#f4f9ef}
+.price-impact-header .eyebrow{font-size:.58rem;line-height:1.3;color:#a3c58c}
+.price-impact-state{font-size:.67rem;white-space:nowrap;color:#d2e5c8;
+ padding:7px 9px;border-radius:999px;background:rgba(184,255,104,.075);
+ border:1px solid rgba(212,255,180,.16);align-self:center;text-align:center}
+.price-impact-main{display:grid;gap:8px;padding:4px 0 2px}
+.price-impact-caption{font-size:.66rem;letter-spacing:.075em;font-weight:730;color:#a9baa4}
+.price-impact-main strong{font-size:clamp(1.7rem,7.4vw,2.25rem)!important;
+ letter-spacing:-.045em;font-variant-numeric:tabular-nums;line-height:1.1;color:#e4ffbb;overflow-wrap:anywhere}
+.price-impact-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.price-impact-comparison-cell{
+ display:grid;align-content:space-between;gap:12px;min-width:0;min-height:92px;
+ padding:14px 12px;border-radius:17px;
+ background:rgba(9,17,10,.53);border:1px solid rgba(211,255,201,.14)
+}
+.price-impact-comparison-cell span{font-size:.69rem;line-height:1.3;color:#b0bfa8}
+.price-impact-comparison-cell strong{font-size:clamp(.92rem,4.1vw,1.12rem);font-variant-numeric:tabular-nums;
+ letter-spacing:-.03em;overflow-wrap:anywhere}
+.price-impact-increased{color:#ffb29e!important}
+.price-impact-decreased{color:#bdfc94!important}
+.price-impact-neutral{color:#eef9e4!important}
+.price-impact-bottom{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ gap:7px 12px;padding-top:1px;color:#a3b29d;font-size:.7rem;line-height:1.4
+}
+.price-impact-bottom>span:last-child{color:#c0d0b8}
+@media(max-width:360px){
+ #page-tracker .price-impact-panel{padding:18px 14px!important;gap:14px!important}
+ .price-impact-header{gap:7px}
+ .price-impact-state{font-size:.6rem;padding:7px 8px}
+ .price-impact-comparison-cell{padding:12px 9px}
+}
+
+.item-detail-dialog .price-watch-reason{
+ font-size:.75rem;line-height:1.5;color:#e1cda5;
+ padding:10px 12px;margin:5px 0 12px;
+ border:1px solid rgba(255,218,155,.22);
+ border-radius:14px;background:rgba(83,67,38,.15);
+}
+
+.price-watch-chip.watch-variant{color:#ffe1a8!important;background:rgba(255,188,91,.13)!important;border:1px solid rgba(255,193,109,.4)!important}
+
+/* v1.9.4: price-state pills are actual buttons; tactile surface remains compact */
+button.price-watch-chip.price-watch-action{
+ -webkit-appearance:none;appearance:none;flex-shrink:0;cursor:pointer;
+ text-align:center;font-family:inherit;line-height:1.15;
+ transition:border-color .14s ease,background .14s ease,transform .14s ease;
+}
+button.price-watch-action:active{transform:scale(.95)}
+button.price-watch-action:focus-visible{outline:2px solid #ceff76;outline-offset:3px}
+.price-watch-chip.watch-variant-selected{
+ color:#e4db9f!important;background:rgba(208,190,111,.13)!important;
+ border-color:rgba(243,226,154,.36)!important
+}
+.price-action-shade[hidden]{display:none!important}
+.price-action-shade{
+ position:fixed;inset:0;z-index:350;display:flex;align-items:flex-end;justify-content:center;
+ padding:14px 12px max(16px,env(safe-area-inset-bottom,0px));
+ background:rgba(3,7,4,.79);backdrop-filter:blur(8px);
+ -webkit-backdrop-filter:blur(8px)
+}
+.price-action-panel{
+ display:flex;flex-direction:column;gap:15px;min-width:0;
+ width:min(100%,470px);max-height:91dvh;overflow-y:auto;
+ padding:22px 19px;border-radius:29px;color:#f0f8ed;
+ background:linear-gradient(145deg,rgba(48,65,45,.99),rgba(15,24,17,.995));
+ border:1px solid rgba(221,254,199,.27);
+ box-shadow:inset 0 1px rgba(255,255,255,.09),0 25px 70px rgba(0,0,0,.46)
+}
+.price-action-head{display:flex;justify-content:space-between;align-items:start;gap:10px}
+.price-action-head h2{margin:5px 0 0;font-size:1.38rem;line-height:1.19;letter-spacing:-.032em}
+.price-action-head .eyebrow{font-size:.65rem;color:#c5eea9}
+.price-action-close{
+ flex:0 0 42px;width:42px;height:42px;padding:0!important;
+ border:1px solid rgba(210,245,200,.18)!important;border-radius:14px!important;
+ font-size:1.5rem!important;color:#ecf3e6!important;background:rgba(255,255,255,.06)!important
+}
+.price-action-product{font-size:.96rem!important;font-weight:700;color:#eaf7e4;margin:0!important;line-height:1.42}
+.price-action-explanation{margin:0!important;font-size:.83rem;line-height:1.55;color:#bbcdba}
+.price-action-choices{display:grid;gap:13px;min-width:0}
+.price-action-choices[hidden]{display:none!important}
+.price-action-prices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.price-action-prices:empty{display:none}
+.price-action-choice{
+ display:grid!important;align-content:center;text-align:left;gap:7px;
+ min-width:0;min-height:83px!important;padding:12px!important;
+ background:rgba(12,22,13,.56)!important;border:1px solid rgba(213,249,187,.18)!important;
+ border-radius:17px!important
+}
+.price-action-choice small{font-size:.72rem;color:#b5c7af;line-height:1.35}
+.price-action-choice strong{font-size:1.03rem;color:#e9f6df;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.price-action-choice.is-selected{border-color:#bafb64!important;background:rgba(160,247,79,.13)!important}
+.price-action-choices>label{font-size:.83rem;color:#d6e6cb}
+.price-action-input-row{display:flex;align-items:center;gap:10px;
+ background:rgba(11,20,12,.63);border:1px solid rgba(210,247,190,.24);
+ border-radius:15px;padding:0 13px;min-height:55px}
+.price-action-input-row>span{color:#a9f07c;font-weight:750;font-size:.85rem}
+.price-action-input-row input{min-width:0;flex:1;min-height:51px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ font-size:1.04rem!important;color:#f5faeb!important}
+.price-action-hint,.price-action-message{font-size:.72rem;line-height:1.55;color:#b7c9b2;margin:0}
+.price-action-message{min-height:0;color:#e6d29d}
+.price-action-save{min-height:51px!important;border-radius:17px!important;
+ color:#16200c!important;font-weight:760!important;
+ background:linear-gradient(115deg,#d5ff88,#b2ff4e)!important;border:0!important}
+.price-action-save:disabled{opacity:.5!important}
+.price-action-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.price-action-tools>button{min-width:0;min-height:44px!important;padding:9px!important;
+ border-radius:14px!important;background:rgba(255,255,255,.07)!important;
+ border:1px solid rgba(222,252,203,.19)!important;color:#ecf5e5!important;
+ font-size:.78rem!important;font-weight:620!important}
+.price-action-tools>.price-action-store{grid-column:1/-1}
+.price-action-tools>button:disabled{opacity:.45!important}
+body.price-action-open{overflow:hidden}
+@media(min-width:640px){.price-action-shade{align-items:center}}
+@media(max-width:355px){.price-action-panel{padding:18px 14px;gap:12px}
+ .price-action-prices{gap:7px}.price-action-choice{padding:9px!important}
+}
+@media(prefers-reduced-motion:reduce){button.price-watch-action{transition:none!important}}

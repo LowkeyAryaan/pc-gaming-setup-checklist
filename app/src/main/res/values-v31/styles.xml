@@ -1,0 +1,14 @@
+<resources>
+    <!-- Android 12+ system splash must use the same dark surface as the app. -->
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#bdff44</item>
+        <item name="android:windowBackground">#090c0a</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">#090c0a</item>
+        <item name="android:navigationBarColor">#090c0a</item>
+        <item name="android:windowSplashScreenBackground">#090c0a</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/brand_icon</item>
+    </style>
+</resources>

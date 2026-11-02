@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
+import android.view.HapticFeedbackConstants;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -20,6 +21,9 @@ import android.webkit.JavascriptInterface;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebChromeClient;
@@ -34,6 +38,7 @@ public class MainActivity extends Activity {
     private FrameLayout activityRoot;
     private FrameLayout instantWelcome;
     private boolean webUiReady = false;
+    private boolean hasResumedBefore = false;
     private static final int FILE_PICKER_REQUEST = 9002;
     private static final int BACKUP_SAVE_REQUEST = 9003;
     private String pendingBackupJson;
@@ -47,10 +52,10 @@ public class MainActivity extends Activity {
         // The splash disappears only after the webpage has painted its real
         // welcome/onboarding screen, avoiding a flash of the checklist.
         activityRoot = new FrameLayout(this);
-        activityRoot.setBackgroundColor(Color.rgb(8, 14, 27));
+        activityRoot.setBackgroundColor(Color.rgb(11, 14, 11));
         instantWelcome = buildInstantWelcome();
         web = new WebView(this);
-        web.setBackgroundColor(Color.rgb(8, 14, 27));
+        web.setBackgroundColor(Color.rgb(11, 14, 11));
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -59,6 +64,10 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new StartupBridge(), "AndroidStartup");
         web.addJavascriptInterface(new BackupBridge(), "AndroidBackup");
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
+        web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
+        web.addJavascriptInterface(new ProductLookupBridge(), "AndroidProductLookup");
+        web.addJavascriptInterface(new PriceWatchBridge(), "AndroidPriceWatch");
+        web.addJavascriptInterface(new HapticBridge(), "AndroidHaptics");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -107,92 +116,54 @@ public class MainActivity extends Activity {
     }
 
     private FrameLayout buildInstantWelcome() {
+        // Fast, intentionally minimal native cover. Do not render a fake
+        // Get Started button: that would visibly jump to the HTML layout and
+        // look like a buffering / restarting welcome screen.
         FrameLayout stage = new FrameLayout(this);
-        stage.setBackgroundColor(Color.rgb(8, 14, 27));
-
-        try (InputStream in = getAssets().open("welcome.jpg")) {
-            Bitmap background = BitmapFactory.decodeStream(in);
-            if (background != null) {
-                ImageView photo = new ImageView(this);
-                photo.setImageBitmap(background);
-                photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                stage.addView(photo, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            }
-        } catch (Exception ignored) {
-            // Offline fallback: the same dark background as the HTML welcome.
-        }
-
-        View shade = new View(this);
-        shade.setBackground(new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x3A050A14, 0x88050A14, 0xFA060D1B}));
-        stage.addView(shade, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
+        stage.setBackgroundColor(0xFF090C0A);
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        TextView kicker = new TextView(this);
-        kicker.setText("PLAN  ·  TRACK  ·  BUILD");
-        kicker.setTextSize(11);
-        kicker.setTextColor(Color.rgb(163, 249, 202));
-        kicker.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        kicker.setGravity(Gravity.CENTER);
-        content.addView(kicker);
-
-        TextView title = new TextView(this);
-        title.setText("My PC &\nGaming Setup");
-        title.setTextSize(34);
-        title.setTextColor(Color.WHITE);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        titleParams.topMargin = dp(16);
-        content.addView(title, titleParams);
-
-        TextView tagline = new TextView(this);
-        tagline.setText("Your dream build starts here.");
-        tagline.setTextSize(14);
-        tagline.setTextColor(0xFFD1DBE6);
-        tagline.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams tagParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tagParams.topMargin = dp(12);
-        content.addView(tagline, tagParams);
-
-        TextView buttonVisual = new TextView(this);
-        buttonVisual.setText("Let's build your dream setup!");
-        buttonVisual.setTextSize(15);
-        buttonVisual.setTextColor(0xFF08201A);
-        buttonVisual.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        buttonVisual.setGravity(Gravity.CENTER);
-        GradientDrawable buttonBackground = new GradientDrawable();
-        buttonBackground.setColor(0xFF79F4AA);
-        buttonBackground.setCornerRadius(dp(15));
-        buttonVisual.setBackground(buttonBackground);
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(56));
-        buttonParams.topMargin = dp(22);
-        content.addView(buttonVisual, buttonParams);
-
-        TextView credit = new TextView(this);
-        credit.setText("Made by Aryaan  ·  @aryaan_creates");
-        credit.setTextSize(12);
-        credit.setGravity(Gravity.CENTER);
-        credit.setTextColor(0xFFCADCE8);
-        LinearLayout.LayoutParams creditParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        creditParams.topMargin = dp(20);
-        content.addView(credit, creditParams);
-
-        FrameLayout.LayoutParams bodyParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        bodyParams.setMargins(dp(24), 0, dp(24), dp(72));
-        stage.addView(content, bodyParams);
+        content.setGravity(Gravity.CENTER);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.brand_icon);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams =
+            new LinearLayout.LayoutParams(dp(94), dp(94));
+        logoParams.gravity = Gravity.CENTER_HORIZONTAL;
+        content.addView(logo, logoParams);
+        // A small, locally bundled wordmark matches the exact approved
+        // artwork. Fallback text is kept if an asset decoder fails.
+        boolean wordmarkAdded=false;
+        try (InputStream stream=getAssets().open("brand-wordmark.webp")) {
+            Bitmap artwork=BitmapFactory.decodeStream(stream);
+            if(artwork!=null){
+                ImageView wordmark=new ImageView(this);
+                wordmark.setImageBitmap(artwork);
+                wordmark.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                LinearLayout.LayoutParams wordmarkParams=
+                    new LinearLayout.LayoutParams(dp(235),dp(46));
+                wordmarkParams.gravity=Gravity.CENTER_HORIZONTAL;
+                wordmarkParams.topMargin=dp(13);
+                content.addView(wordmark,wordmarkParams);
+                wordmarkAdded=true;
+            }
+        } catch(Exception ignored) {}
+        if(!wordmarkAdded){
+        TextView label = new TextView(this);
+        label.setText("SETUP CHECKLIST");
+        label.setTextSize(14);
+        label.setTextColor(0xFFF1F9E9);
+        label.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        label.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.gravity = Gravity.CENTER_HORIZONTAL;
+        labelParams.topMargin = dp(18);
+        content.addView(label, labelParams);
+        }
+        stage.addView(content, new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER));
         return stage;
     }
 
@@ -237,6 +208,92 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             });
+        }
+    }
+
+    // A small bounded pool prevents a launch from opening many connections at once.
+    private final java.util.concurrent.ExecutorService pricePool =
+        java.util.concurrent.Executors.newFixedThreadPool(3);
+
+    private class PriceWatchBridge {
+        @JavascriptInterface
+        public void checkBatch(String json, String token) {
+            if(json==null||json.length()>160000||token==null||
+                !token.matches("[A-Za-z0-9_-]{1,72}"))return;
+            try{
+                org.json.JSONArray batch=new org.json.JSONArray(json);
+                if(batch.length()>400)return;
+                for(int i=0;i<batch.length();i++){
+                    org.json.JSONObject record=batch.optJSONObject(i);
+                    if(record==null)continue;
+                    String id=record.optString("id","");
+                    String url=record.optString("url","");
+                    if(!id.matches("[A-Za-z0-9_-]{1,90}")||
+                        url.length()>2048||!url.startsWith("https://"))continue;
+                    final String productId=id, requestUrl=url;
+                    pricePool.execute(()->{
+                        org.json.JSONObject response=ProductPageReader.readPrice(requestUrl);
+                        runOnUiThread(()->{
+                            if(web==null)return;
+                            String js="window.PriceWatchUI && window.PriceWatchUI.receive("+
+                                org.json.JSONObject.quote(token)+","+
+                                org.json.JSONObject.quote(productId)+","+
+                                org.json.JSONObject.quote(response.toString())+");";
+                            web.evaluateJavascript(js,null);
+                        });
+                    });
+                }
+            }catch(Exception ignored){/* Invalid batches never affect saved prices. */}
+        }
+    }
+
+    private class ProductLookupBridge {
+        @JavascriptInterface
+        public void lookup(String url, String requestId) {
+            if (url == null || requestId == null || url.length() > 2048 ||
+                    !requestId.matches("[0-9]{1,12}")) return;
+            new Thread(() -> {
+                String result = ProductPageReader.read(url).toString();
+                runOnUiThread(() -> {
+                    if (web == null) return;
+                    String js = "window.ProductLinkImport && window.ProductLinkImport.receive(" +
+                        org.json.JSONObject.quote(requestId) + "," +
+                        org.json.JSONObject.quote(result) + ");";
+                    web.evaluateJavascript(js, null);
+                });
+            }, "setup-product-metadata").start();
+        }
+    }
+
+    private class HapticBridge {
+        // Short, system-respecting tactile ticks, never a long vibrate.
+        // No VIBRATE permission and no IGNORE_GLOBAL_SETTING flag.
+        @JavascriptInterface
+        public void pulse(String kind) {
+            if (kind == null || !kind.matches("tap|navigate|select|long")) return;
+            final int feedback;
+            if ("long".equals(kind)) feedback = HapticFeedbackConstants.LONG_PRESS;
+            else if ("navigate".equals(kind)) feedback = HapticFeedbackConstants.CLOCK_TICK;
+            else feedback = HapticFeedbackConstants.VIRTUAL_KEY;
+            runOnUiThread(() -> {
+                if (web != null && web.isAttachedToWindow() && web.isHapticFeedbackEnabled())
+                    web.performHapticFeedback(feedback);
+            });
+        }
+    }
+
+    private class ClipboardBridge {
+        @JavascriptInterface
+        public boolean copy(String text) {
+            if (text == null || text.length() > 250000) return false;
+            try {
+                ClipboardManager clipboard=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) return false;
+                clipboard.setPrimaryClip(ClipData.newPlainText("Checklist", text));
+                return true;
+            } catch (Exception error) {
+                return false;
+            }
         }
     }
 
@@ -285,11 +342,22 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Reopening an existing process counts as an app opening as well.
+        // The JS controller throttles quick back-and-forth transitions.
+        if(hasResumedBefore && web!=null)
+            web.evaluateJavascript("window.dispatchEvent(new Event('setup-app-resumed'));",null);
+        hasResumedBefore=true;
+    }
+
+    @Override
     protected void onDestroy() {
         if (filePickerCallback != null) {
             filePickerCallback.onReceiveValue(null);
             filePickerCallback = null;
         }
+        pricePool.shutdownNow();
         super.onDestroy();
     }
 

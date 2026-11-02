@@ -1,4 +1,4 @@
-# PC Gaming Setup Checklist
+# Setup Checklist
 
 A free, offline-first Android checklist and savings tracker for building a custom PC or gaming setup.
 
@@ -6,11 +6,120 @@ A free, offline-first Android checklist and savings tracker for building a custo
 
 ## Download for Android
 
-**[Download PC Gaming Setup Checklist v1.4.2 — signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v1.4.2/PC-Gaming-Setup-Checklist-v1.4.2-signed.apk)**
+**[Setup Checklist v2.0.0 — official signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v2.0.0/PC-Gaming-Setup-Checklist-v2.0.0-signed.apk)**
 
-This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses the same app identity and signing certificate as the v1.4.1 release, so it can update the installed public app without clearing data. Android may ask you to allow installations from your browser or file manager. Only install the APK from this project's official GitHub Release.
+The installer is published only after secure GitHub Actions signing and Android package verification. Android 6.0 or newer is required. It stores your savings, purchased items and notes locally, with optional price checks using product links.
 
-**Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
+The permanent public app package is `com.aryaan.pcsetup.community`. Preview builds use different Android identities and cannot share data automatically. **Export all presets in your previous app and import their backup in the final edition before uninstalling anything.** Future public upgrades must keep the same signing certificate.
+
+## v2.0.0 approved minimal branding and final public release
+
+- PC monogram/checkmark icon and full Setup Checklist wordmark extracted from the user's approved artwork, preserving the white/lime/black design without redrawing.
+- Applied to the Android launcher, Android 12+ launch splash, native loading cover, welcome screen and compact app header.
+- Retains the approved Tracker, Price Impact, price changes, variant selection, Salary/Savings Planner and backup model.
+- Signed release uses a stable community package ID and secured GitHub Actions key; no signing material is committed.
+- See [v2.0.0 release notes](docs/RELEASE_NOTES_v2.0.0.md) for installation and migration requirements.
+
+## v1.9.4 actionable price ranges and per-listing retries
+
+- Tap **Choose variant** directly on a product card or in Product details to open a premium price selection dialog. Pick either advertised lower/upper amount or enter the exact selected configuration price. Retailers do not always provide variant names; the app does **not** guess which variant matches each amount.
+- Confirming the selection updates the unpurchased item cost and Tracker/Price Impact/Summary, without changing saved cash, purchased history or contributions.
+- Manual selections persist in each preset and exported backups. Reopening the app or encountering an ambiguous range/retailer failure will not overwrite the chosen price; these prices remain explicitly *unverified* until the store offers a variant-specific quotation.
+- Tap **Unavailable** to see the reason and retry just that product, open its store listing or edit its URL/price. A store blocking scraping or omitting trusted currency cannot be automatically declared stable.
+- All price actions are actual accessible buttons, not decorative tags. Version 1.9.4 uses an isolated preview package; use backup export/import to move personal data from prior preview installations.
+
+## v1.9.3 safe variant price detection
+
+- Price Watch detects range or starting-at listings as ambiguous; it never silently chooses the cheapest variant.
+- Add Product shows the advertised range and asks for a confirmed exact price.
+
+## v1.9.2 Price Impact on Tracker and stronger retailer detection
+
+- A glass **Price Impact** panel on Tracker shows **updated remaining setup goal**, **before tracked changes**, **net increase/decrease**, and counts of price increases/decreases.
+- Uses the same `BudgetModel.compute` allocation and contribution scope as the existing Tracker/financial Summary, not a second wallet. Future products and previously purchased products do not alter the remaining goal.
+- The first verified price check captures a baseline before automatic updates. The baseline persists in each preset's saved Price Watch records and JSON backups. Later failed store checks do not erase that history; manually changing a product price or its URL starts a fresh baseline.
+- Price detection supports additional explicit retailer currency and metadata formats, and targeted WooCommerce product-price markup.
+- Stores that block fetches, omit prices, or omit currency remain **Unavailable**, never falsely Stable; the badge exposes the reason when available and existing saved prices remain safe.
+- Separate version 1.9.2 preview install, leaving older preview data untouched. Export/import backup to migrate.
+
+## v1.9.1 smooth launch and faster welcome handoff
+
+- Dark native Android activity theme and Android 12+ splash background prevent the transient white screen observed in the launch recording.
+- Use a small branded native loading cover without a fake noninteractive Get Started button, so the transition to the real HTML welcome feels continuous rather than duplicated.
+- Native-to-WebView handoff waits for the styled first frames, while maintaining a bounded fallback for font readiness.
+- Avoid constructing the full international currency picker except during first-time currency setup.
+- Keep initial month formatting in the app's first render, avoiding redundant full product-card and planner renders during startup.
+- Remove expensive blur and scaling from full-screen welcome transitions in favor of a short opacity fade.
+- Delay no-welcome price monitoring until after first paint, and coalesce multiple price responses into fewer full UI repaints.
+- This v1.9.1 debug preview uses a separate installation identity. **Export/import a backup** to move user data from v1.9.0; don't delete an older app before backup.
+
+## v1.9.0 launch-time Price Watch
+
+- On launch, after welcome, check each saved public HTTPS product link asynchronously using a bounded three-worker native Android queue. One-time check does not download product photos.
+- Show compact product indicators for stable, increased, decreased, unavailable or untracked price. A liquid-glass popup lists detected differences and their old/new prices after checks finish.
+- Update **only unpurchased** prices when the retailer gives a valid, matching-currency positive price. The Summary and goal calculations recalculate automatically, while saved cash, contributions and historical purchased prices stay unchanged.
+- Very large differences (over 3x or below 25% of the previous price) are flagged for review instead of automatically applied.
+- Price checks use best-effort store metadata; stores without readable prices or matching currency are marked unavailable without overwriting the stored amount. Save per-preset last observations in backups.
+- Settings provides "Check product prices on launch" (on by default) and "Check prices now". This preview installs separately from older versions; backup/export moves personal data.
+
+## v1.8.1 month presentation, card refinement and haptic feedback
+
+- Display readable month and year such as **November - 2026** in the planner picker, history, product creation, edit form, list badges and detail panels. Persisted month values remain machine-readable `YYYY-MM` to avoid changing history or breaking JSON backups.
+- Compact Already Purchased checkbox and consistent one-line **Price (PKR)** label in the manual product editor.
+- Three matching category budget-group options with centered typography and more balanced, shorter selection cards.
+- Optional short tactile feedback for buttons, checkboxes, selection controls, page tabs/swipes and category long-press actions. **Settings → Haptic feedback** controls a persistent, device-wide preference. Android's system-level haptic settings remain authoritative.
+- This standalone 1.8.1 preview has its own install identity so earlier previews are not silently replaced; use backup export/import to move data.
+
+## v1.8 smart product creation and premium product details
+
+- Tap anywhere on a product card to open its detailed glass sheet; the old Details button and inline item notes are removed. Purchase checkbox remains separately actionable.
+- Open product listing is a real, full-width glass action button inside product details.
+- Product editing opens a separate premium glass sheet with purpose-designed upload control, image preview, clear Save/Cancel/Delete priorities and custom target month selection.
+- Add Product initially shows only link, category, priority and optional target month. Product name, price and picture are auto-detected when a store exposes them; edit details can be expanded manually at any time and automatically opens when detection fails or is incomplete.
+- Add Category now offers styled budget-group choice cards, keeping its existing budget accounting.
+- Summary has a stronger goal hero, savings/purchased cards, clearer category breakdown and reorganized backup actions. Values continue to come from the same local budgeting model.
+- Month selection uses refined curved dark glass cards. No new paid infrastructure or remote accounts.
+- Existing in-app storage model remains compatible. This preview installs with a new package identifier so earlier preview installations are not overwritten; export/import a backup to move their locally saved records.
+
+## v1.7.2 alignment, image and category management fixes
+
+- Connected edge-to-edge glass header and consistent two-column / three-column dashboard card grid, including safe clearance above the bottom dock.
+- Custom category chips have no visible trash action. Tap to filter, hold for 550 ms to open the Edit/Delete glass menu. Keyboard users can press Shift+F10. PC, Setup and Future remain protected.
+- Editing a custom category preserves its products, photos and purchases. Users can rename or change its budget group; deleting with products offers safe reassignment.
+- Product link import now tries multiple published JSON-LD, OG, Twitter and product-gallery image URLs before falling back to manual image upload. It does not bypass retailer restrictions.
+
+## v1.7 Setup Checklist · liquid-glass refinement
+
+- **New identity:** Setup Checklist label, connected PC monogram in-app and on the Android launcher. Existing production package identity and signing remain unchanged.
+- **Controlled glass surfaces:** Floating rounded top bar and bottom dock, restrained translucency and glow, curved controls/cards, glass sheets, confirmation dialogs, Settings and Feedback; Android platform file-selection UI remains system-controlled.
+- **Onboarding:** Currency and terms screens restyled dark charcoal/lime; welcome CTA and creator credit separated for breathing room.
+- **No permanent floating add button:** Product creation stays at the top of Items and inside the category/product sheets.
+- **Native month replacement:** Month/year chooser uses a dark, in-app glass popup for both the monthly planner and product target dates.
+- **Product link assistance:** Pasting a public HTTPS product link starts an optional native metadata lookup. It extracts JSON-LD/Open Graph title, price and a small product photo where the store permits; manual fields stay editable. Never assume all retailers expose the price or permit public downloads; the feature does not defeat anti-bot mechanisms.
+- **Currency safety:** A detected price in a different currency is NOT silently converted or applied.
+- **Privacy and budgets:** Saved presets and planner data stay device-local, and the importer does not use paid APIs, cookies or seller credentials. Export backups before uninstalling.
+
+## v1.6 approved design and product planning
+
+- Artistic abstract ribbon A brand mark on the welcome, header and Android launcher.
+- Charcoal/acid-lime UI with lightweight transitions, progress ring, quick add, preset tiles and focused product details.
+- Product priority (High, Medium, Low), optional target purchase month and purchased-on-create.
+- Search products by name/category/note and sort by priority from Settings.
+- Next Purchase shows the highest-priority unpurchased current-goal product, then the earliest target month; it is a suggested planning order, not a compatibility recommendation.
+- Planner Salary and Savings tabs reuse the existing local monthly data. Backup import is accessible from welcome.
+- Existing presets, categories, contribution amounts and photos retain their saved identity and values.
+
+## v1.5 planner and interface refresh
+
+- **Four sections:** Tracker, Items, Summary and a new monthly financial Planner.
+- **Fast welcome transition:** composite-only handoff, reduced blur and shorter delay.
+- **Clean item workflow:** Add Product and Add Category open focused bottom sheets. The Tracker no longer contains item filters or creation forms.
+- **Custom categories:** PC, Setup and Future remain protected; all other categories (including migrated legacy categories) may be reassigned or deleted.
+- **Flexible contribution allocation:** PC only, everything except PC, everything or a named category. Available contribution is separate from ordinary savings and prioritizes current purchases over Future.
+- **Global monthly planner:** salary, fixed and variable expenses, planned savings, actual savings and month-by-month history. The planner never automatically treats income as savings or transfers it into preset Tracker funds.
+- **Android clipboard:** native bridge for copying checklists and feedback reliably.
+
+Existing per-preset data is retained, including purchased items and original product photos. Local backups now use schema version 5 and can optionally restore the global planner. The planner uses a single currency fixed at first setup; changing a preset currency does not convert the global planner.
 
 ## Features
 

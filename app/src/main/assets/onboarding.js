@@ -24,6 +24,7 @@
     function stage(name){
         [currencyPage,termsPage,welcomePage].forEach(page=>page.hidden=page.id!==name);
         overlay.classList.add('is-visible');
+        if(name==='introCurrency')renderCurrencies();
         window.scrollTo(0,0);
     }
     function chooseCurrency(code){
@@ -99,6 +100,7 @@
             $id('menuButton').focus({preventScroll:true});
             cta.disabled=false;
             enteringApp=false;
+            window.dispatchEvent(new Event("setup-app-entered"));
         };
         const reduceMotion=window.matchMedia &&
             window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -111,9 +113,10 @@
         // avoids the sudden cut without slowing down the app.
         document.body.classList.add('app-entering');
         overlay.classList.add('is-exiting');
-        window.setTimeout(finish,650);
+        window.setTimeout(finish,260);
     };
-    renderCurrencies();
+    // Do not construct hundreds of currency buttons on every launch.
+    // Populate that list only when first-time setup actually opens.
     const state=readStatus();
     if(state && state.status==='complete'){
         if(localStorage.getItem('pc-gaming-show-welcome-v14')!=='false')stage('introWelcome');
@@ -136,15 +139,12 @@
         if(!window.AndroidStartup || typeof window.AndroidStartup.ready!=='function')return;
         const ready=()=>window.requestAnimationFrame(()=>
             window.requestAnimationFrame(()=>window.AndroidStartup.ready()));
-        if(!welcomePage.hidden && overlay.classList.contains('is-visible')) {
-            // Decode the same backdrop before fading out the native cover.
-            const image=new Image();
-            image.onload=ready;
-            image.onerror=ready;
-            image.src='welcome.jpg';
-        }else {
-            ready();
-        }
+        // The WebView must render its final branded welcome, not a half-styled
+        // intermediate frame. Cap font readiness so a missing font can't stall.
+        Promise.race([
+            document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve(),
+            new Promise(resolve=>window.setTimeout(resolve,180))
+        ]).then(ready,ready);
     }
     notifyNativeStartupReady();
 })();

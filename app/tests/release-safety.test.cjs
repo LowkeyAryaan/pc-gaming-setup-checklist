@@ -28,6 +28,8 @@ function runHydration(saved,deleted=[]){
     deletedIds:new Set(deleted),
     customCategories:[{name:'Streaming Setup',group:'setup'}],
     builtinNames:['PC','Monitor','Desk','Accessory','Chair','Future'],
+    ITEM_PRIORITIES:['high','medium','low'],
+    validTargetMonth:x=>typeof x==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(x),
     safePrice:x=>Math.max(0,Math.round((Number(x)||0)*1000)/1000),
     validUrl:x=>!x||/^https?:\/\//.test(x)
   };
