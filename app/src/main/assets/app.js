@@ -407,6 +407,7 @@ function buildEditForm(item,card,button) {
         try {
             if (photo.files.length) await savePhoto(item.id,await shrinkImage(photo.files[0]));
             else if (removeRequested) await removePhoto(item.id);
+            if(item.url!==nextUrl)delete priceWatch[item.id];
             item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;item.priority=priority.value;item.targetMonth=validTargetMonth(targetMonth.value)?targetMonth.value:'';
             persist();render();
             window.dispatchEvent(new Event('item-saved'));
