@@ -60,6 +60,7 @@
    const category=create('span','target-chip',item.cat);
    const status=create('span','purchase-status '+(checked[item.id]?'purchased':'to-buy'),checked[item.id]?'Purchased':'To buy');
    header.append(category,status);
+   if(window.PriceWatchUI)window.PriceWatchUI.updateDetails(header,item);
    const price=create('strong','detail-price',fmt(item.price));
    const specs=create('div','detail-attributes');
    const priority=create('div','detail-attribute');
