@@ -69,7 +69,7 @@ Keep the package name `com.aryaan.pcsetup.community` and the same signing key fo
 ## 5. Signing security
 
 - Never commit `.jks`, `.p12`, secrets, passwords or signing-key base64.
-- This workflow runs on **manual dispatch only**, not untrusted community pull requests.
+- This workflow runs on **trusted main branch pushes or manual dispatch from main**; it never runs with signing secrets on pull requests.
 - Review Gradle and release workflow changes before signing.
 - GitHub Actions artifacts can expire. The trusted-main workflow creates a GitHub Release containing the exact APK only after verifying its signature and package identity. If required signing secrets are missing, publication fails rather than distributing an unsigned installer.
 - These instructions cover direct APK distribution; Google Play signing has a separate process.
