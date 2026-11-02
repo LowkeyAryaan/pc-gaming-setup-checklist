@@ -12,6 +12,17 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.7 Setup Checklist · liquid-glass refinement
+
+- **New identity:** Setup Checklist label, connected PC monogram in-app and on the Android launcher. Existing production package identity and signing remain unchanged.
+- **Controlled glass surfaces:** Floating rounded top bar and bottom dock, restrained translucency and glow, curved controls/cards, glass sheets, confirmation dialogs, Settings and Feedback; Android platform file-selection UI remains system-controlled.
+- **Onboarding:** Currency and terms screens restyled dark charcoal/lime; welcome CTA and creator credit separated for breathing room.
+- **No permanent floating add button:** Product creation stays at the top of Items and inside the category/product sheets.
+- **Native month replacement:** Month/year chooser uses a dark, in-app glass popup for both the monthly planner and product target dates.
+- **Product link assistance:** Pasting a public HTTPS product link starts an optional native metadata lookup. It extracts JSON-LD/Open Graph title, price and a small product photo where the store permits; manual fields stay editable. Never assume all retailers expose the price or permit public downloads; the feature does not defeat anti-bot mechanisms.
+- **Currency safety:** A detected price in a different currency is NOT silently converted or applied.
+- **Privacy and budgets:** Saved presets and planner data stay device-local, and the importer does not use paid APIs, cookies or seller credentials. Export backups before uninstalling.
+
 ## v1.6 approved design and product planning
 
 - Artistic abstract ribbon A brand mark on the welcome, header and Android launcher.
