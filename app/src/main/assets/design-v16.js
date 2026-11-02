@@ -63,7 +63,7 @@
    if(window.PriceWatchUI)window.PriceWatchUI.updateDetails(header,item);
    const watchEntry=window.PriceWatchUI?window.PriceWatchUI.getEntry(item.id):null;
    const watchReason=watchEntry&&watchEntry.url===item.url&&
-       watchEntry.status==='unavailable'&&watchEntry.reason?
+       ['unavailable','variant'].includes(watchEntry.status)&&watchEntry.reason?
        create('p','price-watch-reason','Price check: '+watchEntry.reason):null;
    const price=create('strong','detail-price',fmt(item.price));
    const specs=create('div','detail-attributes');
