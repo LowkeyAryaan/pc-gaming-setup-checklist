@@ -4,7 +4,7 @@ A free, offline-first Android checklist and savings tracker for building a custo
 
 **Made by Aryaan** · [@aryaan_creates on Instagram](https://www.instagram.com/aryaan_creates/)
 
-## Downloa## Download for Android
+## Download for Android
 
 **[Setup Checklist v2.0.0 — official signed APK](https://github.com/LowkeyAryaan/pc-gaming-setup-checklist/releases/download/v2.0.0/PC-Gaming-Setup-Checklist-v2.0.0-signed.apk)**
 
@@ -20,7 +20,7 @@ The permanent public app package is `com.aryaan.pcsetup.community`. Preview buil
 - Signed release uses a stable community package ID and secured GitHub Actions key; no signing material is committed.
 - See [v2.0.0 release notes](docs/RELEASE_NOTES_v2.0.0.md) for installation and migration requirements.
 
-actionable price ranges and per-listing retries
+## v1.9.4 actionable price ranges and per-listing retries
 
 - Tap **Choose variant** directly on a product card or in Product details to open a premium price selection dialog. Pick either advertised lower/upper amount or enter the exact selected configuration price. Retailers do not always provide variant names; the app does **not** guess which variant matches each amount.
 - Confirming the selection updates the unpurchased item cost and Tracker/Price Impact/Summary, without changing saved cash, purchased history or contributions.
