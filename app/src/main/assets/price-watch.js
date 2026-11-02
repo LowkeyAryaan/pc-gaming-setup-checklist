@@ -48,6 +48,57 @@
    target.append(tag);
    return tag;
  }
+ // Price impact is calculated with the same contribution-allocation model as
+ // the Tracker and Summary, not as a separate savings balance.
+ // Baselines are captured before the first VERIFIED automatic price update.
+ function impactStats(actual){
+   const tracked=items.filter(item=>!checked[item.id]&&
+     categoryGroup(item.cat)!=='future');
+   let increases=0,decreases=0,unavailable=0,verified=0;
+   const original=items.map(item=>{
+     if(checked[item.id]||categoryGroup(item.cat)==='future')return item;
+     const entry=priceWatch[item.id];
+     const baseline=entry&&entry.url===item.url&&
+       Number.isFinite(Number(entry.baseline))&&Number(entry.baseline)>0?
+       Number(entry.baseline):Number(item.price);
+     const diff=Number(item.price)-baseline;
+     if(diff>0.005)increases++;
+     if(diff<-.005)decreases++;
+     if(item.url){
+       if(entry&&entry.url===item.url&&
+          ['stable','increased','decreased','review'].includes(entry.status))
+         verified++;
+       else unavailable++;
+     }
+     return {...item,price:baseline};
+   });
+   const before=BudgetModel.compute(original,checked,categoryGroup,contributed,
+       contributionScope,contributionCategory).currentGoal;
+   return {before,after:actual.currentGoal,net:actual.currentGoal-before,
+     increases,decreases,verified,unavailable,eligible:tracked.length};
+ }
+ function renderTrackerImpact(actual){
+   const panel=el('priceImpactPanel');
+   if(!panel)return;
+   const stat=impactStats(actual||totals());
+   el('priceImpactCurrent').textContent=money(stat.after);
+   el('priceImpactBaseline').textContent=money(stat.before);
+   const impact=el('priceImpactNet');
+   impact.textContent=(stat.net>0.005?'+':stat.net<-.005?'−':'')+
+     money(Math.abs(stat.net));
+   impact.className=stat.net>0.005?'price-impact-increased':
+     stat.net<-.005?'price-impact-decreased':'price-impact-neutral';
+   el('priceImpactCounts').textContent=
+     stat.increases+' increased · '+stat.decreases+' decreased';
+   const watchText=!enabled?'Monitoring off':
+     currentRun?'Checking prices…':
+     stat.verified?'Latest verified prices':'No verified prices yet';
+   el('priceImpactState').textContent=watchText;
+   el('priceImpactCoverage').textContent=
+     stat.verified+' verified'+(stat.unavailable?
+       ' · '+stat.unavailable+' not verified':'');
+   panel.dataset.impact=stat.net>0.005?'up':stat.net<-.005?'down':'neutral';
+ }
  function cancel(){
    // Responses from other presets / earlier runs are ignored.
    if(currentRun&&currentRun.timer)clearTimeout(currentRun.timer);
@@ -118,7 +169,7 @@
        priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
    }
    const jobs=linked.filter(item=>/^https:\/\/[^ \t\n]+$/i.test(item.url));
-   if(!jobs.length){persist();refresh();return;}
+   if(!jobs.length){persist();refresh();renderTrackerImpact(totals());return;}
    if(!window.AndroidPriceWatch||typeof window.AndroidPriceWatch.checkBatch!=='function'){
      // Browser previews have no Android networking bridge.
      for(const item of jobs){
@@ -177,6 +228,9 @@
    const observed=Number(data&&data.price);
    const currency=String(data&&data.currency||'').toUpperCase();
    const historical=priceWatch[id];
+   const originalBaseline=historical&&historical.url===item.url&&
+       Number.isFinite(Number(historical.baseline))&&Number(historical.baseline)>0?
+       Number(historical.baseline):Number(item.price);
    const previous=historical&&historical.url===item.url&&validMoney(Number(historical.observed))?
      Number(historical.observed):Number(item.price);
    const stamp=today();
@@ -184,7 +238,7 @@
    if(!valid){
      run.failed++;
      priceWatch[id]={
-       status:'unavailable',url:item.url,checkedAt:stamp,
+       status:'unavailable',url:item.url,checkedAt:stamp,baseline:originalBaseline,
        observed:historical&&historical.url===item.url&&validMoney(Number(historical.observed))?Number(historical.observed):null
      };
    }else{
@@ -200,7 +254,7 @@
      const suspicious=storedPrice>0&&(observed/storedPrice>3||observed/storedPrice<.25);
      if(suspicious)kind='review';
      priceWatch[id]={
-       status:kind,url:item.url,checkedAt:stamp,observed,
+       status:kind,url:item.url,checkedAt:stamp,observed,baseline:originalBaseline,
        previous,sourceCurrency:currency
      };
      if(kind==='increased'||kind==='decreased'||kind==='review'){
@@ -226,9 +280,11 @@
      enabled=!!value;
      try{localStorage.setItem(PREF,enabled?'on':'off');}catch(_){}
      if(!enabled)cancel();
+     renderTrackerImpact(totals());
      refresh();
    },
    getEntry:id=>priceWatch[id]||null,
+   renderTrackerImpact,
    updateDetails:(target,item)=>appendIndicator(target,item)
  };
  // The welcome button fires only once the animation is completed. No modal
@@ -245,5 +301,6 @@
    // First frame first; network work and initial badges follow after paint.
    setTimeout(checkNow,500);
  }
+ renderTrackerImpact(totals());
  // No launch-time full render here: app.js owns initial DOM creation.
 })();
