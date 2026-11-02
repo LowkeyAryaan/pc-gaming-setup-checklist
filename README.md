@@ -12,6 +12,15 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.9.0 launch-time Price Watch
+
+- On launch, after welcome, check each saved public HTTPS product link asynchronously using a bounded three-worker native Android queue. One-time check does not download product photos.
+- Show compact product indicators for stable, increased, decreased, unavailable or untracked price. A liquid-glass popup lists detected differences and their old/new prices after checks finish.
+- Update **only unpurchased** prices when the retailer gives a valid, matching-currency positive price. The Summary and goal calculations recalculate automatically, while saved cash, contributions and historical purchased prices stay unchanged.
+- Very large differences (over 3x or below 25% of the previous price) are flagged for review instead of automatically applied.
+- Price checks use best-effort store metadata; stores without readable prices or matching currency are marked unavailable without overwriting the stored amount. Save per-preset last observations in backups.
+- Settings provides "Check product prices on launch" (on by default) and "Check prices now". This preview installs separately from older versions; backup/export moves personal data.
+
 ## v1.8.1 month presentation, card refinement and haptic feedback
 
 - Display readable month and year such as **November - 2026** in the planner picker, history, product creation, edit form, list badges and detail panels. Persisted month values remain machine-readable `YYYY-MM` to avoid changing history or breaking JSON backups.
