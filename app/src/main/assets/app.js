@@ -489,7 +489,7 @@ function render() {
         if(item.targetMonth){
             const date=document.createElement('span');date.className='target-chip';
             const today=new Date(),key=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
-            date.textContent=item.targetMonth===key?'This month':item.targetMonth;meta.append(date);
+            date.textContent=window.formatSetupMonth?window.formatSetupMonth(item.targetMonth):item.targetMonth;meta.append(date);
         }
         const state=document.createElement('span');
         state.className='purchase-status'+(purchased?' purchased':' to-buy');
