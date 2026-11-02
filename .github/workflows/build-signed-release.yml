@@ -1,6 +1,6 @@
 name: Build signed community release APK
 
-# Manual-only: never expose signing secrets to pull-request builds.
+# Trusted-main only: never expose signing secrets to pull-request builds.
 on:
   workflow_dispatch:
   push:
