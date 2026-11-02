@@ -106,7 +106,7 @@ test('Setup Checklist rebrand and restrained glass design are connected',()=>{
  assert.match(glass,/\.intro-stage:not\(\.welcome\)/);
  assert.match(controls,/month-glass-sheet/);
  assert.match(controls,/window\.ProductLinkImport/);
- assert.match(gradle,/versionName '1\.7\.2'/);
+ assert.match(gradle,/versionName '1\.8\.0'/);
 });
 test('Product metadata lookup is bounded and keeps manual product control',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
