@@ -6,7 +6,7 @@
  const el=id=>document.getElementById(id);
  let enabled=true;
  try{enabled=localStorage.getItem(PREF)!=='off';}catch(_){}
- let currentRun=null,serial=0,bootStarted=false;
+ let currentRun=null,serial=0,bootStarted=false,lastStart=0;
  const money=n=>fmt(Number(n)||0);
  const today=()=>new Date().toISOString();
  const validMoney=n=>typeof n==='number'&&Number.isFinite(n)&&n>0&&n<1e11;
@@ -97,6 +97,7 @@
  }
  function checkNow(options={}){
    if(!enabled&&!options.force)return;
+   lastStart=Date.now();
    cancel();
    const linked=items.filter(item=>typeof item.url==='string'&&item.url.trim());
    for(const item of linked){
@@ -104,13 +105,13 @@
        priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
    }
    const jobs=linked.filter(item=>/^https:\/\/[^ \t\n]+$/i.test(item.url));
-   if(!jobs.length)return;
+   if(!jobs.length){persist();refresh();return;}
    if(!window.AndroidPriceWatch||typeof window.AndroidPriceWatch.checkBatch!=='function'){
      // Browser previews have no Android networking bridge.
      for(const item of jobs){
        priceWatch[item.id]={status:'unavailable',checkedAt:today()};
      }
-     refresh();return;
+     persist();refresh();return;
    }
    const token='pw'+Date.now()+'_'+(++serial);
    const run={token,preset:activePresetId,expected:jobs.length,seen:new Set(),changes:[],failed:0,silent:!!options.silentIfUnchanged};
@@ -203,6 +204,11 @@
  // The welcome button fires only once the animation is completed. No modal
  // appears over onboarding or the welcome page.
  window.addEventListener('setup-app-entered',()=>{if(!bootStarted){bootStarted=true;checkNow();}});
+ window.addEventListener('setup-app-resumed',()=>{
+   const overlay=el('introOverlay');
+   if(overlay&&overlay.classList.contains('is-visible'))return;
+   if(bootStarted&&Date.now()-lastStart>120000)checkNow();
+ });
  const overlay=el('introOverlay');
  if(!overlay||!overlay.classList.contains('is-visible')){
    bootStarted=true;setTimeout(checkNow,100);
