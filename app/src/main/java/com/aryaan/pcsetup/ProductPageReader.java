@@ -40,7 +40,7 @@ final class ProductPageReader {
             URL requested=secureUrl(input);
             byte[] bytes=download(requested,HTML_LIMIT,"text/html");
             String html=new String(bytes,StandardCharsets.UTF_8);
-            URL current=lastPageUrl!=null?lastPageUrl:requested;
+            URL current=requested;
             JSONObject product=findStructuredProduct(html);
             JSONObject offers=product!=null?asObject(product.opt("offers")):null;
             if(offers==null&&product!=null){
@@ -86,11 +86,9 @@ final class ProductPageReader {
                 result.put("message","Could not access this product page. Enter details manually.");
             }catch(JSONException ignored){}
             return result;
-        }finally{lastPageUrl=null;}
+        }
     }
 
-    // Called only from a single worker; request state cannot leak across requests.
-    private static URL lastPageUrl;
     private static byte[] download(URL initial,int limit,String expectedType) throws Exception {
         URL url=initial;
         for(int hop=0;hop<4;hop++){
@@ -125,7 +123,6 @@ final class ProductPageReader {
                         if(output.size()+n>limit)throw new Exception("Size limit exceeded");
                         output.write(buffer,0,n);
                     }
-                    if(expectedType.equals("text/html"))lastPageUrl=url;
                     return output.toByteArray();
                 }
             }finally{connection.disconnect();}
@@ -135,7 +132,7 @@ final class ProductPageReader {
     private static URL secureUrl(String raw) throws Exception {
         if(raw==null||raw.length()>2048)throw new Exception("Invalid URL");
         URL url=new URL(raw);
-        if(!"https".equalsIgnoreCase(url.getProtocol())||url.getUserInfo()!=null)
+        if(!"https".equalsIgnoreCase(url.getProtocol())||url.toURI().getUserInfo()!=null)
             throw new Exception("Only secure public links allowed");
         String host=url.getHost().toLowerCase(Locale.US);
         if(!host.matches("[a-z0-9.-]+")||host.equals("localhost")||
