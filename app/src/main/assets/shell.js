@@ -260,7 +260,7 @@
             renderFilters();render();persist();closeModal();
         }
         if(!affected.length){
-            if(confirm('Delete empty custom category "'+name+'"?'))finalize();
+            window.glassConfirm('Delete empty custom category "'+name+'"?').then(ok=>{if(ok)finalize();});
             return;
         }
         const container=document.createElement('div');
@@ -290,7 +290,7 @@
                     if(!target.value)return alert('Select a destination category.');
                     affected.forEach(i=>i.cat=target.value);
                 } else {
-                    if(!confirm('Permanently delete all '+affected.length+' products in "'+name+'"?'))return;
+                    if(!await window.glassConfirm('Permanently delete all '+affected.length+' products in "'+name+'"?'))return;
                     for(const item of affected)await removeItem(item.id);
                 }
                 finalize();
@@ -307,9 +307,9 @@
 
     el('termsButton').onclick=()=>openModal('Terms & Conditions',el('introTermsCopy').innerHTML,[{label:'Close',primary:true,onClick:closeModal}]);
     el('aboutButton').onclick=()=>openModal('About',
-        '<p><strong>My PC & Gaming Setup Checklist · v1.4.2</strong></p>'+
+        '<p><strong>Setup Checklist · v1.7</strong></p>'+
         '<p>Create separate setup presets, organize PC products, save photos, track unpurchased items, and watch your remaining savings goal decrease when items are marked purchased.</p>'+
-        '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p><p>Welcome background photo sourced from Unsplash.</p>',
+        '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p>',
         [{label:'Close',primary:true,onClick:closeModal}]);
     function openCurrencyPicker(){
         const wrapper=document.createElement('div');
@@ -326,9 +326,9 @@
                 const b=document.createElement('button');b.type='button';b.className='currency-option';
                 b.textContent=code+' — '+currencyName(code)+(code===currentCurrency?' ✓':'');
                 if(code===currentCurrency)b.classList.add('currency-selected');
-                b.onclick=()=>{
+                b.onclick=async()=>{
                     if(code===currentCurrency){closeModal();return;}
-                    if(!confirm('Change this preset from '+currentCurrency+' to '+code+'? Existing prices and savings numbers will NOT be converted. You must edit them manually.'))return;
+                    if(!await window.glassConfirm('Change this preset from '+currentCurrency+' to '+code+'? Existing prices and savings numbers will NOT be converted. You must edit them manually.'))return;
                     setPresetCurrency(code);closeModal();displayName();
                 };
                 list.append(b);
@@ -549,8 +549,8 @@
                     }),
                     commentButton('Copy',()=>copyText(message(entry))),
                     commentButton('Email Aryaan',()=>emailAryaan(message(entry))),
-                    commentButton('Delete',()=>{
-                        if(!confirm('Delete this saved feedback comment from the app?'))return;
+                    commentButton('Delete',async()=>{
+                        if(!await window.glassConfirm('Delete this saved feedback comment from the app?'))return;
                         try {
                             store.remove(entry.id);
                             if(editingId===entry.id)clearDraft();
