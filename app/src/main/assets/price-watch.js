@@ -246,7 +246,17 @@
    const stamp=today();
    const isVariant=!!data&&(data.priceKind==='range'||data.priceKind==='starting-at');
    const valid=data&&data.ok&&!isVariant&&validMoney(observed)&&currency===currentCurrency;
-   if(!valid){
+   if(isVariant){
+     run.failed++;
+     const low=Number(data.lowPrice),high=Number(data.highPrice);
+     const amount=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
+     const range=Number.isFinite(low)&&low>0?(currency?currency+' ':'')+amount(low)+
+       (data.priceKind==='range'&&Number.isFinite(high)&&high>low?' – '+amount(high):'+'):'multiple variant prices';
+     priceWatch[id]={...unavailableRecord(item,'Store lists '+range+'. Confirm your selected variant price in Edit product.'),
+       status:'variant',baseline:originalBaseline,checkedAt:stamp,
+       lowPrice:Number.isFinite(low)&&low>0?low:null,
+       highPrice:Number.isFinite(high)&&high>low?high:null};
+   }else if(!valid){
      run.failed++;
      const reason=!data||!data.ok?
        String(data&&data.message||'Store page could not be read.'):
