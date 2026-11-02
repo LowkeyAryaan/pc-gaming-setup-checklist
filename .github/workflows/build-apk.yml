@@ -41,6 +41,7 @@ jobs:
           node --check app/src/main/assets/design-v16.js
           node --check app/src/main/assets/glass-v17.js
           node --check app/src/main/assets/haptics.js
+          node --check app/src/main/assets/price-watch.js
           node --check app/src/main/assets/app.js
           node --check app/src/main/assets/shell.js
           node --check app/src/main/assets/feedback-store.js
