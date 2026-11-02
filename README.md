@@ -12,6 +12,15 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.9.2 Price Impact on Tracker and stronger retailer detection
+
+- A glass **Price Impact** panel on Tracker shows **updated remaining setup goal**, **before tracked changes**, **net increase/decrease**, and counts of price increases/decreases.
+- Uses the same `BudgetModel.compute` allocation and contribution scope as the existing Tracker/financial Summary, not a second wallet. Future products and previously purchased products do not alter the remaining goal.
+- The first verified price check captures a baseline before automatic updates. The baseline persists in each preset's saved Price Watch records and JSON backups. Later failed store checks do not erase that history; manually changing a product price or its URL starts a fresh baseline.
+- Price detection supports additional explicit retailer currency and metadata formats, and targeted WooCommerce product-price markup.
+- Stores that block fetches, omit prices, or omit currency remain **Unavailable**, never falsely Stable; the badge exposes the reason when available and existing saved prices remain safe.
+- Separate version 1.9.2 preview install, leaving older preview data untouched. Export/import backup to migrate.
+
 ## v1.9.1 smooth launch and faster welcome handoff
 
 - Dark native Android activity theme and Android 12+ splash background prevent the transient white screen observed in the launch recording.
