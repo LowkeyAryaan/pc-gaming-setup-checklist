@@ -645,6 +645,8 @@ $('addProductForm').onsubmit=async e=>{
     $('addMessage').textContent='Adding product...';
     try {
         if($('newPhoto').files.length) await savePhoto(id,await shrinkImage($('newPhoto').files[0]));
+        else if(window.ProductLinkImport&&window.ProductLinkImport.photoFor(url))
+            await savePhoto(id,window.ProductLinkImport.photoFor(url));
         items.push({id,name:name.slice(0,180),price:safePrice(price),url,cat,q:name.slice(0,180),
             priority:ITEM_PRIORITIES.includes($('newPriority').value)?$('newPriority').value:'medium',
             targetMonth:validTargetMonth($('newTargetMonth').value)?$('newTargetMonth').value:''});
