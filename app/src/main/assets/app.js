@@ -415,7 +415,7 @@ function buildEditForm(item,card,button) {
         try {
             if (photo.files.length) await savePhoto(item.id,await shrinkImage(photo.files[0]));
             else if (removeRequested) await removePhoto(item.id);
-            if(item.url!==nextUrl)delete priceWatch[item.id];
+            if(item.url!==nextUrl||safePrice(item.price)!==safePrice(price.value))delete priceWatch[item.id];
             item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;item.priority=priority.value;item.targetMonth=validTargetMonth(targetMonth.value)?targetMonth.value:'';
             persist();render();
             window.dispatchEvent(new Event('item-saved'));
@@ -549,6 +549,7 @@ function renderStats() {
     if($('newPriceCurrency'))$('newPriceCurrency').textContent=currentCurrency;
     if($('contributedCurrency'))$('contributedCurrency').textContent=currentCurrency;
     const t=totals();
+    if(window.PriceWatchUI)window.PriceWatchUI.renderTrackerImpact(t);
     $('pcTotal').textContent=fmt(t.rows.filter(r=>r.group==='pc').reduce((x,r)=>x+r.total,0));$('dadContribution').textContent=fmt(t.contributed);
     const list=$('dynamicCategoryTotals');
     if(list){
