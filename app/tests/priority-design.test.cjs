@@ -106,7 +106,7 @@ test('Setup Checklist rebrand and restrained glass design are connected',()=>{
  assert.match(glass,/\.intro-stage:not\(\.welcome\)/);
  assert.match(controls,/month-glass-sheet/);
  assert.match(controls,/window\.ProductLinkImport/);
- assert.match(gradle,/versionName '1\.7\.1'/);
+ assert.match(gradle,/versionName '1\.7\.2'/);
 });
 test('Product metadata lookup is bounded and keeps manual product control',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
@@ -134,4 +134,36 @@ test('Dashboard panels share a stable grid and header connects edge to edge',()=
  assert.match(css,/padding-bottom:calc\(var\(--app-tabs-h,84px\) \+ 55px\)/);
  assert.match(css,/\.dashboard-count\{display:inline-flex!important;align-items:center;gap:5px/);
  assert.doesNotMatch(css,/@media\(max-width:360px\)\{[^}]*\.app-topbar\{margin:8px/);
+});
+
+test('Category management uses press-and-hold with safe editing and no visible trash',()=>{
+ const shell=read('shell.js');
+ const css=read('glass-v17.css');
+ assert.match(shell,/const CATEGORY_HOLD_MS=550/);
+ assert.match(shell,/function attachCategoryLongPress\(button,name\)/);
+ assert.match(shell,/addEventListener\('pointerdown'/);
+ assert.match(shell,/addEventListener\('pointermove'/);
+ assert.match(shell,/addEventListener\('pointercancel'/);
+ assert.match(shell,/addEventListener\('contextmenu'/);
+ assert.match(shell,/function categoryActionMenu\(name\)/);
+ assert.match(shell,/function editCategory\(name\)/);
+ assert.match(shell,/function deleteCategory\(name\)/);
+ assert.match(shell,/if\(shouldSuppress\(\)\)return/);
+ assert.doesNotMatch(shell,/remove\.className='category-delete'/);
+ assert.match(shell,/for\(const item of items\)\{if\(item\.cat===oldName\)item\.cat=updated;\}/);
+ assert.match(css,/#categoryManagement \.category-delete\{display:none!important\}/);
+});
+test('Image metadata fetch retries alternate gallery sources while respecting size limits',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
+ const importer=read('glass-v17.js');
+ assert.match(source,/IMAGE_LIMIT = 4_000_000/);
+ assert.match(source,/LinkedHashSet<String> candidates=imageCandidates/);
+ assert.match(source,/og:image:secure_url/);
+ assert.match(source,/data-large_image/);
+ assert.match(source,/data-lazy-src/);
+ assert.match(source,/downloadImage\(imageUrl,current\)/);
+ assert.match(source,/imageMessage/);
+ assert.match(source,/if\(attempts\+\+>=8\)break/);
+ assert.match(importer,/data\.imageMessage/);
+ assert.match(importer,/Choose a photo manually|upload one manually/i);
 });
