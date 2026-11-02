@@ -60,16 +60,17 @@ test('Design introduces actual actions and prioritization inputs',()=>{
  assert.match(premium,/checked\[item\.id\]=!checked\[item\.id\]/);
  assert.match(read('premium-v15.js'),/openProductSheet/);
 });
-test('Art mark is valid SVG and launcher icon is vector resource',()=>{
- const logo=read('brand-mark.svg');
- const android=fs.readFileSync(path.join(__dirname,'../src/main/res/drawable/ic_launcher_art.xml'),'utf8');
+test('Approved uploaded art is the installed icon and native launcher resource',()=>{
+ const icon=fs.readFileSync(path.join(__dirname,'../src/main/res/drawable-nodpi/brand_icon.webp'));
+ const web=fs.readFileSync(path.join(__dirname,'../src/main/assets/brand-icon.webp'));
+ const wordmark=fs.readFileSync(path.join(__dirname,'../src/main/assets/brand-wordmark.webp'));
  const manifest=fs.readFileSync(path.join(__dirname,'../src/main/AndroidManifest.xml'),'utf8');
- assert.match(logo,/<svg/);assert.match(logo,/<\/svg>/);
- assert.match(android,/<vector/);assert.match(android,/<\/vector>/);
- assert.match(manifest,/android:icon="@drawable\/ic_launcher_art"/);
+ assert.equal(icon.subarray(8,12).toString('ascii'),'WEBP');
+ assert.deepEqual(icon,web);
+ assert.equal(wordmark.subarray(8,12).toString('ascii'),'WEBP');
+ assert.match(manifest,/android:icon="@drawable\/brand_icon"/);
  assert.match(styles,/\.intro-stage\.welcome/);
 });
-
 test('Functional icons use semantic SVG symbols without repeated brand logo stamps',()=>{
  const symbols=[...html.matchAll(/<symbol id="ui-([a-z]+)"/g)].map(match=>match[1]);
  assert.ok(symbols.includes('wallet'));
@@ -85,8 +86,8 @@ test('Functional icons use semantic SVG symbols without repeated brand logo stam
  assert.match(html,/id="plannerSalary"/);
  assert.match(html,/id="goalLabel"/);
  assert.doesNotMatch(html,/<img src="brand-mark\.svg" class="goal-mark"/);
- assert.equal((html.match(/src="brand-mark\.svg"/g)||[]).length,2,
-   'Brand logo should only appear on welcome and in app identity');
+ assert.equal((html.match(/src="brand-icon\.webp"/g)||[]).length,1);
+ assert.equal((html.match(/src="brand-wordmark\.webp"/g)||[]).length,2);
  assert.doesNotMatch(html,/class="welcome-dots"/);
  assert.match(styles,/\.panel-icon svg/);
 });
