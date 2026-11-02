@@ -185,3 +185,11 @@ input[type=month],input[data-month-picker]{cursor:pointer}
 .month-glass-actions button.primary{background:var(--acid);color:#111809;border-color:var(--acid);font-weight:740}
 @media(max-width:360px){.bottom-tabs{left:8px!important;right:8px!important}.app-topbar{margin:8px!important;width:calc(100% - 16px)!important}}
 @media(prefers-reduced-motion:reduce){.app-topbar,.bottom-tabs,.month-glass-panel{transition:none!important;animation:none!important}}
+
+.glass-dialog-shade{position:fixed;inset:0;z-index:240;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.78);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.glass-dialog-card{width:min(100%,430px);border-radius:31px;padding:25px 22px;background:linear-gradient(150deg,rgba(53,67,52,.98),rgba(19,26,20,.98));border:1px solid var(--glass-bright);box-shadow:0 18px 48px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.1)}
+.glass-dialog-card h2{font-size:1.25rem;letter-spacing:-.045em;margin:0 0 13px}
+.glass-dialog-card p{font-size:.93rem;line-height:1.58;color:#bfceba;margin:0 0 24px;overflow-wrap:anywhere;white-space:pre-line}
+.glass-dialog-actions{display:flex;justify-content:flex-end;gap:11px}
+.glass-dialog-actions button{flex:1;min-height:49px;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:17px;font-weight:700}
+.glass-dialog-actions .primary{background:var(--acid);color:#101809;border-color:#d7ff98}
