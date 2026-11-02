@@ -38,7 +38,7 @@ test('Price Watch never changes an existing budget after receiving a range-only 
  assert.match(watch,/const isVariant=!!data&&\(data\.priceKind==='range'\|\|data\.priceKind==='starting-at'\)/);
  assert.match(watch,/const valid=data&&data\.ok&&!isVariant&&validMoney\(observed\)/);
  assert.match(watch,/if\(isVariant\)/);
- assert.match(watch,/status:'variant',baseline:originalBaseline/);
+ assert.match(watch,/status:selected!==null\?'variant-selected':'variant',baseline:originalBaseline/);
  assert.match(watch,/if\(!checked\[id\]&&!suspicious\)\{/);
  assert.match(watch,/item\.price=safePrice\(observed\)/);
  assert.match(watch,/variant:'! Choose variant'/);
