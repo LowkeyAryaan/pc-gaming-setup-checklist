@@ -34,12 +34,12 @@
  function appendIndicator(target,item){
    const entry=entryFor(item);
    const tag=document.createElement('span');
-   const allowed=['stable','increased','decreased','unavailable','review','checking','off','no-link','not-checked'];
+   const allowed=['stable','increased','decreased','unavailable','variant','review','checking','off','no-link','not-checked'];
    const kind=allowed.includes(entry.status)?entry.status:'not-checked';
    tag.className='price-watch-chip watch-'+kind;
    const labels={
      stable:'✓ Stable',increased:'↑ Increased',decreased:'↓ Decreased',
-     unavailable:'? Unavailable',review:'! Review price',checking:'◌ Checking',
+     unavailable:'? Unavailable',variant:'! Choose variant',review:'! Review price',checking:'◌ Checking',
      off:'Price watch off','no-link':'No link','not-checked':'Not checked'
    };
    tag.textContent=labels[kind];
