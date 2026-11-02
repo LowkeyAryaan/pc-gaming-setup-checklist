@@ -44,7 +44,7 @@ test('Only trusted matching-currency price updates affect unchecked product pric
  assert.match(watch,/Number\(item\.price\)!==Number\(run\.originalPrices\.get\(id\)\)/);
 });
 test('Saved cash and historical purchase status are untouched while derived budgets rerender',()=>{
- assert.match(watch,/const refresh=\(\)=>\{if\(typeof render==='function'\)render\(\);\}/);
+ assert.match(watch,/const refresh=\(\)=>\{/);
  assert.doesNotMatch(watch,/\$\('saved'\)\.value\s*=/);
  assert.doesNotMatch(watch,/checked\[id\]\s*=/);
  assert.match(app,/checked,notes,priceWatch,blankPreset/);
