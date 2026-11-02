@@ -384,7 +384,11 @@ function buildEditForm(item,card,button) {
     form.querySelector('.removePhoto').onclick=()=>{
         removeRequested=true;photo.value='';previewLabel.textContent='▧';uploadState.textContent='Picture will be removed when you save.';
     };
-    form.querySelector('.cancelEdit').onclick=()=>{form.remove();card.classList.remove('is-editing');button.textContent='Edit product';};
+    form.querySelector('.cancelEdit').onclick=()=>{
+        form.remove();card.classList.remove('is-editing');button.textContent='Edit product';
+        if(typeof window.openItemDetails==='function')window.openItemDetails(item.id);
+        else if(typeof window.closePremiumSheet==='function')window.closePremiumSheet();
+    };
     form.querySelector('.deleteItem').onclick=async()=>{
         if(!await window.glassConfirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
         try{await removeItem(item.id);persist();render();window.dispatchEvent(new Event('item-saved'));}
