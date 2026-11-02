@@ -2,24 +2,41 @@
 .app-identity,.app-identity .header-brand{min-width:0!important;max-width:100%!important}
 .app-identity .header-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;overflow:hidden!important}
 .app-identity .header-brand-wordmark{
- display:block!important;width:min(100%,265px)!important;height:auto!important;
- max-height:40px!important;object-fit:contain!important;object-position:left center!important;
+ display:block!important;width:min(100%,205px)!important;height:auto!important;
+ max-height:28px!important;object-fit:contain!important;object-position:left center!important;
  flex:0 1 auto!important
 }
 .intro-stage.welcome .welcome-brand{
  display:flex!important;flex-direction:column!important;align-items:center!important;
- justify-content:center!important;gap:19px!important;width:100%!important;
- margin:clamp(8px,3.5dvh,40px) 0 30px!important;min-width:0
+ justify-content:center!important;gap:26px!important;width:100%!important;
+ margin:0 0 28px!important;min-width:0
 }
 .intro-stage.welcome .brand-hero-mark{
- display:block!important;width:clamp(112px,34vw,150px)!important;
+ display:block!important;width:clamp(100px,28vw,124px)!important;
  height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;filter:none!important
 }
 .intro-stage.welcome .welcome-brand-wordmark{
- display:block!important;width:min(100%,360px)!important;max-width:100%!important;
- height:auto!important;max-height:60px!important;object-fit:contain!important
+ display:block!important;width:min(100%,310px)!important;max-width:100%!important;
+ height:auto!important;max-height:44px!important;object-fit:contain!important
 }
 @media(max-width:370px){
- .app-identity .header-brand-wordmark{max-height:34px!important}
- .intro-stage.welcome .welcome-brand{gap:15px!important}
+ .app-identity .header-brand-wordmark{max-height:25px!important}
+ .intro-stage.welcome .welcome-brand{gap:22px!important}
+}
+/* Welcome-only spacing; leave all other screens and theme tokens intact. */
+.intro-stage.welcome .welcome-copy{
+ padding:clamp(58px,9dvh,100px) 28px calc(28px + env(safe-area-inset-bottom,0px))!important;
+ gap:0!important
+}
+.intro-stage.welcome h1{margin:14px 0 20px!important}
+.intro-stage.welcome .welcome-copy>p{margin:0 0 32px!important}
+.intro-stage.welcome .intro-cta{margin-bottom:14px!important;flex-shrink:0}
+.intro-stage.welcome .welcome-backup{flex-shrink:0}
+.intro-stage.welcome .welcome-mark{padding-top:36px!important}
+@media(max-height:700px){
+ .intro-stage.welcome .welcome-copy{padding-top:40px!important}
+ .intro-stage.welcome .brand-hero-mark{width:96px!important}
+ .intro-stage.welcome .welcome-brand{gap:20px!important;margin-bottom:18px!important}
+ .intro-stage.welcome .welcome-copy>p{margin-bottom:24px!important}
+ .intro-stage.welcome .welcome-mark{padding-top:28px!important}
 }
