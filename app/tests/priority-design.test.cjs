@@ -38,7 +38,7 @@ test('All product metadata participates in persistence, backups and copy of a pr
  assert.match(js,/targetMonth:validTargetMonth\(raw\.targetMonth\)/);
  assert.match(js,/items\.push\(\{id,name/);
  assert.match(js,/if\(\$\('newPurchased'\)\.checked\)checked\[id\]=true/);
- assert.match(js,/items,checked,notes,categories:customCategories/);
+ assert.match(js,/items,checked,notes,priceWatch,categories:customCategories/);
 });
 test('Search and priority sorting use saved item fields',()=>{
  assert.match(js,/sortOrder==='priority'/);
@@ -157,7 +157,7 @@ test('Image metadata fetch retries alternate gallery sources while respecting si
  const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
  const importer=read('glass-v17.js');
  assert.match(source,/IMAGE_LIMIT = 4_000_000/);
- assert.match(source,/LinkedHashSet<String> candidates=imageCandidates/);
+ assert.match(source,/LinkedHashSet<String> candidates=includeImage\?/);
  assert.match(source,/og:image:secure_url/);
  assert.match(source,/data-large_image/);
  assert.match(source,/data-lazy-src/);
