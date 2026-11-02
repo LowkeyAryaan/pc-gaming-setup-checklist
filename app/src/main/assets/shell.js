@@ -226,6 +226,7 @@
     function categoryActionMenu(name) {
         const category=customCategories.find(c=>c.name===name);
         if(!category)return;
+        if(window.SetupHaptics)window.SetupHaptics.pulse('long');
         const content=document.createElement('div');
         content.className='category-manage-menu';
         const description=document.createElement('p');
