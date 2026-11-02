@@ -131,6 +131,24 @@ public class MainActivity extends Activity {
             new LinearLayout.LayoutParams(dp(94), dp(94));
         logoParams.gravity = Gravity.CENTER_HORIZONTAL;
         content.addView(logo, logoParams);
+        // A small, locally bundled wordmark matches the exact approved
+        // artwork. Fallback text is kept if an asset decoder fails.
+        boolean wordmarkAdded=false;
+        try (InputStream stream=getAssets().open("brand-wordmark.webp")) {
+            Bitmap artwork=BitmapFactory.decodeStream(stream);
+            if(artwork!=null){
+                ImageView wordmark=new ImageView(this);
+                wordmark.setImageBitmap(artwork);
+                wordmark.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                LinearLayout.LayoutParams wordmarkParams=
+                    new LinearLayout.LayoutParams(dp(235),dp(46));
+                wordmarkParams.gravity=Gravity.CENTER_HORIZONTAL;
+                wordmarkParams.topMargin=dp(13);
+                content.addView(wordmark,wordmarkParams);
+                wordmarkAdded=true;
+            }
+        } catch(Exception ignored) {}
+        if(!wordmarkAdded){
         TextView label = new TextView(this);
         label.setText("SETUP CHECKLIST");
         label.setTextSize(14);
@@ -142,6 +160,7 @@ public class MainActivity extends Activity {
         labelParams.gravity = Gravity.CENTER_HORIZONTAL;
         labelParams.topMargin = dp(18);
         content.addView(label, labelParams);
+        }
         stage.addView(content, new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
             Gravity.CENTER));
