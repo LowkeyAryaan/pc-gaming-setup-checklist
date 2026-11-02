@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview17glass'
-                manifestPlaceholders = [appLabel: 'Setup Checklist Glass Preview']
+                applicationIdSuffix '.preview18smart'
+                manifestPlaceholders = [appLabel: 'Setup Checklist 1.8 Preview']
             }
         }
         release {
