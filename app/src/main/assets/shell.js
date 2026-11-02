@@ -400,7 +400,7 @@
 
     el('termsButton').onclick=()=>openModal('Terms & Conditions',el('introTermsCopy').innerHTML,[{label:'Close',primary:true,onClick:closeModal}]);
     el('aboutButton').onclick=()=>openModal('About',
-        '<p><strong>Setup Checklist · v1.7.2</strong></p>'+
+        '<p><strong>Setup Checklist · v1.8.0</strong></p>'+
         '<p>Create separate setup presets, organize PC products, save photos, track unpurchased items, and watch your remaining savings goal decrease when items are marked purchased.</p>'+
         '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p>',
         [{label:'Close',primary:true,onClick:closeModal}]);
