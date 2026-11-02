@@ -364,7 +364,7 @@ function buildEditForm(item,card,button) {
     };
     form.querySelector('.cancelEdit').onclick=()=>{form.remove();button.textContent='Edit item';};
     form.querySelector('.deleteItem').onclick=async()=>{
-        if(!confirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
+        if(!await window.glassConfirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
         try{await removeItem(item.id);persist();render();window.dispatchEvent(new Event('item-saved'));}
         catch(err){status.textContent='Could not delete product: '+err.message;}
     };
@@ -718,8 +718,8 @@ $('copy').onclick=async()=>{
     }
     setTimeout(()=>btn.textContent='Copy checklist + notes',1600);
 };
-$('reset').onclick=()=>{
-    if(!confirm('Clear your checkmarks, notes and savings tracker? Products, prices, pictures, categories and contributions will be kept.'))return;
+$('reset').onclick=async()=>{
+    if(!await window.glassConfirm('Clear your checkmarks, notes and savings tracker? Products, prices, pictures, categories and contributions will be kept.'))return;
     Object.keys(checked).forEach(id=>delete checked[id]);
     Object.keys(notes).forEach(id=>delete notes[id]);
     $('saved').value='0';
@@ -755,7 +755,7 @@ $('importFile').onchange=async e=>{
     try {
         const data=JSON.parse(await file.text());
         if(!Array.isArray(data.items))throw Error('Invalid backup file.');
-        if(!confirm('Import this backup? It will replace your current list, edits and savings.'))return;
+        if(!await window.glassConfirm('Import this backup? It will replace your current list, edits and savings.'))return;
         customCategories.splice(0);
         if(Array.isArray(data.categories)){
             data.categories.forEach(cat=>{
@@ -793,7 +793,7 @@ $('importFile').onchange=async e=>{
         contributionCategory=String(data.contributionCategory||'Setup');
         $('contributionScope').value=contributionScope;
         refreshContributionCategories();
-        if(data.planner&&window.PersonalPlanner&&confirm('Restore the global salary planner from this backup? This replaces the planner currently stored on this device.'))window.PersonalPlanner.importState(data.planner);
+        if(data.planner&&window.PersonalPlanner&&await window.glassConfirm('Restore the global salary planner from this backup? This replaces the planner currently stored on this device.'))window.PersonalPlanner.importState(data.planner);
         $('contributed').value=contributed;
         $('saved').value=safePrice(data.saved);
         future.checked=!!data.future;
