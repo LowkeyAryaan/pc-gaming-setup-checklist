@@ -69,6 +69,9 @@ let purchaseView=PURCHASE_VIEWS.includes(savedState.purchaseView)?savedState.pur
 let showProductImages=savedState.showProductImages!==false;
 const checked = (savedState.checked && typeof savedState.checked==='object') ? savedState.checked : {};
 const notes = (savedState.notes && typeof savedState.notes==='object') ? savedState.notes : {};
+// Per-preset observations. Kept separately from purchase costs and saved cash.
+const priceWatch=Object.assign(Object.create(null),
+    savedState.priceWatch && typeof savedState.priceWatch==='object' ? savedState.priceWatch : {});
 const customCategories = [];
 if (Array.isArray(savedState.categories)) {
     savedState.categories.forEach(c => {
@@ -274,7 +277,7 @@ function shrinkImage(file) {
 }
 function persist() {
     const state={
-        checked,notes,blankPreset,currency:currentCurrency,deletedIds:[...deletedIds],
+        checked,notes,priceWatch,blankPreset,currency:currentCurrency,deletedIds:[...deletedIds],
         sortOrder,purchaseView,showProductImages,
         overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url,priority:i.priority,targetMonth:i.targetMonth}])),
         customItems:items.filter(i=>!originalIds.has(i.id)),
@@ -422,7 +425,7 @@ async function removeItem(id) {
     await removePhoto(id);
     items.splice(found,1);
     deletedIds.add(id);
-    delete checked[id];delete notes[id];
+    delete checked[id];delete notes[id];delete priceWatch[id];
 }
 function renderPurchaseViews(){
     const root=$('purchaseStatusFilters');
@@ -486,6 +489,7 @@ function render() {
         const priority=document.createElement('span');priority.className='priority-chip priority-'+(item.priority||'medium');
         priority.textContent=(item.priority||'medium').toUpperCase();
         meta.append(priority);
+        if(window.PriceWatchUI)window.PriceWatchUI.appendIndicator(meta,item);
         if(item.targetMonth){
             const date=document.createElement('span');date.className='target-chip';
             const today=new Date(),key=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
@@ -763,7 +767,7 @@ $('export').onclick=async()=>{
             const photo=await getPhoto(item.id);
             if (photo && photo.blob) photos[item.id]=await blobToData(photo.blob);
         }
-        const data={version:5,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
+        const data={version:6,items,checked,notes,priceWatch,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
             deletedIds:[...deletedIds],blankPreset,contributed,contributionScope,contributionCategory,planner:window.PersonalPlanner?window.PersonalPlanner.exportState():null,saved:$('saved').value,future:future.checked,filter,photos};
         const backupText=JSON.stringify(data,null,2);
         if(window.AndroidBackup && typeof window.AndroidBackup.saveJson==='function') {
@@ -812,6 +816,13 @@ $('importFile').onchange=async e=>{
         Object.keys(notes).forEach(id=>delete notes[id]);
         Object.assign(checked,data.checked||{});
         Object.assign(notes,data.notes||{});
+        for(const key of Object.keys(priceWatch))delete priceWatch[key];
+        if(data.priceWatch && typeof data.priceWatch==='object'){
+            for(const [id,entry] of Object.entries(data.priceWatch)){
+                if(items.some(item=>item.id===id)&&entry&&typeof entry==='object')
+                    priceWatch[id]=entry;
+            }
+        }
         currentCurrency=isCurrency(data.currency)?data.currency:'PKR';
         sortOrder=SORT_ORDERS.includes(data.sortOrder)?data.sortOrder:'default';
         purchaseView=PURCHASE_VIEWS.includes(data.purchaseView)?data.purchaseView:'all';
@@ -872,6 +883,10 @@ function loadPresetIntoApp(id) {
     for(const key of Object.keys(notes))delete notes[key];
     if(state.checked && typeof state.checked==='object')Object.assign(checked,state.checked);
     if(state.notes && typeof state.notes==='object')Object.assign(notes,state.notes);
+    for(const key of Object.keys(priceWatch))delete priceWatch[key];
+    if(state.priceWatch && typeof state.priceWatch==='object')
+        Object.assign(priceWatch,state.priceWatch);
+    if(window.PriceWatchUI)window.PriceWatchUI.cancel();
     contributionEdited=state.contributionEdited===true;
     contributed=initialContribution({...state,blankPreset});
     contributionScope=['pc','nonpc','all','category'].includes(state.contributionScope)?state.contributionScope:'pc';
@@ -884,6 +899,7 @@ function loadPresetIntoApp(id) {
     renderFilters();
     render();
     persist();
+    if(window.PriceWatchUI)window.PriceWatchUI.checkNow({silentIfUnchanged:true});
 }
 function createEmptyPreset(id) {
     localStorage.setItem(presetStateKey(id),JSON.stringify({
