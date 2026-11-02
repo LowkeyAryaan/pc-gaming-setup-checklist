@@ -110,6 +110,48 @@
  // Use a native, bounded metadata reader; CORS makes file:// WebView fetch
  // unreliable on ecommerce pages. No third-party SaaS or paid API required.
  const urlInput=el('newUrl'),nameInput=el('newName'),priceInput=el('newPrice');
+ const manual=el('manualProductDetails'),toggle=el('toggleManualDetails');
+ const addForm=el('addProductForm');
+ function showManual(expand,message=''){
+   manual.hidden=!expand;
+   toggle.setAttribute('aria-expanded',String(expand));
+   toggle.classList.toggle('is-expanded',expand);
+   if(message)setStatus(message,'warning');
+ }
+ toggle.onclick=()=>showManual(manual.hidden);
+ window.SetupProductUI={
+   requireManual:message=>showManual(true,message),
+   detectionStarted:()=>showManual(false),
+   detectionComplete:complete=>{
+     if(!complete)showManual(true);
+     else showManual(false);
+   }
+ };
+ const catGroup=el('catGroup'),choices=[...document.querySelectorAll('.category-choice-grid button')];
+ function selectGroup(group){
+   if(!['pc','setup','future'].includes(group))return;
+   catGroup.value=group;
+   catGroup.dispatchEvent(new Event('change',{bubbles:true}));
+   choices.forEach(button=>{
+     const active=button.dataset.group===group;
+     button.classList.toggle('is-selected',active);
+     button.setAttribute('aria-pressed',String(active));
+   });
+ }
+ choices.forEach(button=>button.onclick=()=>selectGroup(button.dataset.group));
+ catGroup.addEventListener('change',()=>selectGroupNoDispatch());
+ function selectGroupNoDispatch(){
+   choices.forEach(button=>{
+     const active=button.dataset.group===catGroup.value;
+     button.classList.toggle('is-selected',active);
+     button.setAttribute('aria-pressed',String(active));
+   });
+ }
+ window.addEventListener('category-created',()=>{
+   selectGroup('setup');
+   el('catName').value='';
+ });
+ selectGroupNoDispatch();
  const status=el('linkImportStatus'),preview=el('linkImportPreview');
  let timer=null,requestId=0,requestedUrl='',photoBlob=null,autoname='',autoprice='';
  const setStatus=(message,state='')=>{
@@ -124,34 +166,38 @@
  function detect(){
    clearTimeout(timer);
    const url=urlInput.value.trim();requestedUrl=url;
+   if(autoname&&nameInput.value===autoname)nameInput.value='';
+   if(autoprice&&priceInput.value===autoprice)priceInput.value='';
+   autoname='';autoprice='';
+   window.SetupProductUI.detectionStarted();
    ++requestId;
    clearPreview();
    if(!url){setStatus('');return;}
    if(!/^https:\/\/[^\s]+$/i.test(url)){
-     setStatus('Use an HTTPS product link. You can still fill the product manually.','warning');return;
+     window.SetupProductUI.requireManual('Use an HTTPS product link or enter the product details manually.');return;
    }
    if(!window.AndroidProductLookup||typeof AndroidProductLookup.lookup!=='function'){
-     setStatus('Auto-detection is available in the Android app. Enter details manually here.','warning');return;
+     window.SetupProductUI.requireManual('Auto-detection is unavailable here. Enter details manually.');return;
    }
    const currentId=String(requestId);
    setStatus('Checking product page…');
    try{AndroidProductLookup.lookup(url,currentId);}
-   catch(_){setStatus('Could not read this store. Enter details manually.','warning');}
+   catch(_){window.SetupProductUI.requireManual('Could not read this store. Enter details manually.');}
  }
  urlInput.addEventListener('input',()=>{
    clearTimeout(timer);
-   if(!urlInput.value.trim()){requestedUrl='';clearPreview();setStatus('');return;}
+   if(!urlInput.value.trim()){requestedUrl='';clearPreview();setStatus('');showManual(false);return;}
    timer=setTimeout(detect,650);
  });
  urlInput.addEventListener('change',()=>{if(urlInput.value.trim()!==requestedUrl)detect();});
  window.ProductLinkImport={
    photoFor:url=>url===requestedUrl?photoBlob:null,
-   clear:()=>{clearTimeout(timer);requestedUrl='';photoBlob=null;autoname='';autoprice='';clearPreview();setStatus('');},
+   clear:()=>{clearTimeout(timer);requestedUrl='';photoBlob=null;autoname='';autoprice='';clearPreview();setStatus('');showManual(false);},
    receive:(id,payload)=>{
      if(String(id)!==String(requestId)||urlInput.value.trim()!==requestedUrl)return;
      const data=typeof payload==='string'?JSON.parse(payload):payload;
      if(!data||!data.ok){
-       setStatus((data&&data.message)||'Store details unavailable. Enter them manually.','warning');return;
+       window.SetupProductUI.requireManual((data&&data.message)||'Store details unavailable. Enter them manually.');return;
      }
      if(data.name&&(!nameInput.value.trim()||nameInput.value===autoname)){
        nameInput.value=String(data.name).slice(0,180);
@@ -174,11 +220,14 @@
      el('linkImportTitle').textContent=data.name||'Product link detected';
      el('linkImportPrice').textContent=(data.price!==null&&data.price!==undefined?
        ((currency||currentCurrency)+' '+data.price):'Price not found');
-     if(mismatch)setStatus('Store price is in '+currency+'; your preset uses '+currentCurrency+'. Enter the correct price manually.','warning');
-     else if(data.price===null||data.price===undefined)setStatus('Product detected. Price unavailable; enter it manually.','warning');
-     else if(!currency)setStatus('The store did not specify its currency. Review the detected price and enter it manually.','warning');
-     else if(!photoBlob)setStatus(data.imageMessage||'Price detected, but no usable image was downloaded. You can upload one manually.','warning');
-     else setStatus('Product photo and details detected. Review or edit before saving.','success');
+     const complete=!!nameInput.value.trim()&&priceInput.value.trim()!==''&&!mismatch&&!!currency&&!!photoBlob;
+     if(mismatch)setStatus('Store currency '+currency+' differs from '+currentCurrency+'. Confirm the correct price.','warning');
+     else if(priceInput.value.trim()==='')setStatus('Price not detected. Enter a price below.','warning');
+     else if(!nameInput.value.trim())setStatus('Name not detected. Enter a product name below.','warning');
+     else if(!currency)setStatus('Store currency not verified. Confirm the correct price below.','warning');
+     else if(!photoBlob)setStatus(data.imageMessage||'Product image unavailable. You can upload a photo below.','warning');
+     else setStatus('Product details detected. Ready to add.','success');
+     window.SetupProductUI.detectionComplete(complete);
    }
  };
  window.addEventListener('product-created',()=>window.ProductLinkImport.clear());
