@@ -33,6 +33,9 @@ test('Only trusted matching-currency price updates affect unchecked product pric
  assert.match(watch,/if\(!checked\[id\]&&!suspicious\)/);
  assert.match(watch,/item\.price=safePrice\(observed\)/);
  assert.match(watch,/kind='review'/);
+ assert.match(watch,/const storedPrice=Number\(item\.price\)/);
+ assert.match(watch,/observed\/storedPrice>3/);
+ assert.match(watch,/setup-app-resumed/);
  assert.match(watch,/status:'unavailable'/);
  assert.match(watch,/if\(currentRun&&currentRun\.timer\)clearTimeout/);
  assert.match(watch,/run\.preset!==activePresetId/);
