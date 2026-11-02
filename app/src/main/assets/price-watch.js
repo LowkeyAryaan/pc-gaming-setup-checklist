@@ -43,7 +43,9 @@
      off:'Price watch off','no-link':'No link','not-checked':'Not checked'
    };
    tag.textContent=labels[kind];
-   if(entry.checkedAt)tag.title='Last checked '+new Date(entry.checkedAt).toLocaleString();
+   if(entry.checkedAt)tag.title='Last checked '+new Date(entry.checkedAt).toLocaleString()+
+      (entry.reason?' · '+entry.reason:'');
+   if(entry.reason)tag.setAttribute('aria-label',labels[kind]+': '+entry.reason);
    else if(kind==='no-link')tag.title='Add a public product URL to track its listing price';
    target.append(tag);
    return tag;
@@ -66,7 +68,7 @@
      if(diff<-.005)decreases++;
      if(item.url){
        if(entry&&entry.url===item.url&&
-          ['stable','increased','decreased','review'].includes(entry.status))
+          ['stable','increased','decreased'].includes(entry.status))
          verified++;
        else unavailable++;
      }
@@ -98,6 +100,14 @@
      stat.verified+' verified'+(stat.unavailable?
        ' · '+stat.unavailable+' not verified':'');
    panel.dataset.impact=stat.net>0.005?'up':stat.net<-.005?'down':'neutral';
+ }
+ function unavailableRecord(item,reason){
+   const old=priceWatch[item.id],same=old&&old.url===item.url;
+   const baseline=same&&Number(old.baseline)>0?
+     Number(old.baseline):Number(item.price);
+   return {status:'unavailable',url:item.url,checkedAt:today(),baseline,
+     observed:same&&validMoney(Number(old.observed))?Number(old.observed):null,
+     reason:String(reason||'Price unavailable').slice(0,180)};
  }
  function cancel(){
    // Responses from other presets / earlier runs are ignored.
@@ -166,14 +176,14 @@
    const linked=items.filter(item=>typeof item.url==='string'&&item.url.trim());
    for(const item of linked){
      if(!/^https:\/\/[^ \t\n]+$/i.test(item.url))
-       priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
+       priceWatch[item.id]=unavailableRecord(item,'Only public HTTPS listings can be checked.');
    }
    const jobs=linked.filter(item=>/^https:\/\/[^ \t\n]+$/i.test(item.url));
    if(!jobs.length){persist();refresh();renderTrackerImpact(totals());return;}
    if(!window.AndroidPriceWatch||typeof window.AndroidPriceWatch.checkBatch!=='function'){
      // Browser previews have no Android networking bridge.
      for(const item of jobs){
-       priceWatch[item.id]={status:'unavailable',checkedAt:today()};
+       priceWatch[item.id]=unavailableRecord(item,'Android price reader not available.');
      }
      persist();refresh();return;
    }
@@ -191,7 +201,7 @@
      if(currentRun!==run)return;
      for(const item of jobs){
        if(run.seen.has(item.id))continue;
-       priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
+       priceWatch[item.id]=unavailableRecord(item,'Retailer did not respond before timeout.');
        run.failed++;
      }
      currentRun=null;persist();refresh();
@@ -203,7 +213,7 @@
    }catch(_){
      clearTimeout(run.timer);
      currentRun=null;
-     for(const item of jobs)priceWatch[item.id]={status:'unavailable',checkedAt:today()};
+     for(const item of jobs)priceWatch[item.id]=unavailableRecord(item,'Could not start price check.');
      persist();refresh();
    }
  }
@@ -237,10 +247,15 @@
    const valid=data&&data.ok&&validMoney(observed)&&currency===currentCurrency;
    if(!valid){
      run.failed++;
-     priceWatch[id]={
-       status:'unavailable',url:item.url,checkedAt:stamp,baseline:originalBaseline,
-       observed:historical&&historical.url===item.url&&validMoney(Number(historical.observed))?Number(historical.observed):null
-     };
+     const reason=!data||!data.ok?
+       String(data&&data.message||'Store page could not be read.'):
+       !validMoney(observed)?
+         String(data.priceMessage||'No readable product price.'):
+         !currency?'Store does not publish a verifiable currency.':
+         currency!==currentCurrency?
+           'Store price uses '+currency+', but setup uses '+currentCurrency+'.':
+           'Price could not be verified.';
+     priceWatch[id]={...unavailableRecord(item,reason),baseline:originalBaseline,checkedAt:stamp};
    }else{
      let kind='stable';
      if(observed>previous+0.005)kind='increased';
