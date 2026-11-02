@@ -503,3 +503,23 @@ body.app-carousel-mode .app-content>.page{
  border:1px solid rgba(197,255,143,.33)!important;color:#d6ffac!important;
  font-weight:700!important
 }
+
+/* v1.9.1 launch performance: no expensive full-screen blur/scale animation.
+   UI remains liquid glass once inside the app; only the launch handoff is simpler. */
+.intro-shell.is-visible{will-change:auto!important}
+.intro-shell.is-visible.is-exiting{
+ opacity:0!important;transform:none!important;filter:none!important;
+ transition:opacity 250ms ease!important;
+ will-change:opacity!important;pointer-events:none!important
+}
+.intro-shell.is-exiting .welcome-copy{
+ opacity:1!important;transform:none!important;transition:none!important
+}
+body.app-entering .app-content,body.app-entering .bottom-tabs{
+ animation:setup-startup-fade 250ms ease both!important
+}
+@keyframes setup-startup-fade{from{opacity:.6}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ body.app-entering .app-content,body.app-entering .bottom-tabs{animation:none!important}
+ .intro-shell.is-visible.is-exiting{transition:none!important}
+}
