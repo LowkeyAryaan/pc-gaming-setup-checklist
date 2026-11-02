@@ -496,3 +496,10 @@ body.app-carousel-mode .app-content>.page{
 @media(prefers-reduced-motion:reduce){
  .setting-haptics input[type=checkbox],.setting-haptics input[type=checkbox]:before{transition:none!important}
 }
+
+#plannerCurrentMonth{
+ min-height:48px!important;padding:0 15px!important;
+ border-radius:16px!important;background:linear-gradient(130deg,rgba(82,119,54,.34),rgba(30,47,30,.84))!important;
+ border:1px solid rgba(197,255,143,.33)!important;color:#d6ffac!important;
+ font-weight:700!important
+}
