@@ -53,7 +53,7 @@ test('Next purchase considers only unpurchased current-goal items',()=>{
  assert.match(js,/nextPurchaseName/);
 });
 test('Design introduces actual actions and prioritization inputs',()=>{
- for(const id of ['searchProducts','newPriority','newTargetMonth','newPurchased','nextPurchase','summaryRing','quickAdd','itemDetailSheet','plannerSalaryTab','plannerSavingsTab','welcomeBackup'])assert.ok(html.includes('id="'+id+'"'),id);
+ for(const id of ['searchProducts','newPriority','newTargetMonth','newPurchased','nextPurchase','summaryRing','itemDetailSheet','plannerSalaryTab','plannerSavingsTab','welcomeBackup'])assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(premium,/window\.openItemDetails=/);
  assert.match(premium,/getPhoto\(item\.id\)/);
  assert.match(premium,/buildEditForm\(item,container,edit\)/);
@@ -89,4 +89,37 @@ test('Functional icons use semantic SVG symbols without repeated brand logo stam
    'Brand logo should only appear on welcome and in app identity');
  assert.doesNotMatch(html,/class="welcome-dots"/);
  assert.match(styles,/\.panel-icon svg/);
+});
+
+test('Setup Checklist rebrand and restrained glass design are connected',()=>{
+ const brand=read('brand-mark.svg');
+ const glass=read('glass-v17.css');
+ const controls=read('glass-v17.js');
+ const gradle=fs.readFileSync(path.join(__dirname,'../build.gradle'),'utf8');
+ assert.match(brand,/PC monogram/);
+ assert.match(html,/<title>Setup Checklist<\/title>/);
+ assert.doesNotMatch(html,/id="quickAdd"/);
+ assert.match(html,/href="glass-v17\.css"/);
+ assert.match(html,/src="glass-v17\.js"/);
+ assert.match(glass,/--r-dock:30px/);
+ assert.match(glass,/\.bottom-tabs/);
+ assert.match(glass,/\.intro-stage:not\(\.welcome\)/);
+ assert.match(controls,/month-glass-sheet/);
+ assert.match(controls,/window\.ProductLinkImport/);
+ assert.match(gradle,/versionName '1\.7\.0'/);
+});
+test('Product metadata lookup is bounded and keeps manual product control',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
+ const activity=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/MainActivity.java'),'utf8');
+ const manifest=fs.readFileSync(path.join(__dirname,'../src/main/AndroidManifest.xml'),'utf8');
+ assert.match(source,/HTML_LIMIT = 750_000/);
+ assert.match(source,/Only secure public links allowed/);
+ assert.match(source,/findStructuredProduct/);
+ assert.match(source,/og:image/);
+ assert.match(source,/product:price:amount/);
+ assert.match(activity,/new ProductLookupBridge/);
+ assert.match(manifest,/android\.permission\.INTERNET/);
+ assert.match(html,/id="linkImportStatus"/);
+ assert.match(html,/id="linkImportPreview"/);
+ assert.match(js,/ProductLinkImport\.photoFor/);
 });
