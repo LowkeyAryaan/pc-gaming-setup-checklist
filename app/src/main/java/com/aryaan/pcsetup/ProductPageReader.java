@@ -66,6 +66,10 @@ final class ProductPageReader {
                 meta(html,"product:price:amount"),meta(html,"og:price:amount"),
                 meta(html,"price"),meta(html,"product:price"),
                 meta(html,"sale_price"),productPagePrice(html));
+            // Ranges must be resolved BEFORE scalar prices, because
+            // AggregateOffer.lowPrice and WooCommerce range markup routinely
+            // expose the cheapest variant instead of the selected variant.
+            double[] range=publishedPriceRange(html,product,offers,price);
             String currency=first(
                 offers!=null?nonempty(offers.optString("priceCurrency")):null,
                 product!=null?nonempty(product.optString("priceCurrency")):null,
@@ -74,24 +78,36 @@ final class ProductPageReader {
             java.util.LinkedHashSet<String> candidates=includeImage?
                 imageCandidates(html,product,title):new java.util.LinkedHashSet<>();
             String image=candidates.isEmpty()?null:candidates.iterator().next();
-            if(title==null&&price==null&&image==null){
+            if(title==null&&price==null&&range==null&&image==null){
                 return result.put("ok",false).put("message",
                     "This store did not expose product details. Enter them manually.");
             }
             result.put("ok",true);
             if(title!=null)result.put("name",tidy(title,180));
-            if(price!=null){
+            if(range!=null){
+                // An ambiguous product page is not an exact SKU quotation.
+                result.put("price",JSONObject.NULL);
+                result.put("priceKind",Double.isFinite(range[1])?"range":"starting-at");
+                result.put("lowPrice",range[0]);
+                if(Double.isFinite(range[1]))result.put("highPrice",range[1]);
+                result.put("priceMessage",Double.isFinite(range[1])?
+                    "This store lists different prices for product variants. Confirm your selected variant price.":
+                    "The store only publishes a starting price. Confirm your selected variant price.");
+            }else if(price!=null){
                 Double number=parseMoney(price);
                 if(number!=null)result.put("price",number);
                 else result.put("price",JSONObject.NULL);
+                result.put("priceKind","exact");
             }else result.put("price",JSONObject.NULL);
             if(currency!=null)result.put("currency",currency.trim().toUpperCase(Locale.US));
             // Let the UI distinguish an actual missing price, an unverified
             // currency, and a retailer that blocked the HTTP request.
-            if(price==null||result.isNull("price"))result.put("priceMessage",
-                "No current product price was exposed by this store.");
-            else if(currency==null)result.put("priceMessage",
-                "The listing has a price but does not identify its currency.");
+            if(range==null){
+                if(price==null||result.isNull("price"))result.put("priceMessage",
+                    "No current product price was exposed by this store.");
+                else if(currency==null)result.put("priceMessage",
+                    "The listing has a price but does not identify its currency.");
+            }
             if(includeImage&&image!=null){
                 int attempts=0;
                 boolean ready=false;
@@ -262,6 +278,88 @@ final class ProductPageReader {
             cleaned.startsWith("blob:")||cleaned.startsWith("javascript:"))return;
         links.add(cleaned);
     }
+    /** An ambiguous price needs a variant choice; never silently use lowPrice.
+     *  [min,max] means range; [min,NaN] means 'from' / starting at.
+     *  This is metadata only. It must not execute store JS or guess variants. */
+    private static double[] publishedPriceRange(String html,JSONObject product,
+                                                JSONObject offer,String scalar){
+        Double rawLow=offer==null?null:parseMoney(value(offer.opt("lowPrice")));
+        Double rawHigh=offer==null?null:parseMoney(value(offer.opt("highPrice")));
+        if(rawLow==null&&product!=null)
+            rawLow=parseMoney(value(product.opt("lowPrice")));
+        if(rawHigh==null&&product!=null)
+            rawHigh=parseMoney(value(product.opt("highPrice")));
+        double[] pair=rangeFromValues(rawLow,rawHigh);
+        if(pair!=null)return pair;
+        // AggregateOffer with only a lowPrice still means "from", not exact.
+        String type=offer==null?"":offer.optString("@type","");
+        if(type.toLowerCase(Locale.US).contains("aggregateoffer")&&rawLow!=null&&rawLow>0)
+            return new double[]{rawLow,Double.NaN};
+        if(product!=null){
+            JSONArray offers=product.optJSONArray("offers");
+            if(offers!=null&&offers.length()>1){
+                Double min=null,max=null;
+                for(int i=0;i<Math.min(50,offers.length());i++){
+                    JSONObject o=offers.optJSONObject(i);
+                    if(o==null)continue;
+                    Double amount=parseMoney(first(value(o.opt("price")),
+                        priceSpecification(o.opt("priceSpecification"))));
+                    if(amount==null||amount<=0)continue;
+                    min=min==null?amount:Math.min(min,amount);
+                    max=max==null?amount:Math.max(max,amount);
+                }
+                pair=rangeFromValues(min,max);
+                if(pair!=null)return pair;
+            }
+        }
+        // A numeric range in a price meta field must not pass parseMoney().
+        pair=amountRange(scalar);
+        if(pair!=null)return pair;
+        // WooCommerce may expose a scalar low-price meta, while the visible
+        // product price paragraph says "22,999 – 26,999".
+        return productPageRange(html);
+    }
+
+    private static double[] rangeFromValues(Double min,Double max){
+        if(min!=null&&max!=null&&min>0&&max>min+0.005)return new double[]{min,max};
+        if(min!=null&&min>0&&max==null)return new double[]{min,Double.NaN};
+        return null;
+    }
+
+    /** Only parse pairs explicitly joined by a range separator. A discount's
+     *  old/deleted price is not a variant range. */
+    private static double[] amountRange(String source){
+        if(source==null)return null;
+        String plain=decodeHtml(source.replaceAll("(?is)<del\\b[^>]*>.*?</del\\s*>",""));
+        String amount="(\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?|\\d{2,10}(?:\\.\\d{1,2})?)";
+        Matcher m=Pattern.compile(amount+
+            "\\s*(?:[-–—−]|\\bto\\b)\\s*(?:Rs\\.?|PKR|\\$|£|€)?\\s*"+amount,
+            Pattern.CASE_INSENSITIVE).matcher(plain);
+        if(m.find()){
+            Double low=parseMoney(m.group(1)),high=parseMoney(m.group(2));
+            if(low!=null&&high!=null&&low>0&&high>low+0.005)
+                return new double[]{low,high};
+        }
+        return null;
+    }
+
+    private static double[] productPageRange(String html){
+        Pattern priceBlock=Pattern.compile(
+            "<p\\b(?=[^>]*\\bclass\\s*=\\s*['\"][^'\"]*\\bprice\\b[^'\"]*['\"])[^>]*>(.*?)</p\\s*>",
+            Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+        Matcher blocks=priceBlock.matcher(html);
+        while(blocks.find()){
+            String raw=blocks.group(1);
+            int position=blocks.start(),from=Math.max(0,position-5500);
+            String prefix=html.substring(from,position).toLowerCase(Locale.US);
+            if(prefix.contains("related products")||prefix.contains("you may also like"))
+                continue;
+            double[] pair=amountRange(raw.replaceAll("(?is)<[^>]+>"," "));
+            if(pair!=null)return pair;
+        }
+        return null;
+    }
+
     /** Explicit ISO currency metadata only. Do not infer from .pk host or
      * a generic rupee symbol, which may represent several currencies. */
     private static String publishedCurrency(String html){
