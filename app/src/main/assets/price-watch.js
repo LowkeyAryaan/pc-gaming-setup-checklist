@@ -244,7 +244,8 @@
    const previous=historical&&historical.url===item.url&&validMoney(Number(historical.observed))?
      Number(historical.observed):Number(item.price);
    const stamp=today();
-   const valid=data&&data.ok&&validMoney(observed)&&currency===currentCurrency;
+   const isVariant=!!data&&(data.priceKind==='range'||data.priceKind==='starting-at');
+   const valid=data&&data.ok&&!isVariant&&validMoney(observed)&&currency===currentCurrency;
    if(!valid){
      run.failed++;
      const reason=!data||!data.ok?
