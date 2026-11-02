@@ -10,7 +10,20 @@
  const money=n=>fmt(Number(n)||0);
  const today=()=>new Date().toISOString();
  const validMoney=n=>typeof n==='number'&&Number.isFinite(n)&&n>0&&n<1e11;
- const refresh=()=>{if(typeof render==='function')render();};
+ // Coalesce incoming price responses into a single UI repaint rather than
+ // rebuilding all cards once per URL (especially costly on older phones).
+ let refreshTimer=null;
+ const refresh=()=>{
+   if(refreshTimer!==null)return;
+   refreshTimer=setTimeout(()=>{
+     refreshTimer=null;
+     if(typeof render==='function')render();
+   },130);
+ };
+ const flushRefresh=()=>{
+   if(refreshTimer!==null){clearTimeout(refreshTimer);refreshTimer=null;}
+   if(typeof render==='function')render();
+ };
  function entryFor(item){
    const entry=priceWatch[item.id];
    if(!item.url)return {status:'no-link'};
@@ -202,8 +215,8 @@
      clearTimeout(run.timer);
      currentRun=null;
      // A notification is deliberately shown only after welcome is gone.
+     flushRefresh();
      if(run.changes.length)showChanges(run.changes,run.failed);
-     refresh();
    }
  }
  window.PriceWatchUI={
@@ -228,7 +241,9 @@
  });
  const overlay=el('introOverlay');
  if(!overlay||!overlay.classList.contains('is-visible')){
-   bootStarted=true;setTimeout(checkNow,100);
+   bootStarted=true;
+   // First frame first; network work and initial badges follow after paint.
+   setTimeout(checkNow,500);
  }
- refresh();
+ // No launch-time full render here: app.js owns initial DOM creation.
 })();
