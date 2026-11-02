@@ -1,0 +1,25 @@
+/* Setup Checklist v2.0 · approved PC symbol and wordmark. */
+.app-identity,.app-identity .header-brand{min-width:0!important;max-width:100%!important}
+.app-identity .header-brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;overflow:hidden!important}
+.app-identity .header-brand-wordmark{
+ display:block!important;width:min(100%,265px)!important;height:auto!important;
+ max-height:40px!important;object-fit:contain!important;object-position:left center!important;
+ flex:0 1 auto!important
+}
+.intro-stage.welcome .welcome-brand{
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:19px!important;width:100%!important;
+ margin:clamp(8px,3.5dvh,40px) 0 30px!important;min-width:0
+}
+.intro-stage.welcome .brand-hero-mark{
+ display:block!important;width:clamp(112px,34vw,150px)!important;
+ height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;filter:none!important
+}
+.intro-stage.welcome .welcome-brand-wordmark{
+ display:block!important;width:min(100%,360px)!important;max-width:100%!important;
+ height:auto!important;max-height:60px!important;object-fit:contain!important
+}
+@media(max-width:370px){
+ .app-identity .header-brand-wordmark{max-height:34px!important}
+ .intro-stage.welcome .welcome-brand{gap:15px!important}
+}
