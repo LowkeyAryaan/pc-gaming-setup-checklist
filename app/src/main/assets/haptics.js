@@ -23,7 +23,7 @@
  // Navigation gets its own tick from goToPage, so no duplicate bottom-tab tick.
  document.addEventListener('click',event=>{
    const control=event.target.closest&&event.target.closest(
-     'button,select,input[type="checkbox"],input[type="radio"],[role="button"],a'
+     'button,select,input[type="checkbox"],input[type="radio"],[role="button"],a,.product-open-card'
    );
    if(!control||control.disabled||control.getAttribute('aria-disabled')==='true')return;
    if(control.id==='settingHapticFeedback')return;
