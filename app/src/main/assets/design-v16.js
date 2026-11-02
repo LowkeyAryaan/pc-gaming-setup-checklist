@@ -65,7 +65,7 @@
    const priority=create('div','detail-attribute');
    priority.append(panelPictogram('bars'),create('span','eyebrow','PRIORITY'),create('strong','',String(item.priority||'medium').toUpperCase()));
    const date=create('div','detail-attribute');
-   const target=item.targetMonth||( 'Not set' );
+   const target=item.targetMonth?(window.formatSetupMonth?window.formatSetupMonth(item.targetMonth):item.targetMonth):'Not set';
    date.append(panelPictogram('calendar'),create('span','eyebrow','TARGET MONTH'),create('strong','',target));
    const cat=create('div','detail-attribute');
    cat.append(panelPictogram('box'),create('span','eyebrow','CATEGORY'),create('strong','',item.cat));
