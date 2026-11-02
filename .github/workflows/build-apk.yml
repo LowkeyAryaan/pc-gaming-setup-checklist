@@ -39,6 +39,7 @@ jobs:
           node --check app/src/main/assets/planner.js
           node --check app/src/main/assets/premium-v15.js
           node --check app/src/main/assets/design-v16.js
+          node --check app/src/main/assets/glass-v17.js
           node --check app/src/main/assets/app.js
           node --check app/src/main/assets/shell.js
           node --check app/src/main/assets/feedback-store.js
@@ -59,6 +60,9 @@ jobs:
           assert '<script src="planner.js"></script>' in html
           assert '<script src="premium-v15.js"></script>' in html
           assert '<script src="design-v16.js"></script>' in html
+          assert '<script src="glass-v17.js"></script>' in html
+          assert 'id="linkImportStatus"' in html
+          assert 'id="newTargetMonth"' in html
           assert 'id="newPriority"' in html
           assert 'id="newTargetMonth"' in html
           assert '<script src="app.js"></script>' in html
