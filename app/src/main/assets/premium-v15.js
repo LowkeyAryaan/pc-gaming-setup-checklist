@@ -2,7 +2,7 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id);
- const sheets=[$('productSheet'),$('categorySheet'),$('itemDetailSheet')];
+ const sheets=[$('productSheet'),$('categorySheet'),$('itemDetailSheet'),$('editProductSheet')];
  let previousFocus=null;
  function closeSheet(){
    for(const sheet of sheets)sheet.hidden=true;
@@ -22,6 +22,7 @@
  window.openProductSheet=()=>openSheet($('productSheet'));
  window.openCategorySheet=()=>openSheet($('categorySheet'));
  window.openDetailSheet=()=>openSheet($('itemDetailSheet'));
+ window.openEditSheet=()=>openSheet($('editProductSheet'));
  window.closePremiumSheet=closeSheet;
  for(const sheet of sheets){
    sheet.addEventListener('click',event=>{
