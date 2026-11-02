@@ -118,6 +118,11 @@
    });
  }
  convertMonthInputs();
+ // Initial product/finance rendering happens before this visual layer loads.
+ // Refresh visible labels once without touching stored YYYY-MM month keys.
+ if(window.PersonalPlanner&&typeof window.PersonalPlanner.render==='function')
+    window.PersonalPlanner.render();
+ if(typeof render==='function')render();
  const observer=new MutationObserver(changes=>{
    for(const change of changes){
      for(const added of change.addedNodes){
