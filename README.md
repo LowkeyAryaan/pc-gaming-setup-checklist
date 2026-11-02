@@ -21,7 +21,7 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 - Add Category now offers styled budget-group choice cards, keeping its existing budget accounting.
 - Summary has a stronger goal hero, savings/purchased cards, clearer category breakdown and reorganized backup actions. Values continue to come from the same local budgeting model.
 - Month selection uses refined curved dark glass cards. No new paid infrastructure or remote accounts.
-- Existing data, photos, purchase history, notes, categories and saved financial planner remain preserved.
+- Existing in-app storage model remains compatible. This preview installs with a new package identifier so earlier preview installations are not overwritten; export/import a backup to move their locally saved records.
 
 ## v1.7.2 alignment, image and category management fixes
 
