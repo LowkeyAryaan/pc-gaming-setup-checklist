@@ -50,10 +50,10 @@ public class MainActivity extends Activity {
         // The splash disappears only after the webpage has painted its real
         // welcome/onboarding screen, avoiding a flash of the checklist.
         activityRoot = new FrameLayout(this);
-        activityRoot.setBackgroundColor(Color.rgb(8, 14, 27));
+        activityRoot.setBackgroundColor(Color.rgb(11, 14, 11));
         instantWelcome = buildInstantWelcome();
         web = new WebView(this);
-        web.setBackgroundColor(Color.rgb(8, 14, 27));
+        web.setBackgroundColor(Color.rgb(11, 14, 11));
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
         content.setGravity(Gravity.CENTER_HORIZONTAL);
 
         TextView kicker = new TextView(this);
-        kicker.setText("PC SETUP");
+        kicker.setText("SETUP CHECKLIST");
         kicker.setTextSize(11);
         kicker.setTextColor(0xFFBAFF43);
         kicker.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
