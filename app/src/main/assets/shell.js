@@ -2,7 +2,7 @@
 (() => {
     'use strict';
     const el=id=>document.getElementById(id);
-    const pages=['tracker','items','summary'];
+    const pages=['tracker','items','summary','planner'];
     const CREATOR_INSTAGRAM_URL='https://www.instagram.com/aryaan_creates/';
     function instagramCreatorLink(){
         const link=document.createElement('a');
@@ -19,6 +19,7 @@
     function displayName(){
         const p=presetIndex.presets.find(x=>x.id===activePresetId);
         el('currentPresetName').textContent=p?p.name:'Preset #1';
+        if(el('dashboardPresetName'))el('dashboardPresetName').textContent=p?p.name:'Preset #1';
     }
     function goToPage(page,opts={}){
         if(!pages.includes(page))return;
@@ -32,13 +33,14 @@
         if(opts.history!==false)try{history.pushState({page},'', '#'+page);}catch(_){}
         if(opts.scroll!==false)window.scrollTo(0,0);
         if(page==='items')updateItemCount();
+        if(page==='planner'&&window.PersonalPlanner)window.PersonalPlanner.render();
     }
     window.goToPage=p=>goToPage(p);
     document.querySelectorAll('.bottom-tabs button[data-page]').forEach(b=>b.onclick=()=>goToPage(b.dataset.page));
     try{history.replaceState({page:'tracker'},'', '#tracker');}catch(_){}
     window.addEventListener('popstate',e=>goToPage(e.state&&pages.includes(e.state.page)?e.state.page:'tracker',{history:false}));
     el('trackerToItems').onclick=()=>goToPage('items');
-    el('itemsToTracker').onclick=()=>{goToPage('tracker');el('addProductForm').scrollIntoView({behavior:'smooth',block:'start'});};
+    el('itemsToTracker').onclick=()=>{if(window.openProductSheet)window.openProductSheet();};
 
     const pencilIcon='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16 4a2 2 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
     const trashIcon='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg>';
@@ -217,28 +219,126 @@
     }
     el('addPresetButton').onclick=createPresetModal;
 
+    const CATEGORY_HOLD_MS=550;
+    function categoryActionMenu(name) {
+        const category=customCategories.find(c=>c.name===name);
+        if(!category)return;
+        const content=document.createElement('div');
+        content.className='category-manage-menu';
+        const description=document.createElement('p');
+        description.textContent='Manage "'+name+'" without affecting other categories.';
+        content.append(description);
+        openModal('Manage category',content,[
+            {label:'Cancel',onClick:closeModal},
+            {label:'Edit',primary:true,onClick:()=>editCategory(name)},
+            {label:'Delete',danger:true,onClick:()=>deleteCategory(name)}
+        ]);
+    }
+    function editCategory(name){
+        const category=customCategories.find(c=>c.name===name);
+        if(!category)return;
+        const form=document.createElement('form');form.className='setupform category-edit-form';
+        const nameLabel=document.createElement('label');
+        nameLabel.textContent='Category name';
+        const input=document.createElement('input');input.type='text';input.maxLength=48;
+        input.value=name;input.required=true;nameLabel.append(input);
+        const groupLabel=document.createElement('label');
+        groupLabel.textContent='Budget group';
+        const groupSelect=document.createElement('select');
+        for(const [value,label] of [['pc','PC'],['setup','Setup'],['future','Future']]){
+            const option=document.createElement('option');option.value=value;option.textContent=label;
+            groupSelect.append(option);
+        }
+        groupSelect.value=category.group;
+        groupLabel.append(groupSelect);
+        const explanation=document.createElement('p');explanation.className='section-note';
+        explanation.textContent='Renaming keeps your products, images and purchase history. Changing the budget group changes which goal they count toward.';
+        form.append(nameLabel,groupLabel,explanation);
+        const notice=document.createElement('p');notice.className='status';
+        notice.setAttribute('role','status');form.append(notice);
+        function save(){
+            const updated=input.value.trim();
+            if(!updated){notice.textContent='Enter a category name.';return;}
+            const duplicate=builtinNames.concat(customCategories.filter(c=>c!==category).map(c=>c.name))
+                .some(candidate=>candidate.toLowerCase()===updated.toLowerCase());
+            if(duplicate){notice.textContent='This category name already exists.';return;}
+            const oldName=category.name;
+            category.name=updated;category.group=groupSelect.value;
+            for(const item of items){if(item.cat===oldName)item.cat=updated;}
+            if(filter===oldName)filter=updated;
+            if(contributionCategory===oldName)contributionCategory=updated;
+            refreshContributionCategories();
+            categoryOptions(el('newCategory'),updated);
+            renderFilters();render();persist();renderCategoryTokens();closeModal();
+        }
+        form.onsubmit=e=>{e.preventDefault();save();};
+        openModal('Edit category',form,[
+            {label:'Cancel',onClick:closeModal},
+            {label:'Save changes',primary:true,onClick:save}
+        ]);
+        input.focus();
+    }
+    function attachCategoryLongPress(button,name){
+        let timer=null,startX=0,startY=0,pressed=false,suppressUntil=0;
+        const cancel=()=>{if(timer!==null)clearTimeout(timer);timer=null;};
+        button.addEventListener('pointerdown',e=>{
+            if(e.pointerType==='mouse'&&e.button!==0)return;
+            cancel();pressed=true;startX=e.clientX;startY=e.clientY;
+            timer=setTimeout(()=>{
+                timer=null;
+                if(!pressed)return;
+                suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            },CATEGORY_HOLD_MS);
+        });
+        button.addEventListener('pointermove',e=>{
+            if(Math.abs(e.clientX-startX)>12||Math.abs(e.clientY-startY)>12)cancel();
+        });
+        button.addEventListener('pointerup',()=>{pressed=false;cancel();});
+        button.addEventListener('pointercancel',()=>{pressed=false;cancel();});
+        button.addEventListener('lostpointercapture',()=>{pressed=false;cancel();});
+        button.addEventListener('contextmenu',e=>{
+            e.preventDefault();pressed=false;cancel();
+            if(Date.now()>suppressUntil){
+                suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            }
+        });
+        button.addEventListener('keydown',e=>{
+            if((e.shiftKey&&e.key==='F10')||e.key==='ContextMenu'){
+                e.preventDefault();e.stopPropagation();suppressUntil=Date.now()+1000;
+                categoryActionMenu(name);
+            }
+        });
+        return ()=>Date.now()<suppressUntil;
+    }
     function renderCategoryTokens(){
         const root=el('categoryManagement');root.replaceChildren();
         ['All'].concat(builtinNames,customCategories.map(c=>c.name)).forEach(name=>{
             const row=document.createElement('div');row.className='category-row';
-            const b=document.createElement('button');b.type='button';
-            b.className='category-token'+(filter===name?' is-active':'');
-            b.textContent=name+' · '+(name==='All'?items.length:items.filter(i=>i.cat===name).length);
-            b.onclick=()=>{
+            const button=document.createElement('button');button.type='button';
+            button.className='category-token'+(filter===name?' is-active':'');
+            button.textContent=name+' · '+(name==='All'?items.length:items.filter(i=>i.cat===name).length);
+            const editable=customCategories.some(c=>c.name===name);
+            const shouldSuppress=editable?attachCategoryLongPress(button,name):()=>false;
+            if(editable){
+                button.classList.add('category-hold-action');
+                button.setAttribute('aria-label',name+' category. Tap to filter, long press to edit or delete.');
+                button.title='Hold to edit or delete';
+            }
+            button.onclick=()=>{
+                if(shouldSuppress())return;
                 if(categoryGroup(name)==='future')future.checked=true;
                 filter=name;renderFilters();render();persist();
             };
-            row.append(b);
-            if(customCategories.some(c=>c.name===name)){
-                const remove=document.createElement('button');
-                remove.type='button';remove.className='category-delete';
-                remove.setAttribute('aria-label','Delete category '+name);
-                remove.title='Delete '+name;remove.innerHTML=trashIcon;
-                remove.onclick=()=>deleteCategory(name);
-                row.append(remove);
-            }
+            row.append(button);
             root.append(row);
         });
+        const add=document.createElement('button');
+        add.type='button';add.className='category-add';add.textContent='+';
+        add.setAttribute('aria-label','Add category');
+        add.onclick=()=>{if(window.openCategorySheet)window.openCategorySheet();};
+        root.append(add);
     }
     function deleteCategory(name) {
         const category=customCategories.find(c=>c.name===name);
@@ -248,10 +348,12 @@
             const index=customCategories.findIndex(c=>c.name===name);
             if(index>=0)customCategories.splice(index,1);
             if(filter===name)filter='All';
+            if(contributionScope==='category'&&contributionCategory===name)contributionCategory='Setup';
+            refreshContributionCategories();
             renderFilters();render();persist();closeModal();
         }
         if(!affected.length){
-            if(confirm('Delete empty custom category "'+name+'"?'))finalize();
+            window.glassConfirm('Delete empty custom category "'+name+'"?').then(ok=>{if(ok)finalize();});
             return;
         }
         const container=document.createElement('div');
@@ -269,7 +371,7 @@
         builtinNames.concat(customCategories.map(c=>c.name)).filter(c=>c!==name).forEach(c=>{
             const option=document.createElement('option');option.value=c;option.textContent=c;target.append(option);
         });
-        target.value='Accessory';container.append(target);
+        target.value='Setup';container.append(target);
         container.addEventListener('change',()=>{target.hidden=!move.checked;});
         const warning=document.createElement('p');warning.className='section-note';
         warning.textContent='Deleting products also removes their images and notes from this preset. Moving them retains all product details but changes their budget category.';
@@ -281,7 +383,7 @@
                     if(!target.value)return alert('Select a destination category.');
                     affected.forEach(i=>i.cat=target.value);
                 } else {
-                    if(!confirm('Permanently delete all '+affected.length+' products in "'+name+'"?'))return;
+                    if(!await window.glassConfirm('Permanently delete all '+affected.length+' products in "'+name+'"?'))return;
                     for(const item of affected)await removeItem(item.id);
                 }
                 finalize();
@@ -298,9 +400,9 @@
 
     el('termsButton').onclick=()=>openModal('Terms & Conditions',el('introTermsCopy').innerHTML,[{label:'Close',primary:true,onClick:closeModal}]);
     el('aboutButton').onclick=()=>openModal('About',
-        '<p><strong>My PC & Gaming Setup Checklist · v1.4.2</strong></p>'+
+        '<p><strong>Setup Checklist · v1.8.0</strong></p>'+
         '<p>Create separate setup presets, organize PC products, save photos, track unpurchased items, and watch your remaining savings goal decrease when items are marked purchased.</p>'+
-        '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p><p>Welcome background photo sourced from Unsplash.</p>',
+        '<p>This is a device-local planner. It does not provide an online account or automatic cloud sync.</p>',
         [{label:'Close',primary:true,onClick:closeModal}]);
     function openCurrencyPicker(){
         const wrapper=document.createElement('div');
@@ -317,9 +419,9 @@
                 const b=document.createElement('button');b.type='button';b.className='currency-option';
                 b.textContent=code+' — '+currencyName(code)+(code===currentCurrency?' ✓':'');
                 if(code===currentCurrency)b.classList.add('currency-selected');
-                b.onclick=()=>{
+                b.onclick=async()=>{
                     if(code===currentCurrency){closeModal();return;}
-                    if(!confirm('Change this preset from '+currentCurrency+' to '+code+'? Existing prices and savings numbers will NOT be converted. You must edit them manually.'))return;
+                    if(!await window.glassConfirm('Change this preset from '+currentCurrency+' to '+code+'? Existing prices and savings numbers will NOT be converted. You must edit them manually.'))return;
                     setPresetCurrency(code);closeModal();displayName();
                 };
                 list.append(b);
@@ -372,7 +474,7 @@
         section('General');
         action('Currency  ·  '+currentCurrency+'    →',openCurrencyPicker);
         selectSetting('Item sorting',sortOrder,[
-            ['default','Custom / added order'],['name','Name · A to Z'],
+            ['default','Custom / added order'],['priority','Priority · highest first'],['name','Name · A to Z'],
             ['price-asc','Price · low to high'],['price-desc','Price · high to low']
         ],value=>{sortOrder=value;render();persist();},'Only changes how products appear. Prices and data stay unchanged.');
         toggle('Show product pictures',showProductImages,value=>{showProductImages=value;render();persist();});
@@ -478,7 +580,9 @@
         }
         async function copyText(text){
             try {
-                if(navigator.clipboard && typeof navigator.clipboard.writeText==='function'){
+                if(window.AndroidClipboard && typeof window.AndroidClipboard.copy==='function'){
+                    if(!window.AndroidClipboard.copy(text))throw new Error('Android clipboard unavailable');
+                } else if(navigator.clipboard && typeof navigator.clipboard.writeText==='function'){
                     await navigator.clipboard.writeText(text);
                 }else{
                     const temp=document.createElement('textarea');
@@ -538,8 +642,8 @@
                     }),
                     commentButton('Copy',()=>copyText(message(entry))),
                     commentButton('Email Aryaan',()=>emailAryaan(message(entry))),
-                    commentButton('Delete',()=>{
-                        if(!confirm('Delete this saved feedback comment from the app?'))return;
+                    commentButton('Delete',async()=>{
+                        if(!await window.glassConfirm('Delete this saved feedback comment from the app?'))return;
                         try {
                             store.remove(entry.id);
                             if(editingId===entry.id)clearDraft();

@@ -28,7 +28,7 @@ function pureFunction(name,extra={}){
 const eligibleSwipe=pureFunction('eligibleSwipe');
 const blockedSwipeTarget=pureFunction('blockedSwipeTarget');
 const selectedText=pureFunction('selectedText');
-const atEdge=pureFunction('atEdge',{pages:['tracker','items','summary']});
+const atEdge=pureFunction('atEdge',{pages:['tracker','items','summary','planner']});
 const resistedOffset=pureFunction('resistedOffset',{viewportWidth:360,atEdge});
 
 test('Instagram-like swipes register with a short fast flick or a reasonable drag',()=>{
@@ -46,10 +46,10 @@ test('Instagram-like swipes register with a short fast flick or a reasonable dra
 });
 test('First and last tab resist overscroll without moving the entire app',()=>{
     assert.equal(atEdge(0,30),true);
-    assert.equal(atEdge(2,-30),true);
+    assert.equal(atEdge(3,-30),true);
     assert.equal(atEdge(1,30),false);
     assert.equal(resistedOffset(0,200),22);
-    assert.equal(resistedOffset(2,-200),-22);
+    assert.equal(resistedOffset(3,-200),-22);
     assert.equal(resistedOffset(1,-85),-85);
     assert.equal(resistedOffset(1,85),85);
     assert.equal(resistedOffset(1,500),360);
@@ -58,7 +58,7 @@ test('Page navigation uses independent scroll panels and one synchronized tab so
     assert.equal(blockedSwipeTarget({closest:()=>false}),false);
     assert.equal(blockedSwipeTarget({closest:()=>true}),true);
     assert.equal(blockedSwipeTarget(null),true);
-    assert.match(ui,/const pages=\['tracker','items','summary'\]/);
+    assert.match(ui,/const pages=\['tracker','items','summary','planner'\]/);
     assert.match(ui,/window\.goToPage\(pages\[target\]\)/);
     assert.match(ui,/window\.syncSwipePages=page=>/);
     assert.match(ui,/updatePageAccessibility\(index\)/);
@@ -126,10 +126,10 @@ test('New controls initialize after existing app/shell/onboarding; no signing or
     const positions=scripts.map(name=>html.indexOf('<script src="'+name+'"></script>'));
     assert.ok(positions.every(v=>v>0));
     assert.ok(positions.every((v,i)=>i===0||v>positions[i-1]));
-    assert.match(gradle,/versionCode 7/);
-    assert.match(gradle,/versionName '1\.4\.2'/);
+    assert.match(gradle,/versionCode 13/);
+    assert.match(gradle,/versionName '1\.8\.0'/);
     assert.match(gradle,/applicationIdSuffix '\.community'/);
-    assert.match(gradle,/applicationIdSuffix '\.preview142swipe'/);
+    assert.match(gradle,/applicationIdSuffix '\.preview18smart'/);
 });
 
 test('Blue is the primary accent for picker, buttons, selection, progress and onboarding',()=>{

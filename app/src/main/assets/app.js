@@ -16,7 +16,9 @@ const fmt = n => {
 // Release builds start empty. Historical v1.3 presets are migrated from
 // previously persisted per-item overrides, not from bundled personal data.
 const originalItems = [];
-const SORT_ORDERS=['default','name','price-asc','price-desc'];
+const SORT_ORDERS=['default','priority','name','price-asc','price-desc'];
+const ITEM_PRIORITIES=['high','medium','low'];
+const validTargetMonth=value=>typeof value==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 const PURCHASE_VIEWS=['all','to-buy','purchased'];
 const STORAGE_KEY = 'pc-gaming-setup-app-v2';
 const PRESET_INDEX_KEY = 'pc-gaming-presets-v3';
@@ -41,7 +43,7 @@ function photoStorageKey(id) {return activePresetId==='preset-1'?id:activePreset
 function photoFallbackKey(id) {return 'pc-setup-photo-'+photoStorageKey(id);}
 
 const $ = id => document.getElementById(id);
-const BUILTIN = {PC:'pc',Monitor:'setup',Desk:'setup',Accessory:'setup',Chair:'setup',Future:'future'};
+const BUILTIN = {PC:'pc',Setup:'setup',Future:'future'};
 const builtinNames = Object.keys(BUILTIN);
 function safePrice(value) {return Math.max(0,Math.round((Number(value)||0)*1000)/1000);}
 function validUrl(value) {
@@ -77,6 +79,18 @@ if (Array.isArray(savedState.categories)) {
         customCategories.push({name,group});
     });
 }
+// Upgrade historical named built-ins into user-editable categories. New installs
+// get only PC, Setup and Future; saved categories and products are preserved.
+function migrateLegacyCategories(state){
+    const raw=[...Object.values(state.overrides||{}),...(Array.isArray(state.customItems)?state.customItems:[])];
+    for(const item of raw){
+        const cat=String(item&&item.cat||'');
+        if(['Monitor','Desk','Accessory','Chair'].includes(cat)&&
+           !customCategories.some(x=>x.name===cat))
+            customCategories.push({name:cat,group:'setup'});
+    }
+}
+migrateLegacyCategories(savedState);
 const originalIds = new Set(originalItems.map(x => x.id));
 const deletedIds = new Set(Array.isArray(savedState.deletedIds)?savedState.deletedIds.map(String):[]);
 if(blankPreset)items.splice(0,items.length);
@@ -90,9 +104,12 @@ function normalizeProduct(raw) {
     if (!raw || typeof raw !== 'object') return null;
     const id=String(raw.id||'').slice(0,90), name=String(raw.name||'').trim().slice(0,180);
     if (!id || !name) return null;
-    let cat=String(raw.cat||'Accessory');
-    if (!builtinNames.includes(cat) && !customCategories.some(c=>c.name===cat)) cat='Accessory';
-    return {id,name,price:safePrice(raw.price),cat,q:String(raw.q||name),url:validUrl(String(raw.url||'')) ? String(raw.url||'') : ''};
+    let cat=String(raw.cat||'Setup');
+    if (!builtinNames.includes(cat) && !customCategories.some(c=>c.name===cat)) cat='Setup';
+    return {id,name,price:safePrice(raw.price),cat,q:String(raw.q||name),
+        priority:ITEM_PRIORITIES.includes(raw.priority)?raw.priority:'medium',
+        targetMonth:validTargetMonth(raw.targetMonth)?raw.targetMonth:'',
+        url:validUrl(String(raw.url||'')) ? String(raw.url||'') : ''};
 }
 const newProducts = Array.isArray(savedState.customItems) ? savedState.customItems : [];
 const overrides = (savedState.overrides&&typeof savedState.overrides==='object')?savedState.overrides:{};
@@ -123,6 +140,8 @@ items.forEach(item=>{
     if (typeof v.url==='string' && validUrl(v.url)) item.url=v.url;
     if (typeof v.cat==='string' && (builtinNames.includes(v.cat)||customCategories.some(c=>c.name===v.cat))) item.cat=v.cat;
     if (typeof v.q==='string') item.q=v.q;
+    if (ITEM_PRIORITIES.includes(v.priority)) item.priority=v.priority;
+    if (validTargetMonth(v.targetMonth)) item.targetMonth=v.targetMonth;
 });
 function initialContribution(state) {
     // Community users start with no PC contribution. A saved or imported
@@ -133,6 +152,8 @@ function initialContribution(state) {
 }
 let contributed=initialContribution(savedState);
 let contributionEdited=savedState.contributionEdited===true;
+let contributionScope=['pc','nonpc','all','category'].includes(savedState.contributionScope)?savedState.contributionScope:'pc';
+let contributionCategory=String(savedState.contributionCategory||'Setup');
 let filter = 'All';
 const future=$('future'), filtersEl=$('filters'), itemsEl=$('items');
 const photoCache=new Map();
@@ -255,10 +276,10 @@ function persist() {
     const state={
         checked,notes,blankPreset,currency:currentCurrency,deletedIds:[...deletedIds],
         sortOrder,purchaseView,showProductImages,
-        overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url}])),
+        overrides:Object.fromEntries(items.map(i=>[i.id,{name:i.name,price:i.price,cat:i.cat,q:i.q,url:i.url,priority:i.priority,targetMonth:i.targetMonth}])),
         customItems:items.filter(i=>!originalIds.has(i.id)),
         categories:customCategories,
-        contributed,contributionEdited,
+        contributed,contributionEdited,contributionScope,contributionCategory,
         saved:$('saved').value,
         future:future.checked,
         filter
@@ -288,9 +309,22 @@ function renderFilters() {
     });
     categoryOptions($('newCategory'),$('newCategory').value || 'PC');
 }
+function refreshContributionCategories(){
+    const select=$('contributionCategory'),wrap=$('contributionCategoryWrap');
+    if(!select||!wrap)return;
+    select.replaceChildren();
+    for(const name of builtinNames.concat(customCategories.map(c=>c.name))){
+        const option=document.createElement('option');option.value=name;option.textContent=name;select.append(option);
+    }
+    if(![...select.options].some(o=>o.value===contributionCategory))contributionCategory='Setup';
+    select.value=contributionCategory;
+    wrap.hidden=contributionScope!=='category';
+}
 function restoreControls() {
     $('saved').value=savedState.saved===undefined?'0':String(safePrice(savedState.saved));
     $('contributed').value=String(contributed);
+    $('contributionScope').value=contributionScope;
+    refreshContributionCategories();
     future.checked=!!savedState.future;
     const available=['All'].concat(builtinNames,customCategories.map(c=>c.name));
     filter=available.includes(savedState.filter)?savedState.filter:'All';
@@ -308,28 +342,56 @@ function displayPhoto(img,id) {
 }
 function buildEditForm(item,card,button) {
     const existing=card.querySelector('.editform');
-    if (existing){existing.remove();button.textContent='Edit item';return;}
+    if(existing){existing.remove();card.classList.remove('is-editing');button.textContent='Edit product';return;}
     const form=document.createElement('form');
-    form.className='editform';
-    form.innerHTML='<label>Product name<input name="name" maxlength="180" required></label>'+
+    form.className='editform glass-edit-form';
+    form.innerHTML='<div class="edit-form-heading"><span class="eyebrow">UPDATE YOUR PRODUCT</span><p>Refine the details without losing your purchase history.</p></div>'+
+        '<label>Product name<input name="name" maxlength="180" required></label>'+
         '<label>Price ('+currentCurrency+')<input name="price" type="number" min="0" step="any" required></label>'+
-        '<label>Listing URL<input name="url" type="url" placeholder="https://..."></label>'+
-        '<label>Category<select name="cat"></select></label>'+
-        '<label>Change product picture<input name="photo" type="file" accept="image/*"></label>'+
-        '<div class="itemtools"><button type="button" class="removePhoto">Remove picture</button>'+
-        '<button type="submit" class="active">Save changes</button><button type="button" class="cancelEdit">Cancel</button><button type="button" class="deleteItem">Delete item</button></div><div class="status" role="status"></div>';
+        '<label>Listing URL<input name="url" type="url" placeholder="https://store.com/product"></label>'+
+        '<div class="edit-form-pair"><label>Category<select name="cat"></select></label>'+
+        '<label>Priority<select name="priority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label></div>'+
+        '<label>Target month (optional)<input name="targetMonth" type="month" data-month-picker="true"></label>'+
+        '<label class="glass-image-upload"><span class="glass-image-preview" aria-hidden="true">▧</span><span class="glass-upload-copy"><strong>Product picture</strong><small>Tap to upload or replace</small></span><span class="glass-upload-action">Choose</span><input name="photo" type="file" accept="image/*"></label>'+
+        '<p class="glass-upload-state" role="status"></p>'+
+        '<button type="submit" class="edit-save-primary">Save changes</button>'+
+        '<div class="edit-secondary-actions"><button type="button" class="cancelEdit">Cancel</button><button type="button" class="removePhoto">Remove image</button></div>'+
+        '<button type="button" class="deleteItem">Delete product</button><div class="status" role="status"></div>';
     const name=form.querySelector('[name=name]'),price=form.querySelector('[name=price]'),
         url=form.querySelector('[name=url]'),cat=form.querySelector('[name=cat]'),
-        photo=form.querySelector('[name=photo]'),status=form.querySelector('.status');
-    name.value=item.name;price.value=item.price;url.value=item.url||'';categoryOptions(cat,item.cat);
+        photo=form.querySelector('[name=photo]'),status=form.querySelector('.status'),priority=form.querySelector('[name=priority]'),targetMonth=form.querySelector('[name=targetMonth]');
+    name.value=item.name;price.value=item.price;url.value=item.url||'';categoryOptions(cat,item.cat);priority.value=item.priority||'medium';targetMonth.value=item.targetMonth||'';
     let removeRequested=false;
+    const previewLabel=form.querySelector('.glass-image-preview');
+    const uploadState=form.querySelector('.glass-upload-state');
+    if(typeof getPhoto==='function'){
+        getPhoto(item.id).then(existingPhoto=>{
+            if(!existingPhoto||!form.isConnected)return;
+            const img=document.createElement('img');img.src=existingPhoto.url;img.alt='';
+            previewLabel.replaceChildren(img);
+            uploadState.textContent='Current picture attached';
+        }).catch(()=>{});
+    }
+    photo.addEventListener('change',()=>{
+        if(!photo.files.length)return;
+        removeRequested=false;
+        uploadState.textContent='Selected: '+photo.files[0].name;
+        const blobUrl=URL.createObjectURL(photo.files[0]);
+        const img=document.createElement('img');img.src=blobUrl;img.alt='';
+        img.onload=()=>URL.revokeObjectURL(blobUrl);
+        previewLabel.replaceChildren(img);
+    });
     form.querySelector('.removePhoto').onclick=()=>{
-        removeRequested=true;photo.value='';status.textContent='Picture will be removed when you save.';
+        removeRequested=true;photo.value='';previewLabel.textContent='▧';uploadState.textContent='Picture will be removed when you save.';
     };
-    form.querySelector('.cancelEdit').onclick=()=>{form.remove();button.textContent='Edit item';};
+    form.querySelector('.cancelEdit').onclick=()=>{
+        form.remove();card.classList.remove('is-editing');button.textContent='Edit product';
+        if(typeof window.openItemDetails==='function')window.openItemDetails(item.id);
+        else if(typeof window.closePremiumSheet==='function')window.closePremiumSheet();
+    };
     form.querySelector('.deleteItem').onclick=async()=>{
-        if(!confirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
-        try{await removeItem(item.id);persist();render();}
+        if(!await window.glassConfirm('Permanently delete "'+item.name+'" from this preset? Its picture, checkmark and notes will also be removed.'))return;
+        try{await removeItem(item.id);persist();render();window.dispatchEvent(new Event('item-saved'));}
         catch(err){status.textContent='Could not delete product: '+err.message;}
     };
     form.onsubmit=async e=>{
@@ -342,14 +404,16 @@ function buildEditForm(item,card,button) {
         try {
             if (photo.files.length) await savePhoto(item.id,await shrinkImage(photo.files[0]));
             else if (removeRequested) await removePhoto(item.id);
-            item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;
+            item.name=nextName;item.price=safePrice(price.value);item.url=nextUrl;item.cat=cat.value;item.priority=priority.value;item.targetMonth=validTargetMonth(targetMonth.value)?targetMonth.value:'';
             persist();render();
+            window.dispatchEvent(new Event('item-saved'));
         } catch(err) {
             status.textContent=err.message||'Could not save picture.';
             submit.disabled=false;
         }
     };
     card.append(form);
+    card.classList.add('is-editing');
     button.textContent='Close editor';
 }
 async function removeItem(id) {
@@ -386,21 +450,28 @@ function renderPurchaseViews(){
 }
 function render() {
     itemsEl.innerHTML='';
+    const search=($('searchProducts')?$('searchProducts').value:'').trim().toLocaleLowerCase();
     renderPurchaseViews();
     const visibleItems=[...items];
+    if(sortOrder==='priority')visibleItems.sort((a,b)=>{
+        const rank={high:0,medium:1,low:2};
+        return (rank[a.priority]??1)-(rank[b.priority]??1) ||
+            (a.targetMonth||'9999-12').localeCompare(b.targetMonth||'9999-12');
+    });
     if(sortOrder==='name')visibleItems.sort((a,b)=>a.name.localeCompare(b.name));
     else if(sortOrder==='price-asc')visibleItems.sort((a,b)=>a.price-b.price);
     else if(sortOrder==='price-desc')visibleItems.sort((a,b)=>b.price-a.price);
     visibleItems.forEach(item=>{
         const purchased=!!checked[item.id];
         if(filter!=='All' && item.cat!==filter)return;
+        if(search && !(item.name+' '+item.cat+' '+(notes[item.id]||'')).toLocaleLowerCase().includes(search))return;
         // Purchased future items remain visible in purchase history even when
         // the optional future-purchases list is hidden for regular browsing.
         if(categoryGroup(item.cat)==='future' && !future.checked && purchaseView!=='purchased')return;
         if(purchaseView==='purchased'&&!purchased)return;
         if(purchaseView==='to-buy'&&purchased)return;
         const card=document.createElement('section');
-        card.className='item'+(purchased?' is-purchased':'');
+        card.className='item'+(purchased?' is-purchased':'')+(!showProductImages?' no-image':'');
         const head=document.createElement('div');head.className='itemhead';
         const checkbox=document.createElement('input');
         checkbox.type='checkbox';checkbox.checked=purchased;
@@ -411,10 +482,19 @@ function render() {
         const tag=document.createElement('div');tag.className='tag';
         tag.textContent=categoryGroup(item.cat)==='future'?'Future purchase · '+item.cat:item.cat;
         const price=document.createElement('div');price.className='price';price.textContent=fmt(item.price);
+        const meta=document.createElement('div');meta.className='product-meta';
+        const priority=document.createElement('span');priority.className='priority-chip priority-'+(item.priority||'medium');
+        priority.textContent=(item.priority||'medium').toUpperCase();
+        meta.append(priority);
+        if(item.targetMonth){
+            const date=document.createElement('span');date.className='target-chip';
+            const today=new Date(),key=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+            date.textContent=item.targetMonth===key?'This month':item.targetMonth;meta.append(date);
+        }
         const state=document.createElement('span');
         state.className='purchase-status'+(purchased?' purchased':' to-buy');
         state.textContent=purchased?'Purchased':'To buy';
-        content.append(title,tag,price,state);head.append(checkbox,content);card.append(head);
+        content.append(tag,title,price,meta,state);head.append(checkbox,content);card.append(head);
         checkbox.onchange=()=>{
             checked[item.id]=checkbox.checked;
             // Recompute all budget totals and move the product between the
@@ -422,67 +502,84 @@ function render() {
             render();
             persist();
         };
-        const actions=document.createElement('div');actions.className='itemtools';
-        const edit=document.createElement('button');edit.type='button';
-        edit.textContent='Edit item';edit.className='editbtn';
-        edit.onclick=()=>buildEditForm(item,card,edit);actions.append(edit);
-        card.append(actions);
+        card.tabIndex=0;
+        card.classList.add('product-open-card');
+        card.setAttribute('aria-label','View '+item.name+' details');
+        const openDetails=()=>{if(typeof window.openItemDetails==='function')window.openItemDetails(item.id);};
+        card.addEventListener('click',event=>{
+            if(event.target.closest('input,button,textarea,a,select,details,summary,label'))return;
+            openDetails();
+        });
+        card.addEventListener('keydown',event=>{
+            if(event.target!==card)return;
+            if(event.key==='Enter'||event.key===' '){event.preventDefault();openDetails();}
+        });
         const image=document.createElement('img');image.loading='lazy';
         image.dataset.productId=item.id;
         image.alt=item.name+' picture';image.src=productIllustration(item);
-        if(showProductImages){card.append(image);displayPhoto(image,item.id);}
-        if (item.url && validUrl(item.url)) {
-            const link=document.createElement('a');
-            link.href=item.url;link.target='_self';link.rel='noopener noreferrer';
-            link.textContent='Open product listing';
-            link.style.display='inline-block';link.style.margin='4px 0 10px';
-            card.append(link);
-        }
-        const note=document.createElement('textarea');
-        note.placeholder='Add notes, seller, warranty, link, or deal details...';
-        note.value=notes[item.id]||'';
-        note.setAttribute('aria-label','Notes for '+item.name);
-        note.oninput=()=>{notes[item.id]=note.value;persist();};
-        card.append(note);itemsEl.append(card);
+        if(showProductImages){card.insertBefore(image,head);displayPhoto(image,item.id);}
+        itemsEl.append(card);
     });
     renderStats();
 }
-function pcRemaining(pcTotal,contribution){
+function pcRemaining(pcTotal,contribution) {
     return Math.max(0,safePrice(pcTotal)-safePrice(contribution));
 }
-function totals() {
-    // A checkmark means the purchase is complete: its price is retained
-    // in product history, but not included in the remaining spend or savings.
-    const unpurchased=items.filter(i=>!checked[i.id]);
-    const purchased=items.filter(i=>!!checked[i.id]);
-    const sum=fn=>unpurchased.filter(fn).reduce((a,i)=>a+safePrice(i.price),0);
-    const pc=sum(i=>categoryGroup(i.cat)==='pc');
-    // The PC contribution is the amount still available for future PC
-    // purchases; users must adjust it if they spend that money.
-    const share=pcRemaining(pc,contributed);
-    const main=sum(i=>i.cat==='Monitor');
-    const desk=sum(i=>i.cat==='Desk'||i.cat==='Accessory');
-    const chair=sum(i=>i.cat==='Chair');
-    const other=sum(i=>categoryGroup(i.cat)==='setup'&&!['Monitor','Desk','Accessory','Chair'].includes(i.cat));
-    const futureTotal=sum(i=>categoryGroup(i.cat)==='future');
-    const currentGoal=share+main+desk+chair+other;
-    const full=pc+main+desk+chair+other+futureTotal;
-    const purchasedTotal=purchased.reduce((a,i)=>a+safePrice(i.price),0);
-    const currentItems=items.filter(i=>categoryGroup(i.cat)!=='future');
-    const purchasedCurrent=currentItems.filter(i=>!!checked[i.id]).length;
-    const remainingCurrent=currentItems.length-purchasedCurrent;
-    return {pc,contributed,share,main,desk,chair,other,futureTotal,
-        currentGoal,full,purchasedTotal,purchasedCount:purchased.length,
-        remainingCount:unpurchased.length,purchasedCurrent,remainingCurrent};
+function totals(){
+    const t=BudgetModel.compute(items,checked,categoryGroup,contributed,contributionScope,contributionCategory);
+    // Compatibility with historical summary hooks, now replaced with dynamic rows.
+    const total=name=>t.rows.filter(x=>x.name===name).reduce((v,r)=>v+r.remaining,0);
+    return {...t,main:total('Monitor'),desk:total('Desk')+total('Accessory'),
+       chair:total('Chair'),other:t.setup-total('Monitor')-total('Desk')-total('Accessory')-total('Chair')};
 }
 function renderStats() {
     if($('newPriceCurrency'))$('newPriceCurrency').textContent=currentCurrency;
     if($('contributedCurrency'))$('contributedCurrency').textContent=currentCurrency;
     const t=totals();
-    $('pcTotal').textContent=fmt(t.pc);$('dadContribution').textContent=fmt(t.contributed);
+    $('pcTotal').textContent=fmt(t.rows.filter(r=>r.group==='pc').reduce((x,r)=>x+r.total,0));$('dadContribution').textContent=fmt(t.contributed);
+    const list=$('dynamicCategoryTotals');
+    if(list){
+        list.replaceChildren();
+        for(const r of t.rows){
+            const row=document.createElement('div');
+            row.className='row summaryline';
+            const label=document.createElement('span'),value=document.createElement('strong');
+            label.textContent=r.name+(r.group==='future'?' · Future':'');
+            value.textContent=fmt(r.remaining);
+            row.append(label,value);list.append(row);
+        }
+        if(!t.rows.length){
+            const empty=document.createElement('p');empty.className='muted small';
+            empty.textContent='Add products to see your breakdown.';list.append(empty);
+        }
+    }
+    const unallocated=$('contributionUnused');
+    if(unallocated)unallocated.textContent=t.unallocated>0?'Unallocated contribution: '+fmt(t.unallocated):'';
+    const categorySelect=$('contributionCategory');
+    if(categorySelect&&categorySelect.options.length!==builtinNames.length+customCategories.length)
+        refreshContributionCategories();
     $('purchasedTotal').textContent=fmt(t.purchasedTotal);
     $('purchasedCount').textContent=t.purchasedCount+' item'+(t.purchasedCount===1?'':'s');
     $('toBuyCount').textContent=t.remainingCount+' item'+(t.remainingCount===1?'':'s');
+    if($('summarySpent'))$('summarySpent').textContent=fmt(t.purchasedTotal);
+    if($('summarySaved'))$('summarySaved').textContent=fmt(safePrice($('saved').value));
+    if($('dashboardPurchased'))$('dashboardPurchased').textContent=fmt(t.purchasedTotal);
+    if($('dashboardRemainingItems'))$('dashboardRemainingItems').textContent=String(t.remainingCurrent);
+    if($('dashboardSaved'))$('dashboardSaved').textContent=fmt(safePrice($('saved').value));
+    const candidates=items.filter(i=>!checked[i.id]&&categoryGroup(i.cat)!=='future');
+    const priorityRank={high:0,medium:1,low:2};
+    candidates.sort((a,b)=>(priorityRank[a.priority]??1)-(priorityRank[b.priority]??1) ||
+        (a.targetMonth||'9999-12').localeCompare(b.targetMonth||'9999-12'));
+    const pick=candidates[0],next=$('nextPurchase');
+    if(next){
+        next.hidden=!pick;
+        if(pick){
+            $('nextPurchaseName').textContent=pick.name;
+            $('nextPurchasePrice').textContent=fmt(pick.price);
+            $('nextPurchaseCategory').textContent=pick.cat+' · '+(pick.priority||'medium')+' priority';
+            next.onclick=()=>{if(window.openItemDetails)window.openItemDetails(pick.id);else if(window.goToPage)window.goToPage('items');};
+        }
+    }
     const note=$('contributionMessage');
     if(note){
         note.textContent=t.pc===0
@@ -497,6 +594,43 @@ function renderStats() {
     $('fullTotal').textContent=fmt(t.full);$('goalLabel').textContent=fmt(t.currentGoal);
     $('otherTotal').textContent=fmt(t.other);$('otherRow').hidden=t.other===0;
     const amount=safePrice($('saved').value),remaining=Math.max(0,t.currentGoal-amount);
+    const pctGoal=t.currentGoal?Math.min(100,amount/t.currentGoal*100):0;
+    const ring=$('summaryRing');
+    if(ring){
+        ring.style.setProperty('--pct',pctGoal+'%');
+        $('summaryRingPercent').textContent=Math.round(pctGoal)+'%';
+        $('summaryRingGoal').textContent=fmt(remaining);
+    }
+    const groups=$('dashboardGroups');
+    if(groups){
+        groups.replaceChildren();
+        for(const group of ['pc','setup','future']){
+            const active=items.filter(i=>categoryGroup(i.cat)===group);
+            const bought=active.filter(i=>checked[i.id]).length;
+            const tile=document.createElement('button');tile.type='button';tile.className='group-tile';
+            const tileHeader=document.createElement('span');tileHeader.className='group-tile-header';
+            const glyph=document.createElement('span');glyph.className='panel-icon';
+            const glyphSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+            glyphSvg.setAttribute('viewBox','0 0 24 24');
+            glyphSvg.setAttribute('aria-hidden','true');
+            const use=document.createElementNS('http://www.w3.org/2000/svg','use');
+            use.setAttribute('href','#ui-'+({pc:'cpu',setup:'monitor',future:'rocket'}[group]));
+            glyphSvg.append(use);glyph.append(glyphSvg);
+            const title=document.createElement('strong');title.textContent=group.toUpperCase();
+            tileHeader.append(glyph,title);
+            const count=document.createElement('small');count.textContent=bought+'/'+active.length+' purchased';
+            const line=document.createElement('span');line.className='group-line';
+            line.style.width=(active.length?Math.max(8,Math.round(bought/active.length*100)):8)+'%';
+            tile.append(tileHeader,count,line);
+            tile.onclick=()=>{
+                filter=group==='pc'?'PC':group==='setup'?'Setup':'Future';
+                if(group==='future')future.checked=true;
+                renderFilters();render();persist();
+                if(window.goToPage)window.goToPage('items');
+            };
+            groups.append(tile);
+        }
+    }
     const pct=t.currentGoal?Math.min(100,amount/t.currentGoal*100):0;
     $('savedLabel').textContent=fmt(amount);
     $('progress').max=Math.max(1,t.currentGoal);
@@ -519,30 +653,54 @@ $('categoryForm').onsubmit=e=>{
     categoryOptions($('newCategory'),name);
     render();persist();
     $('catMessage').textContent='Category added: '+name;
+    refreshContributionCategories();
+    window.dispatchEvent(new CustomEvent('category-created',{detail:{name}}));
 };
 $('addProductForm').onsubmit=async e=>{
     e.preventDefault();
     const form=$('addProductForm'),name=$('newName').value.trim(),price=$('newPrice').value;
     const url=$('newUrl').value.trim(),cat=$('newCategory').value;
-    if (!name) return alert('Enter a product name.');
+    if(!name){
+        if(window.SetupProductUI)window.SetupProductUI.requireManual('Product name is missing. Add it below.');
+        return alert('Enter the product name before saving.');
+    }
+    if(price===''||!Number.isFinite(Number(price))||Number(price)<0){
+        if(window.SetupProductUI)window.SetupProductUI.requireManual('Price is missing or invalid. Enter it below.');
+        return alert('Enter a valid product price.');
+    }
     if (!validUrl(url))return alert('Use an https:// or http:// product link.');
     const id='custom-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
     const submit=form.querySelector('[type=submit]');submit.disabled=true;
     $('addMessage').textContent='Adding product...';
     try {
         if($('newPhoto').files.length) await savePhoto(id,await shrinkImage($('newPhoto').files[0]));
-        items.push({id,name:name.slice(0,180),price:safePrice(price),url,cat,q:name.slice(0,180)});
+        else if(window.ProductLinkImport&&window.ProductLinkImport.photoFor(url))
+            await savePhoto(id,window.ProductLinkImport.photoFor(url));
+        items.push({id,name:name.slice(0,180),price:safePrice(price),url,cat,q:name.slice(0,180),
+            priority:ITEM_PRIORITIES.includes($('newPriority').value)?$('newPriority').value:'medium',
+            targetMonth:validTargetMonth($('newTargetMonth').value)?$('newTargetMonth').value:''});
+        if($('newPurchased').checked)checked[id]=true;
         const selected=cat;
         form.reset();
+        $('newPriority').dispatchEvent(new Event('change',{bubbles:true}));
         renderFilters();
         categoryOptions($('newCategory'),selected);
         filter='All';renderFilters();persist();render();
-        $('addMessage').textContent='Product added. It is now in your checklist!';
+        $('addMessage').textContent='Product added.';
+        window.dispatchEvent(new Event('product-created'));
     } catch(err) {
         $('addMessage').textContent=err.message||'Could not add the product.';
     } finally { submit.disabled=false; }
 };
 future.onchange=()=>{render();persist();};
+if($('searchProducts'))$('searchProducts').addEventListener('input',render);
+$('contributionScope').addEventListener('change',event=>{
+    contributionScope=event.target.value;
+    refreshContributionCategories();renderStats();persist();
+});
+$('contributionCategory').addEventListener('change',event=>{
+    contributionCategory=event.target.value;renderStats();persist();
+});
 $('saved').oninput=()=>{renderStats();persist();};
 function syncPCContribution() {
     const input=$('contributed');
@@ -561,7 +719,7 @@ $('contributed').addEventListener('change',()=>{
     syncPCContribution();
 });
 function copyText() {
-    return 'MY PC & GAMING SETUP CHECKLIST\nAvailable PC contribution: '+fmt(contributed)+
+    return 'MY PC & GAMING SETUP CHECKLIST\nAvailable contribution ('+contributionScope+'): '+fmt(contributed)+
         '\nPC left to save: '+fmt(totals().share)+'\nRemaining savings target: '+fmt(totals().currentGoal)+
         '\nAlready purchased: '+fmt(totals().purchasedTotal)+'\nStill to buy: '+fmt(totals().full)+'\n\n'+
         items.map(i=>(checked[i.id]?'[x] ':'[ ] ')+i.name+' — '+fmt(i.price)+
@@ -569,16 +727,28 @@ function copyText() {
         '\n\nSaved toward remaining goal: '+fmt(safePrice($('saved').value));
 }
 $('copy').onclick=async()=>{
-    try {await navigator.clipboard.writeText(copyText());}
-    catch(_){
-        const txt=document.createElement('textarea');txt.value=copyText();
-        document.body.append(txt);txt.select();document.execCommand('copy');txt.remove();
+    const btn=$('copy');
+    try {
+        if(window.AndroidClipboard&&typeof AndroidClipboard.copy==='function'){
+            if(!AndroidClipboard.copy(copyText()))throw new Error('Native clipboard unavailable');
+        }else if(navigator.clipboard&&navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(copyText());
+        }else{
+            const field=document.createElement('textarea');
+            field.value=copyText();field.style.position='fixed';field.style.opacity='0';
+            document.body.append(field);field.focus();field.select();
+            const ok=document.execCommand('copy');field.remove();
+            if(!ok)throw new Error('Clipboard unavailable');
+        }
+        btn.textContent='Copied';
+    }catch(error){
+        btn.textContent='Copy unavailable';
+        alert('Could not copy to clipboard on this device.');
     }
-    $('copy').textContent='Copied!';
-    setTimeout(()=>$('copy').textContent='Copy checklist + notes',1600);
+    setTimeout(()=>btn.textContent='Copy checklist + notes',1600);
 };
-$('reset').onclick=()=>{
-    if(!confirm('Clear your checkmarks, notes and savings tracker? Products, prices, pictures, categories and contributions will be kept.'))return;
+$('reset').onclick=async()=>{
+    if(!await window.glassConfirm('Clear your checkmarks, notes and savings tracker? Products, prices, pictures, categories and contributions will be kept.'))return;
     Object.keys(checked).forEach(id=>delete checked[id]);
     Object.keys(notes).forEach(id=>delete notes[id]);
     $('saved').value='0';
@@ -593,8 +763,8 @@ $('export').onclick=async()=>{
             const photo=await getPhoto(item.id);
             if (photo && photo.blob) photos[item.id]=await blobToData(photo.blob);
         }
-        const data={version:4,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
-            deletedIds:[...deletedIds],blankPreset,contributed,saved:$('saved').value,future:future.checked,filter,photos};
+        const data={version:5,items,checked,notes,categories:customCategories,currency:currentCurrency,sortOrder,purchaseView,showProductImages,
+            deletedIds:[...deletedIds],blankPreset,contributed,contributionScope,contributionCategory,planner:window.PersonalPlanner?window.PersonalPlanner.exportState():null,saved:$('saved').value,future:future.checked,filter,photos};
         const backupText=JSON.stringify(data,null,2);
         if(window.AndroidBackup && typeof window.AndroidBackup.saveJson==='function') {
             window.AndroidBackup.saveJson(backupText);
@@ -614,7 +784,7 @@ $('importFile').onchange=async e=>{
     try {
         const data=JSON.parse(await file.text());
         if(!Array.isArray(data.items))throw Error('Invalid backup file.');
-        if(!confirm('Import this backup? It will replace your current list, edits and savings.'))return;
+        if(!await window.glassConfirm('Import this backup? It will replace your current list, edits and savings.'))return;
         customCategories.splice(0);
         if(Array.isArray(data.categories)){
             data.categories.forEach(cat=>{
@@ -625,6 +795,7 @@ $('importFile').onchange=async e=>{
                 customCategories.push({name,group:cat.group});
             });
         }
+        migrateLegacyCategories({customItems:data.items});
         const byId=new Map();
         data.items.forEach(raw=>{
             const item=normalizeProduct(raw);
@@ -647,6 +818,11 @@ $('importFile').onchange=async e=>{
         showProductImages=data.showProductImages!==false;
         contributionEdited=data.contributed!==undefined;
         contributed=initialContribution({contributed:data.contributed,contributionEdited,blankPreset,customItems:restored});
+        contributionScope=['pc','nonpc','all','category'].includes(data.contributionScope)?data.contributionScope:'pc';
+        contributionCategory=String(data.contributionCategory||'Setup');
+        $('contributionScope').value=contributionScope;
+        refreshContributionCategories();
+        if(data.planner&&window.PersonalPlanner&&await window.glassConfirm('Restore the global salary planner from this backup? This replaces the planner currently stored on this device.'))window.PersonalPlanner.importState(data.planner);
         $('contributed').value=contributed;
         $('saved').value=safePrice(data.saved);
         future.checked=!!data.future;
@@ -658,6 +834,7 @@ $('importFile').onchange=async e=>{
             }
         }
         renderFilters();persist();render();
+        window.dispatchEvent(new Event('backup-restored'));
         alert('Backup imported successfully into this preset.');
     } catch(err){alert('Could not import backup: '+(err.message||'Invalid data'));}
     e.target.value='';
@@ -689,6 +866,7 @@ function loadPresetIntoApp(id) {
         if(name&& !builtinNames.concat(customCategories.map(x=>x.name)).some(x=>x.toLowerCase()===name.toLowerCase()))
             customCategories.push({name,group:c.group});
     });
+    migrateLegacyCategories(state);
     items.splice(0,items.length,...hydrateProducts(state));
     for(const key of Object.keys(checked))delete checked[key];
     for(const key of Object.keys(notes))delete notes[key];
@@ -696,6 +874,9 @@ function loadPresetIntoApp(id) {
     if(state.notes && typeof state.notes==='object')Object.assign(notes,state.notes);
     contributionEdited=state.contributionEdited===true;
     contributed=initialContribution({...state,blankPreset});
+    contributionScope=['pc','nonpc','all','category'].includes(state.contributionScope)?state.contributionScope:'pc';
+    contributionCategory=String(state.contributionCategory||'Setup');
+    $('contributionScope').value=contributionScope;refreshContributionCategories();
     $('contributed').value=String(contributed);
     $('saved').value=String(safePrice(state.saved));
     future.checked=!!state.future;

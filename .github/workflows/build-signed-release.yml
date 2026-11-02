@@ -33,18 +33,16 @@ jobs:
 
       - name: Validate app source
         run: |
+          node --check app/src/main/assets/budget-model.js
+          node --check app/src/main/assets/planner.js
+          node --check app/src/main/assets/premium-v15.js
+          node --check app/src/main/assets/design-v16.js
+          node --check app/src/main/assets/glass-v17.js
           node --check app/src/main/assets/app.js
           node --check app/src/main/assets/shell.js
           node --check app/src/main/assets/feedback-store.js
           node --check app/src/main/assets/onboarding.js
           node --test app/tests/*.test.cjs
-
-      - name: Download welcome artwork
-        run: |
-          curl --fail --location --retry 3 --max-time 40 \
-            'https://images.unsplash.com/photo-1642791401714-a0d4e02d4bb6?auto=format&fit=crop&w=960&h=1600&q=74' \
-            --output app/src/main/assets/welcome.jpg
-          test -s app/src/main/assets/welcome.jpg
 
       - name: Restore private release keystore
         shell: bash
@@ -82,13 +80,13 @@ jobs:
           APK="app/build/outputs/apk/release/app-release.apk"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.aryaan.pcsetup.community'"
-          cp "$APK" "PC-Gaming-Setup-Checklist-v1.4.2-signed.apk"
+          cp "$APK" "PC-Gaming-Setup-Checklist-v1.8.0-signed.apk"
 
       - name: Upload signed release APK
         uses: actions/upload-artifact@v4
         with:
-          name: PC-Gaming-Setup-Checklist-v1.4.2-SIGNED
-          path: PC-Gaming-Setup-Checklist-v1.4.2-signed.apk
+          name: PC-Gaming-Setup-Checklist-v1.8.0-SIGNED
+          path: PC-Gaming-Setup-Checklist-v1.8.0-signed.apk
           if-no-files-found: error
           retention-days: 60
 

@@ -20,9 +20,9 @@ android {
         applicationId 'com.aryaan.pcsetup'
         minSdk 23
         targetSdk 35
-        versionCode 7
-        versionName '1.4.2'
-        manifestPlaceholders = [appLabel: 'PC & Gaming Checklist']
+        versionCode 13
+        versionName '1.8.0'
+        manifestPlaceholders = [appLabel: 'Setup Checklist']
     }
 
     signingConfigs {
@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview142swipe'
-                manifestPlaceholders = [appLabel: 'PC Checklist Swipe Preview']
+                applicationIdSuffix '.preview18smart'
+                manifestPlaceholders = [appLabel: 'Setup Checklist 1.8 Preview']
             }
         }
         release {
@@ -48,7 +48,7 @@ android {
             // debug-signed private checklist. Future community updates MUST
             // retain this exact application ID and signing certificate.
             applicationIdSuffix '.community'
-            manifestPlaceholders = [appLabel: 'PC Setup Checklist']
+            manifestPlaceholders = [appLabel: 'Setup Checklist']
             minifyEnabled false
             if (hasReleaseSigning) {
                 signingConfig signingConfigs.community

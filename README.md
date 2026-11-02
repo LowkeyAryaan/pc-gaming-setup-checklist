@@ -12,6 +12,57 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.8 smart product creation and premium product details
+
+- Tap anywhere on a product card to open its detailed glass sheet; the old Details button and inline item notes are removed. Purchase checkbox remains separately actionable.
+- Open product listing is a real, full-width glass action button inside product details.
+- Product editing opens a separate premium glass sheet with purpose-designed upload control, image preview, clear Save/Cancel/Delete priorities and custom target month selection.
+- Add Product initially shows only link, category, priority and optional target month. Product name, price and picture are auto-detected when a store exposes them; edit details can be expanded manually at any time and automatically opens when detection fails or is incomplete.
+- Add Category now offers styled budget-group choice cards, keeping its existing budget accounting.
+- Summary has a stronger goal hero, savings/purchased cards, clearer category breakdown and reorganized backup actions. Values continue to come from the same local budgeting model.
+- Month selection uses refined curved dark glass cards. No new paid infrastructure or remote accounts.
+- Existing in-app storage model remains compatible. This preview installs with a new package identifier so earlier preview installations are not overwritten; export/import a backup to move their locally saved records.
+
+## v1.7.2 alignment, image and category management fixes
+
+- Connected edge-to-edge glass header and consistent two-column / three-column dashboard card grid, including safe clearance above the bottom dock.
+- Custom category chips have no visible trash action. Tap to filter, hold for 550 ms to open the Edit/Delete glass menu. Keyboard users can press Shift+F10. PC, Setup and Future remain protected.
+- Editing a custom category preserves its products, photos and purchases. Users can rename or change its budget group; deleting with products offers safe reassignment.
+- Product link import now tries multiple published JSON-LD, OG, Twitter and product-gallery image URLs before falling back to manual image upload. It does not bypass retailer restrictions.
+
+## v1.7 Setup Checklist · liquid-glass refinement
+
+- **New identity:** Setup Checklist label, connected PC monogram in-app and on the Android launcher. Existing production package identity and signing remain unchanged.
+- **Controlled glass surfaces:** Floating rounded top bar and bottom dock, restrained translucency and glow, curved controls/cards, glass sheets, confirmation dialogs, Settings and Feedback; Android platform file-selection UI remains system-controlled.
+- **Onboarding:** Currency and terms screens restyled dark charcoal/lime; welcome CTA and creator credit separated for breathing room.
+- **No permanent floating add button:** Product creation stays at the top of Items and inside the category/product sheets.
+- **Native month replacement:** Month/year chooser uses a dark, in-app glass popup for both the monthly planner and product target dates.
+- **Product link assistance:** Pasting a public HTTPS product link starts an optional native metadata lookup. It extracts JSON-LD/Open Graph title, price and a small product photo where the store permits; manual fields stay editable. Never assume all retailers expose the price or permit public downloads; the feature does not defeat anti-bot mechanisms.
+- **Currency safety:** A detected price in a different currency is NOT silently converted or applied.
+- **Privacy and budgets:** Saved presets and planner data stay device-local, and the importer does not use paid APIs, cookies or seller credentials. Export backups before uninstalling.
+
+## v1.6 approved design and product planning
+
+- Artistic abstract ribbon A brand mark on the welcome, header and Android launcher.
+- Charcoal/acid-lime UI with lightweight transitions, progress ring, quick add, preset tiles and focused product details.
+- Product priority (High, Medium, Low), optional target purchase month and purchased-on-create.
+- Search products by name/category/note and sort by priority from Settings.
+- Next Purchase shows the highest-priority unpurchased current-goal product, then the earliest target month; it is a suggested planning order, not a compatibility recommendation.
+- Planner Salary and Savings tabs reuse the existing local monthly data. Backup import is accessible from welcome.
+- Existing presets, categories, contribution amounts and photos retain their saved identity and values.
+
+## v1.5 planner and interface refresh
+
+- **Four sections:** Tracker, Items, Summary and a new monthly financial Planner.
+- **Fast welcome transition:** composite-only handoff, reduced blur and shorter delay.
+- **Clean item workflow:** Add Product and Add Category open focused bottom sheets. The Tracker no longer contains item filters or creation forms.
+- **Custom categories:** PC, Setup and Future remain protected; all other categories (including migrated legacy categories) may be reassigned or deleted.
+- **Flexible contribution allocation:** PC only, everything except PC, everything or a named category. Available contribution is separate from ordinary savings and prioritizes current purchases over Future.
+- **Global monthly planner:** salary, fixed and variable expenses, planned savings, actual savings and month-by-month history. The planner never automatically treats income as savings or transfers it into preset Tracker funds.
+- **Android clipboard:** native bridge for copying checklists and feedback reliably.
+
+Existing per-preset data is retained, including purchased items and original product photos. Local backups now use schema version 5 and can optionally restore the global planner. The planner uses a single currency fixed at first setup; changing a preset currency does not convert the global planner.
+
 ## Features
 
 - **Multiple presets:** separate PC and gaming setups, each with its own products, budgets, categories and photos.

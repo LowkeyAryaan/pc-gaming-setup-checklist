@@ -20,6 +20,9 @@ import android.webkit.JavascriptInterface;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebChromeClient;
@@ -47,10 +50,10 @@ public class MainActivity extends Activity {
         // The splash disappears only after the webpage has painted its real
         // welcome/onboarding screen, avoiding a flash of the checklist.
         activityRoot = new FrameLayout(this);
-        activityRoot.setBackgroundColor(Color.rgb(8, 14, 27));
+        activityRoot.setBackgroundColor(Color.rgb(11, 14, 11));
         instantWelcome = buildInstantWelcome();
         web = new WebView(this);
-        web.setBackgroundColor(Color.rgb(8, 14, 27));
+        web.setBackgroundColor(Color.rgb(11, 14, 11));
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -59,6 +62,8 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new StartupBridge(), "AndroidStartup");
         web.addJavascriptInterface(new BackupBridge(), "AndroidBackup");
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
+        web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
+        web.addJavascriptInterface(new ProductLookupBridge(), "AndroidProductLookup");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -108,25 +113,13 @@ public class MainActivity extends Activity {
 
     private FrameLayout buildInstantWelcome() {
         FrameLayout stage = new FrameLayout(this);
-        stage.setBackgroundColor(Color.rgb(8, 14, 27));
+        stage.setBackgroundColor(Color.rgb(11, 14, 11));
 
-        try (InputStream in = getAssets().open("welcome.jpg")) {
-            Bitmap background = BitmapFactory.decodeStream(in);
-            if (background != null) {
-                ImageView photo = new ImageView(this);
-                photo.setImageBitmap(background);
-                photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                stage.addView(photo, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            }
-        } catch (Exception ignored) {
-            // Offline fallback: the same dark background as the HTML welcome.
-        }
-
+        // Render a lightweight branded native cover while HTML initializes.
         View shade = new View(this);
         shade.setBackground(new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0x3A050A14, 0x88050A14, 0xFA060D1B}));
+                new int[]{0xFF0B0E0B, 0xFF142013, 0xFF090C09}));
         stage.addView(shade, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -135,15 +128,15 @@ public class MainActivity extends Activity {
         content.setGravity(Gravity.CENTER_HORIZONTAL);
 
         TextView kicker = new TextView(this);
-        kicker.setText("PLAN  ·  TRACK  ·  BUILD");
+        kicker.setText("SETUP CHECKLIST");
         kicker.setTextSize(11);
-        kicker.setTextColor(Color.rgb(163, 249, 202));
+        kicker.setTextColor(0xFFBAFF43);
         kicker.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         kicker.setGravity(Gravity.CENTER);
         content.addView(kicker);
 
         TextView title = new TextView(this);
-        title.setText("My PC &\nGaming Setup");
+        title.setText("Plan. Save.\nBuild.");
         title.setTextSize(34);
         title.setTextColor(Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -154,7 +147,7 @@ public class MainActivity extends Activity {
         content.addView(title, titleParams);
 
         TextView tagline = new TextView(this);
-        tagline.setText("Your dream build starts here.");
+        tagline.setText("Make every upgrade count.");
         tagline.setTextSize(14);
         tagline.setTextColor(0xFFD1DBE6);
         tagline.setGravity(Gravity.CENTER);
@@ -164,14 +157,14 @@ public class MainActivity extends Activity {
         content.addView(tagline, tagParams);
 
         TextView buttonVisual = new TextView(this);
-        buttonVisual.setText("Let's build your dream setup!");
+        buttonVisual.setText("Get Started");
         buttonVisual.setTextSize(15);
         buttonVisual.setTextColor(0xFF08201A);
         buttonVisual.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         buttonVisual.setGravity(Gravity.CENTER);
         GradientDrawable buttonBackground = new GradientDrawable();
-        buttonBackground.setColor(0xFF79F4AA);
-        buttonBackground.setCornerRadius(dp(15));
+        buttonBackground.setColor(0xFFBAFF43);
+        buttonBackground.setCornerRadius(dp(28));
         buttonVisual.setBackground(buttonBackground);
         LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(56));
@@ -237,6 +230,39 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             });
+        }
+    }
+
+    private class ProductLookupBridge {
+        @JavascriptInterface
+        public void lookup(String url, String requestId) {
+            if (url == null || requestId == null || url.length() > 2048 ||
+                    !requestId.matches("[0-9]{1,12}")) return;
+            new Thread(() -> {
+                String result = ProductPageReader.read(url).toString();
+                runOnUiThread(() -> {
+                    if (web == null) return;
+                    String js = "window.ProductLinkImport && window.ProductLinkImport.receive(" +
+                        org.json.JSONObject.quote(requestId) + "," +
+                        org.json.JSONObject.quote(result) + ");";
+                    web.evaluateJavascript(js, null);
+                });
+            }, "setup-product-metadata").start();
+        }
+    }
+
+    private class ClipboardBridge {
+        @JavascriptInterface
+        public boolean copy(String text) {
+            if (text == null || text.length() > 250000) return false;
+            try {
+                ClipboardManager clipboard=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) return false;
+                clipboard.setPrimaryClip(ClipData.newPlainText("Checklist", text));
+                return true;
+            } catch (Exception error) {
+                return false;
+            }
         }
     }
 
