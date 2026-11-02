@@ -63,6 +63,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new BackupBridge(), "AndroidBackup");
         web.addJavascriptInterface(new FeedbackBridge(), "AndroidFeedback");
         web.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
+        web.addJavascriptInterface(new ProductLookupBridge(), "AndroidProductLookup");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -229,6 +230,24 @@ public class MainActivity extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             });
+        }
+    }
+
+    private class ProductLookupBridge {
+        @JavascriptInterface
+        public void lookup(String url, String requestId) {
+            if (url == null || requestId == null || url.length() > 2048 ||
+                    !requestId.matches("[0-9]{1,12}")) return;
+            new Thread(() -> {
+                String result = ProductPageReader.read(url).toString();
+                runOnUiThread(() -> {
+                    if (web == null) return;
+                    String js = "window.ProductLinkImport && window.ProductLinkImport.receive(" +
+                        org.json.JSONObject.quote(requestId) + "," +
+                        org.json.JSONObject.quote(result) + ");";
+                    web.evaluateJavascript(js, null);
+                });
+            }, "setup-product-metadata").start();
         }
     }
 
