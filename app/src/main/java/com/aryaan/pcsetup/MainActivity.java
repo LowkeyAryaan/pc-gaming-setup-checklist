@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     private FrameLayout activityRoot;
     private FrameLayout instantWelcome;
     private boolean webUiReady = false;
+    private boolean hasResumedBefore = false;
     private static final int FILE_PICKER_REQUEST = 9002;
     private static final int BACKUP_SAVE_REQUEST = 9003;
     private String pendingBackupJson;
@@ -367,11 +368,22 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Reopening an existing process counts as an app opening as well.
+        // The JS controller throttles quick back-and-forth transitions.
+        if(hasResumedBefore && web!=null)
+            web.evaluateJavascript("window.dispatchEvent(new Event('setup-app-resumed'));",null);
+        hasResumedBefore=true;
+    }
+
+    @Override
     protected void onDestroy() {
         if (filePickerCallback != null) {
             filePickerCallback.onReceiveValue(null);
             filePickerCallback = null;
         }
+        pricePool.shutdownNow();
         super.onDestroy();
     }
 
