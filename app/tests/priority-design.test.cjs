@@ -56,7 +56,7 @@ test('Design introduces actual actions and prioritization inputs',()=>{
  for(const id of ['searchProducts','newPriority','newTargetMonth','newPurchased','nextPurchase','summaryRing','itemDetailSheet','plannerSalaryTab','plannerSavingsTab','welcomeBackup'])assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(premium,/window\.openItemDetails=/);
  assert.match(premium,/getPhoto\(item\.id\)/);
- assert.match(premium,/buildEditForm\(item,container,edit\)/);
+ assert.match(premium,/buildEditForm\(item,target,edit\)/);
  assert.match(premium,/checked\[item\.id\]=!checked\[item\.id\]/);
  assert.match(read('premium-v15.js'),/openProductSheet/);
 });
@@ -165,5 +165,43 @@ test('Image metadata fetch retries alternate gallery sources while respecting si
  assert.match(source,/imageMessage/);
  assert.match(source,/if\(attempts\+\+>=8\)break/);
  assert.match(importer,/data\.imageMessage/);
- assert.match(importer,/Choose a photo manually|upload one manually/i);
+ assert.match(importer,/can upload a photo|image unavailable/i);
+});
+
+test('Product cards open details directly, while purchase checkboxes stay independent',()=>{
+ assert.match(js,/card\.addEventListener\('click',event=>/);
+ assert.match(js,/openItemDetails\(item\.id\)/);
+ assert.match(js,/event\.target\.closest\('input,button,textarea,a,select,details,summary,label'\)/);
+ assert.doesNotMatch(js,/edit\.textContent='Details'/);
+ assert.match(premium,/detail-listing-button/);
+ assert.match(premium,/listing\.type='button'/);
+ assert.match(premium,/link\.click\(\)/);
+ assert.match(premium,/openEditSheet/);
+});
+test('Compact product creation only exposes link, category, priority, target month until detection is inaccurate',()=>{
+ const controls=read('glass-v17.js');
+ const glass=read('glass-v17.css');
+ assert.match(html,/id="addProductForm" class="setupform smart-add-form" novalidate/);
+ assert.match(html,/id="manualProductDetails" class="smart-manual-fields" hidden/);
+ assert.match(html,/id="toggleManualDetails"/);
+ assert.match(controls,/window\.SetupProductUI/);
+ assert.match(controls,/detectionComplete:complete/);
+ assert.match(controls,/if\(!complete\)showManual\(true\)/);
+ assert.match(js,/if\(window\.SetupProductUI\)window\.SetupProductUI\.requireManual/);
+ assert.match(glass,/\.smart-manual-fields\[hidden\]\{display:none!important\}/);
+ assert.match(html,/class="category-choice-grid"/);
+ assert.match(controls,/selectGroup\(group\)/);
+});
+test('Premium summary and edit sheet preserve financial values and manual image controls',()=>{
+ const glass=read('glass-v17.css');
+ assert.match(html,/id="summarySaved"/);
+ assert.match(html,/id="summarySpent"/);
+ assert.match(js,/\$\('summarySpent'\)\.textContent=fmt\(t\.purchasedTotal\)/);
+ assert.match(js,/\$\('summarySaved'\)\.textContent=fmt\(safePrice\(\$\('saved'\)\.value\)\)/);
+ assert.match(html,/id="editProductSheet"/);
+ assert.match(read('premium-v15.js'),/openEditSheet/);
+ assert.match(js,/glass-image-upload/);
+ assert.match(js,/edit-save-primary/);
+ assert.match(glass,/\.premium-summary-hero/);
+ assert.match(glass,/\.glass-product-editor/);
 });
