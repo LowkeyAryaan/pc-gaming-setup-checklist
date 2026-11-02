@@ -37,7 +37,7 @@
  });
  const guides={
    contribution:'This is money you have already set aside and still have available. Choose the categories it can pay for. Current items receive allocations before Future purchases. Marking an item purchased does not automatically withdraw your cash.',
-   category:'PC, Setup and Future are protected budget groups. Your own categories can be deleted. When a category contains products, choose whether to reassign or permanently remove them.',
+   category:'PC, Setup and Future are protected budget groups. Your own categories can be deleted. Tap a category to filter. Press and hold a custom category to Edit or Delete it. Deleting a category with products lets you move them first.',
    totals:'Purchased products remain in history but are excluded from remaining costs. The current savings goal excludes Future purchases. Contribution and ordinary savings are separate balances.',
    salary:'Monthly salary is income, not savings. Enter fixed expenses, variable expenses and planned savings. The remainder shows how much of your income is not yet allocated.',
    savings:'Actual savings are recorded independently of your monthly plan. They do not automatically increase the Tracker balance, avoiding accidental double counting.'
