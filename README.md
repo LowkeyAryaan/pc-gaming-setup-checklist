@@ -12,6 +12,17 @@ This is the official **signed v1.4.2 APK installer**, not a ZIP archive. It uses
 
 **Android 6.0 or later.** The app stores your products, savings, photos, and notes on your device. Export a JSON backup before uninstalling, resetting the app, or switching devices. Older test builds use a different package identity; install the community version alongside them and import your exported preset backups as needed.
 
+## v1.8 smart product creation and premium product details
+
+- Tap anywhere on a product card to open its detailed glass sheet; the old Details button and inline item notes are removed. Purchase checkbox remains separately actionable.
+- Open product listing is a real, full-width glass action button inside product details.
+- Product editing opens a separate premium glass sheet with purpose-designed upload control, image preview, clear Save/Cancel/Delete priorities and custom target month selection.
+- Add Product initially shows only link, category, priority and optional target month. Product name, price and picture are auto-detected when a store exposes them; edit details can be expanded manually at any time and automatically opens when detection fails or is incomplete.
+- Add Category now offers styled budget-group choice cards, keeping its existing budget accounting.
+- Summary has a stronger goal hero, savings/purchased cards, clearer category breakdown and reorganized backup actions. Values continue to come from the same local budgeting model.
+- Month selection uses refined curved dark glass cards. No new paid infrastructure or remote accounts.
+- Existing data, photos, purchase history, notes, categories and saved financial planner remain preserved.
+
 ## v1.7.2 alignment, image and category management fixes
 
 - Connected edge-to-edge glass header and consistent two-column / three-column dashboard card grid, including safe clearance above the bottom dock.
