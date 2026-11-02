@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title"><title id="title">PC Setup abstract ribbon A</title>
-<defs><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9fffa"/><stop offset=".49" stop-color="#c8d9cf"/><stop offset="1" stop-color="#7a8d86"/></linearGradient><linearGradient id="lime" x1="0" y1=".3" x2="1" y2="1"><stop stop-color="#e4ff7c"/><stop offset=".6" stop-color="#baff33"/><stop offset="1" stop-color="#68e891"/></linearGradient></defs>
-<path d="M46 190 120 73c12-20 23-30 39-30 21 0 35 17 35 37 0 11-4 21-12 32l-53 78" fill="none" stroke="url(#metal)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M149 190 207 105c12-18 14-36 3-51-7-10-17-16-29-17" fill="none" stroke="url(#lime)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M91 159c20-7 40-9 60-5" fill="none" stroke="url(#lime)" stroke-width="17" stroke-linecap="round"/>
-<path d="M39 199c13 1 22-3 29-12" fill="none" stroke="#baff33" stroke-width="8" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title"><title id="title">Setup Checklist PC monogram</title><defs><linearGradient id="edge" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#F8FFF0"/><stop offset="1" stop-color="#B8CCC0"/></linearGradient></defs><path d="M47 193V64h53c38 0 56 20 56 48s-18 48-56 48H47" fill="none" stroke="url(#edge)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M211 86c-12-17-28-25-50-25-38 0-63 29-63 67s25 67 63 67c22 0 38-8 50-25" fill="none" stroke="#B9FF46" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>
