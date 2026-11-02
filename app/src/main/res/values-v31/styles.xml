@@ -9,6 +9,6 @@
         <item name="android:statusBarColor">#090c0a</item>
         <item name="android:navigationBarColor">#090c0a</item>
         <item name="android:windowSplashScreenBackground">#090c0a</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_art</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/brand_icon</item>
     </style>
 </resources>
