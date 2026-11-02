@@ -12,6 +12,9 @@
    return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');
  };
  const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ const fullMonths=['January','February','March','April','May','June','July','August','September','October','November','December'];
+ const formatMonth=value=>validMonth(value)?fullMonths[Number(value.slice(5))-1]+' - '+value.slice(0,4):'Select month';
+ window.formatSetupMonth=formatMonth;
  const shade=document.createElement('div');
  shade.className='month-glass-sheet';shade.hidden=true;
  shade.setAttribute('aria-hidden','true');
@@ -72,18 +75,46 @@
  document.addEventListener('keydown',e=>{
    if(e.key==='Escape'&&!shade.hidden){e.preventDefault();e.stopImmediatePropagation();close();}
  },true);
+ const rawInputValue=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+ function refreshMonthLabel(input){
+   if(!input||!input._monthLabel)return;
+   const value=input.value;
+   const shown=formatMonth(value);
+   input._monthLabel.textContent=shown;
+   input.setAttribute('aria-valuetext',shown);
+   input._monthLabel.classList.toggle('is-placeholder',!validMonth(value));
+ }
+ window.refreshMonthLabels=()=>document.querySelectorAll('input[data-month-bound="true"]').forEach(refreshMonthLabel);
  function convertMonthInputs(root=document){
-   const inputs=root.querySelectorAll('input[type="month"],input[data-month-picker]');
+   const inputs=[];
+   if(root.matches&&root.matches('input[type="month"],input[data-month-picker]'))inputs.push(root);
+   if(root.querySelectorAll)inputs.push(...root.querySelectorAll('input[type="month"],input[data-month-picker]'));
    inputs.forEach(input=>{
-     if(input.dataset.monthBound==='true')return;
+     if(input.dataset.monthBound==='true'){refreshMonthLabel(input);return;}
+     const initial=input.value;
      input.dataset.monthBound='true';
      input.dataset.monthPicker='true';
      input.type='text';
      input.readOnly=true;
      input.inputMode='none';
-     input.placeholder='Select month';
+     input.value=initial;
      input.setAttribute('aria-haspopup','dialog');
      input.setAttribute('autocomplete','off');
+     input.placeholder='';
+     const wrapper=document.createElement('span');wrapper.className='month-display-wrap';
+     const label=document.createElement('span');label.className='month-field-value';
+     label.setAttribute('aria-hidden','true');
+     input.parentNode.insertBefore(wrapper,input);
+     wrapper.append(input,label);
+     input._monthLabel=label;
+     Object.defineProperty(input,'value',{
+       configurable:true,
+       get(){return rawInputValue.get.call(this);},
+       set(value){rawInputValue.set.call(this,value);refreshMonthLabel(this);}
+     });
+     input.addEventListener('change',()=>refreshMonthLabel(input));
+     input.addEventListener('input',()=>refreshMonthLabel(input));
+     refreshMonthLabel(input);
    });
  }
  convertMonthInputs();
