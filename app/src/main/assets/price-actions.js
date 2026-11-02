@@ -80,10 +80,15 @@
      shade.querySelector('.price-action-save').disabled=purchased;
      if(purchased)el('priceActionMessage').textContent='This product is purchased. Edit its historical price through Edit price or URL.';
    }else{
-     el('priceActionHeading').textContent='Price check unavailable';
-     el('priceActionExplanation').textContent=(record&&record.reason)||
-       'The store did not provide a verifiable price. Your saved amount was preserved.';
-     el('priceActionMessage').textContent='If retry fails, edit the saved price manually. Some shops block automated checks.';
+     const verified=['stable','increased','decreased'].includes(status);
+     el('priceActionHeading').textContent=verified?'Price checked':'Price check unavailable';
+     el('priceActionExplanation').textContent=verified?
+       'The store returned a verifiable '+currentCurrency+' price. The saved product price is '+fmt(product.price)+'.':
+       ((record&&record.reason)||
+       'The store did not provide a verifiable price. Your saved amount was preserved.');
+     el('priceActionMessage').textContent=verified?
+       'This product has a confirmed price. You can close this panel.':
+       'If retry fails, edit the saved price manually. Some shops block automated checks.';
    }
    shade.querySelector('.price-action-retry').disabled=
      !(product.url&&/^https:\/\//i.test(product.url));
