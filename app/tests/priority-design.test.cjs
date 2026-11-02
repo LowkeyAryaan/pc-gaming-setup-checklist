@@ -106,7 +106,7 @@ test('Setup Checklist rebrand and restrained glass design are connected',()=>{
  assert.match(glass,/\.intro-stage:not\(\.welcome\)/);
  assert.match(controls,/month-glass-sheet/);
  assert.match(controls,/window\.ProductLinkImport/);
- assert.match(gradle,/versionName '1\.7\.0'/);
+ assert.match(gradle,/versionName '1\.7\.1'/);
 });
 test('Product metadata lookup is bounded and keeps manual product control',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
@@ -122,4 +122,16 @@ test('Product metadata lookup is bounded and keeps manual product control',()=>{
  assert.match(html,/id="linkImportStatus"/);
  assert.match(html,/id="linkImportPreview"/);
  assert.match(js,/ProductLinkImport\.photoFor/);
+});
+
+test('Dashboard panels share a stable grid and header connects edge to edge',()=>{
+ const css=read('glass-v17.css');
+ assert.match(css,/\.app-topbar\{[\s\S]*?margin:0!important;width:100%!important/);
+ assert.match(css,/border-radius:0 0 28px 28px!important/);
+ assert.match(css,/#page-tracker>\.dashboard-stat-grid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/#page-tracker>\.group-overview\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(css,/#page-tracker \.group-tile\{[\s\S]*?grid-template-rows:minmax\(68px,1fr\) auto 6px/);
+ assert.match(css,/padding-bottom:calc\(var\(--app-tabs-h,84px\) \+ 55px\)/);
+ assert.match(css,/\.dashboard-count\{display:inline-flex!important;align-items:center;gap:5px/);
+ assert.doesNotMatch(css,/@media\(max-width:360px\)\{[^}]*\.app-topbar\{margin:8px/);
 });
