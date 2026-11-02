@@ -116,80 +116,35 @@ public class MainActivity extends Activity {
     }
 
     private FrameLayout buildInstantWelcome() {
+        // Fast, intentionally minimal native cover. Do not render a fake
+        // Get Started button: that would visibly jump to the HTML layout and
+        // look like a buffering / restarting welcome screen.
         FrameLayout stage = new FrameLayout(this);
-        stage.setBackgroundColor(Color.rgb(11, 14, 11));
-
-        // Render a lightweight branded native cover while HTML initializes.
-        View shade = new View(this);
-        shade.setBackground(new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0xFF0B0E0B, 0xFF142013, 0xFF090C09}));
-        stage.addView(shade, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
+        stage.setBackgroundColor(0xFF090C0A);
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        TextView kicker = new TextView(this);
-        kicker.setText("SETUP CHECKLIST");
-        kicker.setTextSize(11);
-        kicker.setTextColor(0xFFBAFF43);
-        kicker.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        kicker.setGravity(Gravity.CENTER);
-        content.addView(kicker);
-
-        TextView title = new TextView(this);
-        title.setText("Plan. Save.\nBuild.");
-        title.setTextSize(34);
-        title.setTextColor(Color.WHITE);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        titleParams.topMargin = dp(16);
-        content.addView(title, titleParams);
-
-        TextView tagline = new TextView(this);
-        tagline.setText("Make every upgrade count.");
-        tagline.setTextSize(14);
-        tagline.setTextColor(0xFFD1DBE6);
-        tagline.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams tagParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tagParams.topMargin = dp(12);
-        content.addView(tagline, tagParams);
-
-        TextView buttonVisual = new TextView(this);
-        buttonVisual.setText("Get Started");
-        buttonVisual.setTextSize(15);
-        buttonVisual.setTextColor(0xFF08201A);
-        buttonVisual.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        buttonVisual.setGravity(Gravity.CENTER);
-        GradientDrawable buttonBackground = new GradientDrawable();
-        buttonBackground.setColor(0xFFBAFF43);
-        buttonBackground.setCornerRadius(dp(28));
-        buttonVisual.setBackground(buttonBackground);
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(56));
-        buttonParams.topMargin = dp(22);
-        content.addView(buttonVisual, buttonParams);
-
-        TextView credit = new TextView(this);
-        credit.setText("Made by Aryaan  ·  @aryaan_creates");
-        credit.setTextSize(12);
-        credit.setGravity(Gravity.CENTER);
-        credit.setTextColor(0xFFCADCE8);
-        LinearLayout.LayoutParams creditParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        creditParams.topMargin = dp(20);
-        content.addView(credit, creditParams);
-
-        FrameLayout.LayoutParams bodyParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        bodyParams.setMargins(dp(24), 0, dp(24), dp(72));
-        stage.addView(content, bodyParams);
+        content.setGravity(Gravity.CENTER);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.ic_launcher_art);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams =
+            new LinearLayout.LayoutParams(dp(94), dp(94));
+        logoParams.gravity = Gravity.CENTER_HORIZONTAL;
+        content.addView(logo, logoParams);
+        TextView label = new TextView(this);
+        label.setText("SETUP CHECKLIST");
+        label.setTextSize(14);
+        label.setTextColor(0xFFF1F9E9);
+        label.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        label.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.gravity = Gravity.CENTER_HORIZONTAL;
+        labelParams.topMargin = dp(18);
+        content.addView(label, labelParams);
+        stage.addView(content, new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER));
         return stage;
     }
 
