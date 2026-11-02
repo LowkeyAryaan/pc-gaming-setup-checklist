@@ -118,11 +118,8 @@
    });
  }
  convertMonthInputs();
- // Initial product/finance rendering happens before this visual layer loads.
- // Refresh visible labels once without touching stored YYYY-MM month keys.
- if(window.PersonalPlanner&&typeof window.PersonalPlanner.render==='function')
-    window.PersonalPlanner.render();
- if(typeof render==='function')render();
+ // The initial app render already formats dates; do not rerender every
+ // product just because the glass stylesheet and month controls were added.
  const observer=new MutationObserver(changes=>{
    for(const change of changes){
      for(const added of change.addedNodes){
