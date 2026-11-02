@@ -160,7 +160,7 @@
      const currency=String(data.currency||'').toUpperCase();
      const mismatch=currency&&currency!==String(currentCurrency).toUpperCase();
      const detected=Number(data.price);
-     if(!mismatch&&data.price!==null&&data.price!==undefined&&Number.isFinite(detected)&&detected>=0&&(!priceInput.value.trim()||priceInput.value===autoprice)){
+     if(currency&&!mismatch&&data.price!==null&&data.price!==undefined&&Number.isFinite(detected)&&detected>=0&&(!priceInput.value.trim()||priceInput.value===autoprice)){
        priceInput.value=String(detected);autoprice=priceInput.value;
      }
      if(data.imageData&&/^data:image\/(jpeg|png|webp);base64,/i.test(data.imageData)){
@@ -176,6 +176,7 @@
        ((currency||currentCurrency)+' '+data.price):'Price not found');
      if(mismatch)setStatus('Store price is in '+currency+'; your preset uses '+currentCurrency+'. Enter the correct price manually.','warning');
      else if(data.price===null||data.price===undefined)setStatus('Product detected. Price unavailable; enter it manually.','warning');
+     else if(!currency)setStatus('The store did not specify its currency. Review the detected price and enter it manually.','warning');
      else setStatus('Product details detected. Review or edit before saving.','success');
    }
  };
