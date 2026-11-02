@@ -424,3 +424,75 @@ body.app-carousel-mode .app-content>.page{
 .month-glass-actions button{border-radius:17px!important}
 @media(max-width:360px){.summary-kpi{padding:16px 12px}.summary-kpi strong{font-size:.93rem}.item-detail-dialog .detail-attribute{padding:13px 5px!important}}
 @media(prefers-reduced-motion:reduce){.product-open-card{transition:none!important}}
+
+/* v1.8.1: consistent month labels and carefully sized input affordances. */
+.month-display-wrap{position:relative;display:block;min-width:0;width:100%;max-width:100%;flex:1 1 auto}
+.month-display-wrap input[data-month-picker]{
+ width:100%!important;max-width:100%!important;
+ color:transparent!important;-webkit-text-fill-color:transparent!important;
+ caret-color:transparent!important;text-shadow:none!important;
+ text-align:center!important;cursor:pointer!important;
+}
+.month-display-wrap .month-field-value{
+ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+ padding:0 9px;pointer-events:none;overflow:hidden;
+ white-space:nowrap;font-size:clamp(.75rem,3.3vw,.94rem)!important;
+ line-height:1.15;font-weight:620;letter-spacing:-.025em;color:#f1f9e9;
+}
+.month-display-wrap .month-field-value.is-placeholder{color:#9aa99a;font-weight:530}
+.month-control{align-items:center}
+.month-control .month-display-wrap{min-width:0;flex:1 1 auto}
+.glass-edit-form .month-display-wrap,.smart-add-form .month-display-wrap{width:100%}
+.smart-manual-fields .price-currency-label{
+ display:inline-flex!important;flex-wrap:nowrap!important;align-items:baseline;
+ white-space:nowrap!important;gap:.28em!important;min-width:0;width:max-content;
+ max-width:100%;font-size:.86rem;color:#c2d2bb
+}
+.smart-manual-fields .price-currency-label>span{display:inline!important;white-space:nowrap}
+#manualProductDetails .product-purchased-checkbox{
+ display:flex!important;flex-direction:row!important;justify-content:flex-start!important;
+ align-items:center!important;gap:10px!important;
+ padding:6px 0!important;min-height:27px!important;max-width:100%;
+ color:#d8e7d1;font-size:.84rem;line-height:1.25;
+}
+#manualProductDetails .product-purchased-checkbox input[type=checkbox]{
+ appearance:auto!important;-webkit-appearance:checkbox!important;accent-color:#bdff44!important;
+ display:inline-block!important;flex:0 0 18px!important;width:18px!important;height:18px!important;
+ min-width:18px!important;min-height:18px!important;max-width:18px!important;max-height:18px!important;
+ padding:0!important;margin:0!important;border-radius:5px!important;
+ box-shadow:none!important;transform:none!important;vertical-align:middle!important
+}
+.category-choice-grid{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:9px!important;align-items:stretch!important
+}
+.category-creation-form .category-choice-grid>button{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ gap:7px!important;width:100%!important;height:88px!important;min-height:88px!important;max-height:88px!important;
+ padding:9px 5px!important;text-align:center!important;border-radius:18px!important;line-height:1.25!important
+}
+.category-creation-form .category-choice-grid>button strong{
+ font-size:.88rem!important;line-height:1.2!important
+}
+.category-creation-form .category-choice-grid>button small{
+ font-size:.67rem!important;line-height:1.2!important;overflow-wrap:break-word
+}
+.setting-haptics{padding:13px 0!important}
+.setting-haptics input[type=checkbox]{
+ -webkit-appearance:none!important;appearance:none!important;
+ display:block!important;position:relative;width:47px!important;height:28px!important;min-width:47px!important;
+ min-height:28px!important;max-height:28px!important;flex-shrink:0!important;
+ border-radius:30px!important;border:1px solid rgba(219,255,211,.22)!important;
+ background:#334033!important;transition:background 150ms ease!important;cursor:pointer
+}
+.setting-haptics input[type=checkbox]:checked{
+ background:linear-gradient(130deg,#b2fa3e,#9deb48)!important;border-color:#beff63!important
+}
+.setting-haptics input[type=checkbox]:before{
+ content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;
+ background:#e4f2df;box-shadow:0 1px 5px rgba(0,0,0,.25);transition:transform 150ms ease
+}
+.setting-haptics input[type=checkbox]:checked:before{transform:translateX(18px);background:#17210e}
+@media(prefers-reduced-motion:reduce){
+ .setting-haptics input[type=checkbox],.setting-haptics input[type=checkbox]:before{transition:none!important}
+}
