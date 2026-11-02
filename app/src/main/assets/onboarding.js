@@ -99,6 +99,7 @@
             $id('menuButton').focus({preventScroll:true});
             cta.disabled=false;
             enteringApp=false;
+            window.dispatchEvent(new Event("setup-app-entered"));
         };
         const reduceMotion=window.matchMedia &&
             window.matchMedia('(prefers-reduced-motion: reduce)').matches;
