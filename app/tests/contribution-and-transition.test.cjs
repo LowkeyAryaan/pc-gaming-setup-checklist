@@ -90,7 +90,7 @@ test('Native clipboard bridge handles copying without falsely reporting success'
  assert.match(app,/Copy unavailable/);
 });
 test('Welcome animation uses a short handoff and honors reduced motion',()=>{
- assert.match(onboarding,/window\.setTimeout\(finish,300\)/);
+ assert.match(onboarding,/window\.setTimeout\(finish,260\)/);
  assert.match(onboarding,/prefers-reduced-motion: reduce/);
  assert.match(file('premium-v15.css'),/GPU-friendly welcome handoff/);
  assert.match(file('premium-v15.css'),/@media\(prefers-reduced-motion:reduce\)/);
