@@ -59,7 +59,8 @@ test('Updated goal uses the existing contribution model for positive and negativ
 });
 test('Unavailable does not imply stable and explains limitations',()=>{
  assert.match(watch,/unavailable:'\? Unavailable'/);
- assert.match(watch,/reason:String\(reason\|\|'Price unavailable'\)/);
+ assert.match(watch,/String\(reason\|\|'Price unavailable'\)\.slice/);
+ assert.match(watch,/status:selected!==null\?'variant-selected':'unavailable'/);
  assert.match(watch,/title='Last checked '/);
  assert.match(watch,/Store does not publish a verifiable currency/);
  const source=fs.readFileSync(path.join(__dirname,'../src/main/java/com/aryaan/pcsetup/ProductPageReader.java'),'utf8');
