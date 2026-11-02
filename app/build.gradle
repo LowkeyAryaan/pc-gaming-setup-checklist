@@ -20,8 +20,8 @@ android {
         applicationId 'com.aryaan.pcsetup'
         minSdk 23
         targetSdk 35
-        versionCode 13
-        versionName '1.8.0'
+        versionCode 14
+        versionName '1.8.1'
         manifestPlaceholders = [appLabel: 'Setup Checklist']
     }
 
@@ -39,8 +39,8 @@ android {
     buildTypes {
         debug {
             if (project.hasProperty('previewInstall')) {
-                applicationIdSuffix '.preview18smart'
-                manifestPlaceholders = [appLabel: 'Setup Checklist 1.8 Preview']
+                applicationIdSuffix '.preview181haptic'
+                manifestPlaceholders = [appLabel: 'Setup Checklist 1.8.1 Preview']
             }
         }
         release {
