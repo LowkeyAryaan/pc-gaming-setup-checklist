@@ -56,7 +56,7 @@
    x.setAttribute('aria-label','Close price changes');x.textContent='×';
    header.append(heading,x);
    const subtitle=document.createElement('p');subtitle.className='price-change-subtitle';
-   subtitle.textContent='Your remaining setup budget has been updated. Saved cash and purchased prices were not changed.';
+   subtitle.textContent='Verified unpurchased prices were updated. Your saved balance and purchased prices remain unchanged; unusually large changes need review.';
    const list=document.createElement('div');list.className='price-change-list';
    for(const change of changes.slice(0,16)){
      const row=document.createElement('div');row.className='price-change-row';
@@ -68,7 +68,8 @@
      const old=document.createElement('small');old.textContent=money(change.from);
      const arrow=document.createElement('strong');
      arrow.className=change.to<change.from?'watch-decreased':'watch-increased';
-     arrow.textContent=(change.to<change.from?'↓ ':'↑ ')+money(change.to);
+     arrow.textContent=(change.review?'! Review · ':(change.to<change.from?'↓ ':'↑ '))+money(change.to);
+     if(change.review)arrow.className='watch-review';
      values.append(old,arrow);row.append(label,values);list.append(row);
    }
    if(changes.length>16){
@@ -97,8 +98,12 @@
  function checkNow(options={}){
    if(!enabled&&!options.force)return;
    cancel();
-   const jobs=items.filter(item=>!checked[item.id] || options.includePurchased!==false)
-     .filter(item=>typeof item.url==='string'&&/^https:\/\/[^ \t\n]+$/i.test(item.url));
+   const linked=items.filter(item=>typeof item.url==='string'&&item.url.trim());
+   for(const item of linked){
+     if(!/^https:\/\/[^ \t\n]+$/i.test(item.url))
+       priceWatch[item.id]={status:'unavailable',url:item.url,checkedAt:today()};
+   }
+   const jobs=linked.filter(item=>/^https:\/\/[^ \t\n]+$/i.test(item.url));
    if(!jobs.length)return;
    if(!window.AndroidPriceWatch||typeof window.AndroidPriceWatch.checkBatch!=='function'){
      // Browser previews have no Android networking bridge.
@@ -167,8 +172,8 @@
        status:kind,url:item.url,checkedAt:stamp,observed,
        previous,sourceCurrency:currency
      };
-     if(kind==='increased'||kind==='decreased'){
-       run.changes.push({id,name:item.name,category:item.cat,from:previous,to:observed});
+     if(kind==='increased'||kind==='decreased'||kind==='review'){
+       run.changes.push({id,name:item.name,category:item.cat,from:previous,to:observed,review:suspicious});
      }
      if(!checked[id]&&!suspicious){
        item.price=safePrice(observed);
