@@ -176,4 +176,40 @@
    }
  };
  window.addEventListener('product-created',()=>window.ProductLinkImport.clear());
+ // Glass dialogs replace WebView's light native JavaScript alerts and confirms.
+ // Confirmations are asynchronous to keep the UI thread responsive.
+ let dialogBusy=false;
+ function glassDialog(message,ask){
+   return new Promise(resolve=>{
+     const overlay=document.createElement('div');
+     overlay.className='glass-dialog-shade';
+     const card=document.createElement('div');
+     card.className='glass-dialog-card';
+     card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
+     const heading=document.createElement('h2');heading.textContent=ask?'Confirm action':'Notice';
+     const body=document.createElement('p');body.textContent=String(message);
+     const actions=document.createElement('div');actions.className='glass-dialog-actions';
+     const prior=document.activeElement;
+     const finish=decision=>{
+       overlay.remove();dialogBusy=false;
+       if(prior&&prior.isConnected)prior.focus({preventScroll:true});
+       resolve(decision);
+     };
+     if(ask){
+       const cancel=document.createElement('button');cancel.type='button';
+       cancel.textContent='Cancel';cancel.onclick=()=>finish(false);actions.append(cancel);
+     }
+     const yes=document.createElement('button');yes.type='button';yes.className='primary';
+     yes.textContent=ask?'Confirm':'OK';yes.onclick=()=>finish(true);actions.append(yes);
+     const key=e=>{
+       if(e.key==='Escape'){e.preventDefault();e.stopPropagation();overlay.removeEventListener('keydown',key);finish(false);}
+     };
+     overlay.addEventListener('keydown',key,true);
+     overlay.append(card);card.append(heading,body,actions);
+     document.body.append(overlay);yes.focus({preventScroll:true});
+   });
+ }
+ window.glassConfirm=message=>glassDialog(message,true);
+ window.glassAlert=message=>glassDialog(message,false);
+ window.alert=message=>{window.glassAlert(message);};
 })();
