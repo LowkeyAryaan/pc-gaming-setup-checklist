@@ -99,7 +99,7 @@
        // Android WebView intercepts external navigation and opens the browser.
        const link=document.createElement('a');
        link.href=item.url;link.target='_self';link.rel='noopener noreferrer';
-       link.click();
+       document.body.append(link);link.click();link.remove();
      };
      container.insertBefore(listing,label);
    }
