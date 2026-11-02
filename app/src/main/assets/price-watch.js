@@ -114,7 +114,10 @@
      persist();refresh();return;
    }
    const token='pw'+Date.now()+'_'+(++serial);
-   const run={token,preset:activePresetId,expected:jobs.length,seen:new Set(),changes:[],failed:0,silent:!!options.silentIfUnchanged};
+   const run={token,preset:activePresetId,expected:jobs.length,seen:new Set(),
+     urls:new Map(jobs.map(item=>[item.id,item.url])),
+     originalPrices:new Map(jobs.map(item=>[item.id,item.price])),
+     changes:[],failed:0,silent:!!options.silentIfUnchanged};
    currentRun=run;
    for(const item of jobs){
      if(!priceWatch[item.id])priceWatch[item.id]={status:'checking'};
@@ -146,6 +149,16 @@
    const item=items.find(i=>i.id===id);
    if(!item)return;
    run.seen.add(id);
+   // A user may edit a URL or manual price before a delayed response arrives.
+   // Never apply data for an outdated listing or overwrite that manual edit.
+   if(item.url!==run.urls.get(id)||Number(item.price)!==Number(run.originalPrices.get(id))){
+     run.failed++;
+     if(run.seen.size===run.expected){
+       clearTimeout(run.timer);currentRun=null;
+       if(run.changes.length)showChanges(run.changes,run.failed);
+     }
+     return;
+   }
    let data=null;
    try{data=typeof raw==='string'?JSON.parse(raw):raw;}catch(_){}
    const observed=Number(data&&data.price);
