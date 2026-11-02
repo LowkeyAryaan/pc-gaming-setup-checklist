@@ -182,7 +182,20 @@ final class ProductPageReader {
     }
     private static java.util.LinkedHashSet<String> imageCandidates(String html,JSONObject product,String title){
         java.util.LinkedHashSet<String> links=new java.util.LinkedHashSet<>();
-        appendImage(links,imageFromProduct(product));
+        if(product!=null){
+            Object images=product.opt("image");
+            if(images instanceof JSONArray){
+                JSONArray array=(JSONArray)images;
+                for(int i=0;i<Math.min(array.length(),8);i++){
+                    Object candidate=array.opt(i);
+                    if(candidate instanceof JSONObject){
+                        JSONObject detail=(JSONObject)candidate;
+                        appendImage(links,first(nonempty(detail.optString("url")),
+                            nonempty(detail.optString("contentUrl"))));
+                    } else if(candidate instanceof String)appendImage(links,(String)candidate);
+                }
+            }else appendImage(links,imageFromProduct(product));
+        }
         for(String key:new String[]{"og:image:secure_url","og:image:url","og:image",
             "twitter:image:src","twitter:image","product:image","image","thumbnail"})
             appendImage(links,meta(html,key));
