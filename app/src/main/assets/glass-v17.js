@@ -238,8 +238,9 @@
      }
      const currency=String(data.currency||'').toUpperCase();
      const mismatch=currency&&currency!==String(currentCurrency).toUpperCase();
+     const rangeOnly=data.priceKind==='range'||data.priceKind==='starting-at';
      const detected=Number(data.price);
-     if(currency&&!mismatch&&data.price!==null&&data.price!==undefined&&Number.isFinite(detected)&&detected>=0&&(!priceInput.value.trim()||priceInput.value===autoprice)){
+     if(!rangeOnly&&currency&&!mismatch&&data.price!==null&&data.price!==undefined&&Number.isFinite(detected)&&detected>=0&&(!priceInput.value.trim()||priceInput.value===autoprice)){
        priceInput.value=String(detected);autoprice=priceInput.value;
      }
      if(data.imageData&&/^data:image\/(jpeg|png|webp);base64,/i.test(data.imageData)){
@@ -251,10 +252,19 @@
      preview.hidden=false;
      el('linkImportImage').hidden=!photoBlob;
      el('linkImportTitle').textContent=data.name||'Product link detected';
-     el('linkImportPrice').textContent=(data.price!==null&&data.price!==undefined?
-       ((currency||currentCurrency)+' '+data.price):'Price not found');
-     const complete=!!nameInput.value.trim()&&priceInput.value.trim()!==''&&!mismatch&&!!currency&&!!photoBlob;
-     if(mismatch)setStatus('Store currency '+currency+' differs from '+currentCurrency+'. Confirm the correct price.','warning');
+     const amount=value=>Number(value).toLocaleString('en-US',{maximumFractionDigits:2});
+     const rangeText=rangeOnly&&Number(data.lowPrice)>0?
+       (currency?currency+' ':'')+amount(data.lowPrice)+
+       (data.priceKind==='range'&&Number(data.highPrice)>Number(data.lowPrice)?
+         ' – '+amount(data.highPrice):'+'):null;
+     el('linkImportPrice').textContent=rangeText?
+       'Variant prices: '+rangeText:
+       (data.price!==null&&data.price!==undefined?
+         ((currency||'Currency unverified')+' '+data.price):'Price not found');
+     const complete=!rangeOnly&&!!nameInput.value.trim()&&priceInput.value.trim()!==''&&!mismatch&&!!currency&&!!photoBlob;
+     if(rangeOnly)setStatus('Price range detected: '+(rangeText||'multiple variants')+
+       '. Select your variant on the store and enter its exact price below. We will not automatically choose the lowest price.','warning');
+     else if(mismatch)setStatus('Store currency '+currency+' differs from '+currentCurrency+'. Confirm the correct price.','warning');
      else if(priceInput.value.trim()==='')setStatus('Price not detected. Enter a price below.','warning');
      else if(!nameInput.value.trim())setStatus('Name not detected. Enter a product name below.','warning');
      else if(!currency)setStatus('Store currency not verified. Confirm the correct price below.','warning');
