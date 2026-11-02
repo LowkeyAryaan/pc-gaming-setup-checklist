@@ -79,9 +79,10 @@
    const edit=create('button','detail-edit-button','Edit product');
    edit.type='button';
    edit.onclick=()=>{
-     buildEditForm(item,container,edit);
-     const form=container.querySelector('.editform');
-     if(form)form.scrollIntoView({behavior:'smooth',block:'nearest'});
+     const target=byId('editProductBody');target.replaceChildren();
+     byId('editSheetTitle').textContent='Edit product';
+     buildEditForm(item,target,edit);
+     window.openEditSheet();
    };
    const label=create('label','detail-notes-label','Notes');
    const note=create('textarea','detail-notes');
@@ -91,8 +92,16 @@
    label.append(note);
    container.append(image,header,price,specs,toggle,edit,label);
    if(item.url&&validUrl(item.url)){
-     const link=create('a','detail-shop-link','Open product listing ↗');
-     link.href=item.url;link.target='_self';link.rel='noopener noreferrer';container.append(link);
+     const listing=create('button','detail-listing-button','↗  Open product listing');
+     listing.type='button';
+     listing.setAttribute('aria-label','Open product listing for '+item.name);
+     listing.onclick=()=>{
+       // Android WebView intercepts external navigation and opens the browser.
+       const link=document.createElement('a');
+       link.href=item.url;link.target='_self';link.rel='noopener noreferrer';
+       link.click();
+     };
+     container.insertBefore(listing,label);
    }
    window.openDetailSheet();
  };
