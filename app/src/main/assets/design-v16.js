@@ -6,7 +6,7 @@
  const theme=document.createElement('link');
  theme.rel='stylesheet';theme.href='design-v16.css';document.head.append(theme);
 
- byId('quickAdd').addEventListener('click',()=>window.openProductSheet());
+
  const welcomeBackup=byId('welcomeBackup');
  if(welcomeBackup)welcomeBackup.addEventListener('click',()=>byId('importFile').click());
  window.addEventListener('backup-restored',()=>{
