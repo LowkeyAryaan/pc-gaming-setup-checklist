@@ -124,3 +124,10 @@
  .price-impact-state{font-size:.6rem;padding:7px 8px}
  .price-impact-comparison-cell{padding:12px 9px}
 }
+
+.item-detail-dialog .price-watch-reason{
+ font-size:.75rem;line-height:1.5;color:#e1cda5;
+ padding:10px 12px;margin:5px 0 12px;
+ border:1px solid rgba(255,218,155,.22);
+ border-radius:14px;background:rgba(83,67,38,.15);
+}
