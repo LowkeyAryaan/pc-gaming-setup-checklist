@@ -23,9 +23,10 @@ test('Native cover is dismissed only after the first WebView frames',()=>{
 });
 test('Artwork and words use the approved minimal identity',()=>{
  assert.match(java,/setText\("SETUP CHECKLIST"\)/);
- assert.match(java,/setImageResource\(R\.drawable\.ic_launcher_art\)/);
+ assert.match(java,/setImageResource\(R\.drawable\.brand_icon\)/);
  assert.match(html,/Plan\. Save\. Build\./);
- assert.match(html,/brand-mark\.svg/);
+ assert.match(html,/brand-icon\.webp/);
+ assert.match(html,/brand-wordmark\.webp/);
  assert.match(html,/Made by Aryaan/);
  assert.match(html,/@aryaan_creates/);
 });
@@ -47,4 +48,25 @@ test('Startup avoids unnecessary currency list and repeated whole-app repaint',(
  assert.match(glass,/do not rerender every/);
  assert.match(price,/No launch-time full render here/);
  assert.match(price,/const flushRefresh=/);
+});
+
+test('The approved uploaded logo is installed as actual Android and WebView artwork',()=>{
+ const base=path.join(__dirname,'../src/main');
+ const manifest=fs.readFileSync(path.join(base,'AndroidManifest.xml'),'utf8');
+ const splash=fs.readFileSync(path.join(base,'res/values-v31/styles.xml'),'utf8');
+ const icon=fs.readFileSync(path.join(base,'res/drawable-nodpi/brand_icon.webp'));
+ const iconWeb=fs.readFileSync(path.join(base,'assets/brand-icon.webp'));
+ const wordmark=fs.readFileSync(path.join(base,'assets/brand-wordmark.webp'));
+ const brandingCss=fs.readFileSync(path.join(base,'assets/brand-final.css'),'utf8');
+ assert.match(manifest,/android:icon="@drawable\/brand_icon"/);
+ assert.match(splash,/@drawable\/brand_icon/);
+ assert.equal(icon.subarray(0,4).toString('ascii'),'RIFF');
+ assert.equal(icon.subarray(8,12).toString('ascii'),'WEBP');
+ assert.deepEqual(icon,iconWeb);
+ assert.equal(wordmark.subarray(8,12).toString('ascii'),'WEBP');
+ assert.match(html,/header-brand-wordmark/);
+ assert.match(html,/welcome-brand-wordmark/);
+ assert.match(html,/href="brand-final\.css"/);
+ assert.match(brandingCss,/header-brand-wordmark/);
+ assert.match(brandingCss,/welcome-brand-wordmark/);
 });
